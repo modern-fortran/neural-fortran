@@ -1,0 +1,4 @@
+*.o
+*.mod
+build
+data/mnist/*.dat
