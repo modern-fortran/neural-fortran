@@ -1,5 +1,9 @@
 program example_mnist
 
+  ! A training example with the MNIST dataset.
+  ! Uses stochastic gradient descent and mini-batch size of 100.
+  ! Can be run in serial or parallel mode without modifications.
+
   use mod_kinds, only: ik, rk
   use mod_mnist, only: label_digits, load_mnist
   use mod_network, only: network_type
@@ -22,8 +26,8 @@ program example_mnist
 
   net = network_type([784, 30, 10])
 
-  batch_size = 1000
-  num_epochs = 10
+  batch_size = 100
+  num_epochs = 30
 
   if (this_image() == 1) then
     write(*, '(a,f5.2,a)') 'Initial accuracy: ',&
