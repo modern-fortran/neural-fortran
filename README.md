@@ -4,6 +4,21 @@ A parallel neural net microframework.
 Companion code to Chapter 6 of
 [Modern Fortran: Building Efficient Parallel Applications](https://www.manning.com/books/modern-fortran?a_aid=modernfortran&a_bid=2dc4d442).
 
+* [Features](https://github.com/modern-fortran/neural-fortran#features)
+* [Getting started](https://github.com/modern-fortran/neural-fortran#getting-started)
+  - [Building in serial mode](https://github.com/modern-fortran/neural-fortran#building-in-serial-mode)
+  - [Building in parallel mode](https://github.com/modern-fortran/neural-fortran#building-in-parallel-mode)
+  - [Building with a different compiler](https://github.com/modern-fortran/neural-fortran#building-with-a-different-compiler)
+  - [Building with BLAS or MKL](https://github.com/modern-fortran/neural-fortran#building-with-blas-or-mkl)
+  - [Building in double or quad precision](https://github.com/modern-fortran/neural-fortran#building-in-double-or-quad-precision)
+  - [Building in debug mode](https://github.com/modern-fortran/neural-fortran#building-in-debug-mode)
+* [Examples](https://github.com/modern-fortran/neural-fortran#examples)
+  - [Creating a network](https://github.com/modern-fortran/neural-fortran#creating-a-network)
+  - [Training the network](https://github.com/modern-fortran/neural-fortran#training-the-network)
+  - [Saving and loading from file](https://github.com/modern-fortran/neural-fortran#saving-and-loading-from-file)
+  - [MNIST training example](https://github.com/modern-fortran/neural-fortran#mnist-training-example)
+ * [Contributing](https://github.com/modern-fortran/neural-fortran#contributing)
+
 ## Features
 
 * Dense, fully connected neural networks of arbitrary shape and size
@@ -26,7 +41,7 @@ Dependencies:
 * OpenCoarrays (optional, for parallel execution, gfortran only)
 * BLAS, MKL (optional)
 
-Build like this:
+### Building in serial mode
 
 ```
 cd neural-fortran
@@ -49,15 +64,6 @@ in parallel, respectively:
 FC=caf cmake ..
 make
 cafrun -n 4 bin/example_mnist # run MNIST example on 4 cores
-```
-
-### Building in serial mode
-
-If you use gfortran and want to build neural-fortran in serial mode,
-configure using the following flag:
-
-```
-cmake .. -DSERIAL=1
 ```
 
 ### Building with a different compiler
