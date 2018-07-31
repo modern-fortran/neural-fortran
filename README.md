@@ -82,6 +82,22 @@ where the value of `-DBLAS` should point to the desired BLAS implementation,
 which has to be available in the linking path.
 This option is currently available only with gfortran.
 
+### Building in double or quad precision
+
+By default, neural-fortran is built in single precision mode
+(32-bit floating point numbers). Alternatively, you can configure to build
+in 64 or 128-bit floating point mode:
+
+```
+cmake .. -DREAL=64
+```
+
+or
+
+```
+cmake .. -DREAL=128
+```
+
 ### Building in debug mode
 
 To build with debugging flags enabled, type:
