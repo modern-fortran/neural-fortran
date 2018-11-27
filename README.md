@@ -1,8 +1,6 @@
 # neural-fortran
 
 A parallel neural net microframework.
-Companion code to Chapter 6 of
-[Modern Fortran: Building Efficient Parallel Applications](https://www.manning.com/books/modern-fortran?a_aid=modernfortran&a_bid=2dc4d442).
 
 * [Features](https://github.com/modern-fortran/neural-fortran#features)
 * [Getting started](https://github.com/modern-fortran/neural-fortran#getting-started)
