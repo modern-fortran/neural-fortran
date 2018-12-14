@@ -87,7 +87,7 @@ contains
     ! pointer with it.
     real(rk), intent(in) :: x(:)
     real(rk) :: res(size(x))
-    res = 1 - tanh(x)**2
+    res = tanh(x)
   end function tanhf
 
   pure function tanh_prime(x) result(res)
