@@ -63,7 +63,11 @@ contains
     integer(ik), intent(in) :: dims(:)
     character(len=*), intent(in), optional :: activation
     call net % init(dims)
-    call net % set_activation(activation)
+    if (present(activation)) then
+      call net % set_activation(activation)
+    else
+      call net % set_activation('sigmoid')
+    end if
     call net % sync(1)
   end function net_constructor
 
@@ -206,7 +210,7 @@ contains
     ! provided activation functions, otherwise it defaults to sigmoid.
     ! If activation not present, defaults to sigmoid.
     class(network_type), intent(in out) :: self
-    character(len=*), intent(in), optional :: activation
+    character(len=*), intent(in) :: activation
     select case(trim(activation))
       case('gaussian')
         self % activation => gaussian
