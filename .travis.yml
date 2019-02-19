@@ -6,8 +6,6 @@ git:
   depth: 3
   quiet: true
 
-env: FC=gfortran
-
 addons:
   apt:
     sources: ubuntu-toolchain-r-test
@@ -17,6 +15,9 @@ matrix:
   include:
   - os: linux
     env: FC=gfortran-8
+
+before_install:
+- cd data/mnist && tar xzvf mnist.tar.gz && cd -
 
 install:
 - mkdir build
