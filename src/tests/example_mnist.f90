@@ -24,10 +24,10 @@ program example_mnist
   call load_mnist(tr_images, tr_labels, te_images,&
                   te_labels, va_images, va_labels)
 
-  net = network_type([784, 30, 10])
+  net = network_type([784, 10, 10])
 
-  batch_size = 100
-  num_epochs = 30
+  batch_size = 1000
+  num_epochs = 10
 
   if (this_image() == 1) then
     write(*, '(a,f5.2,a)') 'Initial accuracy: ',&
