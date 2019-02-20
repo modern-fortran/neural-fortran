@@ -2,6 +2,7 @@ module mod_layer
 
   ! Defines the layer type and its methods.
 
+  use mod_activation, only: activation_function
   use mod_kinds, only: ik, rk
   use mod_random, only: randn
 
@@ -15,6 +16,8 @@ module mod_layer
     real(rk), allocatable :: b(:) ! biases
     real(rk), allocatable :: w(:,:) ! weights
     real(rk), allocatable :: z(:) ! arg. to activation function
+    procedure(activation_function), pointer, nopass :: activation => null()
+    procedure(activation_function), pointer, nopass :: activation_prime => null()
   end type layer_type
 
   type :: array1d
