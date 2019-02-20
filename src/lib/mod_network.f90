@@ -1,6 +1,7 @@
 module mod_network
 
-  use mod_activation, only: gaussian, gaussian_prime,&
+  use mod_activation, only: activation_function,&
+                            gaussian, gaussian_prime,&
                             relu, relu_prime,&
                             sigmoid, sigmoid_prime,&
                             step, step_prime,&
@@ -45,14 +46,6 @@ module mod_network
   interface network_type
     module procedure :: net_constructor
   endinterface network_type
-
-  interface
-    pure function activation_function(x)
-      import :: rk
-      real(rk), intent(in) :: x(:)
-      real(rk) :: activation_function(size(x))
-    end function activation_function
-  end interface
 
 contains
 
