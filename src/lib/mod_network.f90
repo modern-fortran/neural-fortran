@@ -204,6 +204,8 @@ contains
     ! If activation not present, defaults to sigmoid.
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: activation
+    integer :: n
+
     select case(trim(activation))
       case('gaussian')
         self % activation => gaussian
@@ -224,6 +226,11 @@ contains
         self % activation => sigmoid
         self % activation_prime => sigmoid_prime
     end select
+
+    do concurrent(n = 1:size(self % layers))
+      call self % layers(n) % set_activation(activation)
+    end do
+
   end subroutine set_activation
 
   subroutine sync(self, image)
