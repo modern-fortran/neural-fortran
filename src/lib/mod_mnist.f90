@@ -43,7 +43,7 @@ contains
     ! Loads the MNIST dataset into arrays.
     real(rk), allocatable, intent(in out) :: tr_images(:,:), tr_labels(:)
     real(rk), allocatable, intent(in out) :: te_images(:,:), te_labels(:)
-    real(rk), allocatable, intent(in out) :: va_images(:,:), va_labels(:)
+    real(rk), allocatable, intent(in out), optional :: va_images(:,:), va_labels(:)
     integer(ik), parameter :: dtype = 4, image_size = 784
     integer(ik), parameter :: tr_nimages = 50000
     integer(ik), parameter :: te_nimages = 10000
@@ -59,10 +59,12 @@ contains
     call read_binary_file('../data/mnist/mnist_testing_labels.dat',&
                           dtype, te_nimages, te_labels)
 
-    call read_binary_file('../data/mnist/mnist_validation_images.dat',&
-                          dtype, image_size, va_nimages, va_images)
-    call read_binary_file('../data/mnist/mnist_validation_labels.dat',&
-                          dtype, va_nimages, va_labels)
+    if (present(va_images) .and. present(va_labels)) then
+      call read_binary_file('../data/mnist/mnist_validation_images.dat',&
+                            dtype, image_size, va_nimages, va_images)
+      call read_binary_file('../data/mnist/mnist_validation_labels.dat',&
+                            dtype, va_nimages, va_labels)
+    end if
 
   end subroutine load_mnist
 
