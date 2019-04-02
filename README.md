@@ -309,6 +309,26 @@ for example on 16 cores using [OpenCoarrays](https://github.com/sourceryinstitut
 $ cafrun -n 16 ./example_mnist
 ```
 
+### Montesinos-Lopez et al. (2018) example
+
+The Montesinos-Lopez et al. (2018) example is extracted from the study:
+
+```
+Montesinos-Lopez et al. 2018. Multi-environment genomic prediction of plant traits using deep learners with dense architecture. G3, 8, 3813-3828.
+```
+
+This example uses the data from the dataset "Data\_Maize\_1to3", and was extracted using the R code in the Appendix.
+
+
+The Montesinos-Lopez data is included with the repo and you will have to unpack it first:
+
+```
+cd data/montesinos_uni
+tar xzvf montesinos_uni.tar.gz
+cd -
+```
+
+
 ## Contributing
 
 neural-fortran is currently a proof-of-concept with potential for
