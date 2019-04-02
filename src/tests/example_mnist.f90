@@ -20,7 +20,7 @@ program example_mnist
 
   call load_mnist(tr_images, tr_labels, te_images, te_labels)
 
-  net = network_type([784, 10, 10])
+  net = network_type([size(tr_images,dim=1), 10, size(label_digits(te_labels),dim=1)])
 
   batch_size = 1000
   num_epochs = 10
