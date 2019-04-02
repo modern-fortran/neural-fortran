@@ -26,11 +26,13 @@ module mod_network
 
     procedure, public, pass(self) :: accuracy
     procedure, public, pass(self) :: backprop
+    procedure, public, pass(self) :: fit_batch
     procedure, public, pass(self) :: fwdprop
     procedure, public, pass(self) :: init
     procedure, public, pass(self) :: load
     procedure, public, pass(self) :: loss
     procedure, public, pass(self) :: output
+    procedure, public, pass(self) :: predict_batch
     procedure, public, pass(self) :: save
     procedure, public, pass(self) :: set_activation
     procedure, public, pass(self) :: sync
@@ -38,6 +40,8 @@ module mod_network
     procedure, public, pass(self) :: train_single
     procedure, public, pass(self) :: update
 
+    generic, public :: fit => fit_batch!, train_single
+    generic, public :: predict => predict_batch!, train_single
     generic, public :: train => train_batch, train_single
 
   end type network_type
@@ -117,6 +121,39 @@ contains
 
   end subroutine backprop
 
+  subroutine fit_batch(self, x, y, eta,epochs,batch_size)
+    class(network_type), intent(in out) :: self
+    integer(ik),intent(in),optional::epochs,batch_size
+    real(rk), intent(in) :: x(:,:), y(:,:), eta
+
+    integer(ik)::i,n,nsamples,nbatch
+    integer(ik)::num_epochs,num_batch_size
+    integer(ik)::batch_start,batch_end
+
+    nsamples=size(y,dim=2)
+
+    num_epochs=1
+    if(present(epochs))num_epochs=epochs
+
+    num_batch_size=nsamples
+    if(present(batch_size))num_batch_size=batch_size
+
+    nbatch=nsamples/num_batch_size
+
+    epoch: do n=1,num_epochs
+     batch_end=0
+     mini_batches: do i=1,nbatch
+      batch_start=batch_end+1
+      batch_end=batch_start+batch_size-1
+      if(i.eq.nbatch)batch_end=nsamples
+   
+      call self%train(x(:,batch_start:batch_end),y(:,batch_start:batch_end),eta)
+       
+     enddo mini_batches
+    enddo epoch
+
+  end subroutine
+
   pure subroutine fwdprop(self, x)
     ! Performs the forward propagation and stores arguments to activation
     ! functions and activations themselves for use in backprop.
@@ -187,6 +224,20 @@ contains
       end do
     end associate
   end function output
+
+  pure function predict_batch(self, x) result(a)
+    class(network_type), intent(in) :: self
+    real(rk), intent(in) :: x(:,:)
+    real(rk), allocatable :: a(:,:)
+
+    integer(ik) :: i
+
+    allocate(a(self%dims(size(self%dims)),size(x,dim=2)))
+    do i = 1, size(x, dim=2)
+     a(:,i)=self%output(x(:,i))
+    enddo
+ 
+  end function predict_batch
 
   subroutine save(self, filename)
     ! Saves the network to a file.

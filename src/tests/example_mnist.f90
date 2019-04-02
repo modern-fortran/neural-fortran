@@ -12,14 +12,11 @@ program example_mnist
 
   real(rk), allocatable :: tr_images(:,:), tr_labels(:)
   real(rk), allocatable :: te_images(:,:), te_labels(:)
-  !real(rk), allocatable :: va_images(:,:), va_labels(:)
-  real(rk), allocatable :: input(:,:), output(:,:)
 
   type(network_type) :: net
 
   integer(ik) :: i, n, num_epochs
-  integer(ik) :: batch_size, batch_start, batch_end
-  real(rk) :: pos
+  integer(ik) :: batch_size
 
   call load_mnist(tr_images, tr_labels, te_images, te_labels)
 
@@ -33,28 +30,12 @@ program example_mnist
       net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
   end if
 
-  epochs: do n = 1, num_epochs
-    mini_batches: do i = 1, size(tr_labels) / batch_size
+  call net%fit(tr_images,label_digits(tr_labels),eta=3._rk,epochs=num_epochs,batch_size=batch_size)
+   
+  if (this_image() == 1) then
+    write(*, '(a,f5.2,a)') 'Epochs done, Accuracy: ',&
+     net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
+  endif
 
-      ! pull a random mini-batch from the dataset
-      call random_number(pos)
-      batch_start = int(pos * (size(tr_labels) - batch_size + 1))
-      batch_end = batch_start + batch_size - 1
-
-      ! prepare mini-batch
-      input = tr_images(:,batch_start:batch_end)
-      output = label_digits(tr_labels(batch_start:batch_end))
-
-      ! train the network on the mini-batch
-      call net % train(input, output, eta=3._rk)
-
-    end do mini_batches
-
-    if (this_image() == 1) then
-      write(*, '(a,i2,a,f5.2,a)') 'Epoch ', n, ' done, Accuracy: ',&
-        net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
-    end if
-
-  end do epochs
 
 end program example_mnist
