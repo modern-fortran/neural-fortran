@@ -122,6 +122,7 @@ contains
   end subroutine backprop
 
   subroutine fit_batch(self, x, y, eta,epochs,batch_size)
+    !Performs the training for n epochs with mini-bachtes of size equal to batch_size
     class(network_type), intent(in out) :: self
     integer(ik),intent(in),optional::epochs,batch_size
     real(rk), intent(in) :: x(:,:), y(:,:), eta
@@ -129,6 +130,8 @@ contains
     integer(ik)::i,n,nsamples,nbatch
     integer(ik)::num_epochs,num_batch_size
     integer(ik)::batch_start,batch_end
+
+    real(rk)::pos
 
     nsamples=size(y,dim=2)
 
@@ -141,11 +144,13 @@ contains
     nbatch=nsamples/num_batch_size
 
     epoch: do n=1,num_epochs
-     batch_end=0
      mini_batches: do i=1,nbatch
-      batch_start=batch_end+1
+      
+      !pull a random mini-batch from the dataset  
+      call random_number(pos)
+      batch_start=int(pos*(nsamples-num_batch_size+1))
+      if(batch_start.eq.0)batch_start=1
       batch_end=batch_start+batch_size-1
-      if(i.eq.nbatch)batch_end=nsamples
    
       call self%train(x(:,batch_start:batch_end),y(:,batch_start:batch_end),eta)
        
