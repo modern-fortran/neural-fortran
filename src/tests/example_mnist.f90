@@ -12,7 +12,7 @@ program example_mnist
 
   real(rk), allocatable :: tr_images(:,:), tr_labels(:)
   real(rk), allocatable :: te_images(:,:), te_labels(:)
-  real(rk), allocatable :: va_images(:,:), va_labels(:)
+  !real(rk), allocatable :: va_images(:,:), va_labels(:)
   real(rk), allocatable :: input(:,:), output(:,:)
 
   type(network_type) :: net
@@ -21,8 +21,7 @@ program example_mnist
   integer(ik) :: batch_size, batch_start, batch_end
   real(rk) :: pos
 
-  call load_mnist(tr_images, tr_labels, te_images,&
-                  te_labels, va_images, va_labels)
+  call load_mnist(tr_images, tr_labels, te_images, te_labels)
 
   net = network_type([784, 10, 10])
 
