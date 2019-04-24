@@ -22,7 +22,7 @@ program example_montesinos_uni
  num_epochs=20
 
  !training
- call net%fit(x_tr,y_tr,3._rk,epochs=num_epochs,batch_size=batch_size)
+ call net%train(x_tr,y_tr,3._rk,num_epochs,batch_size)
 
  call net%sync(1)
 
@@ -31,7 +31,7 @@ program example_montesinos_uni
  call readfile('../data/montesinos_uni/x_ts.dat',nx1_ts,nx2_ts,x_ts)
 
  if(this_image().eq.1)then
-  write(*,*)'Correlation(s): ',corr_array(net%predict(x_ts),y_ts)
+  write(*,*)'Correlation(s): ',corr_array(net%output(x_ts),y_ts)
  endif
 
 contains
