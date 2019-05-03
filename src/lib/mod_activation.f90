@@ -8,11 +8,20 @@ module mod_activation
 
   private
 
+  public :: activation_function
   public :: gaussian, gaussian_prime
   public :: relu, relu_prime
   public :: sigmoid, sigmoid_prime
   public :: step, step_prime
   public :: tanhf, tanh_prime
+
+  interface
+    pure function activation_function(x)
+      import :: rk
+      real(rk), intent(in) :: x(:)
+      real(rk) :: activation_function(size(x))
+    end function activation_function
+  end interface
 
 contains
 

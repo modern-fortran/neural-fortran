@@ -118,7 +118,8 @@ cmake .. -DCMAKE_BUILD_TYPE=debug
 
 ### Creating a network
 
-Creating a network with 3 layers (one hidden layer)
+Creating a network with 3 layers,
+one input, one hidden, and one output layer,
 with 3, 5, and 2 neurons each:
 
 ```fortran
@@ -127,8 +128,10 @@ type(network_type) :: net
 net = network_type([3, 5, 2])
 ```
 
+### Setting the activation function
+
 By default, the network will be initialized with the sigmoid activation
-function. You can specify a different activation function:
+function for all layers. You can specify a different activation function:
 
 ```fortran
 net = network_type([3, 5, 2], activation='tanh')
@@ -139,6 +142,16 @@ or set it after the fact:
 ```fortran
 net = network_type([3, 5, 2])
 call net % set_activation('tanh')
+```
+
+It's possible to set different activation functions for each layer.
+For example, this snippet will create a network with a Gaussian
+activation functions for all layers except the output layer,
+and a RELU function for the output layer:
+
+```fortran
+net = network_type([3, 5, 2], activation='gaussian')
+call net % layers(3) % set_activation('relu')
 ```
 
 Available activation function options are: `gaussian`, `relu`, `sigmoid`,
