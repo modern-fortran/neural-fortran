@@ -164,6 +164,7 @@ contains
 
   pure function output_single(self, x) result(a)
     ! Use forward propagation to compute the output of the network.
+    ! This specific procedure is for a single sample of 1-d input data.
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:)
     real(rk), allocatable :: a(:)
@@ -177,17 +178,16 @@ contains
   end function output_single
 
   pure function output_batch(self, x) result(a)
+    ! Use forward propagation to compute the output of the network.
+    ! This specific procedure is for a batch of 1-d input data.
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:,:)
     real(rk), allocatable :: a(:,:)
-
     integer(ik) :: i
-
-    allocate(a(self%dims(size(self%dims)),size(x,dim=2)))
+    allocate(a(self % dims(size(self % dims)), size(x, dim=2)))
     do i = 1, size(x, dim=2)
-     a(:,i)=self%output(x(:,i))
-    enddo
- 
+     a(:,i) = self % output_single(x(:,i))
+    end do
   end function output_batch
 
   subroutine save(self, filename)
@@ -272,31 +272,30 @@ contains
 
   end subroutine train_batch
 
-  subroutine train_epochs(self, x, y, eta,num_epochs,num_batch_size)
-    !Performs the training for nun_epochs epochs with mini-bachtes of size equal to num_batch_size
+  subroutine train_epochs(self, x, y, eta, num_epochs, batch_size)
+    ! Trains for num_epochs epochs with mini-bachtes of size equal to batch_size.
     class(network_type), intent(in out) :: self
-    integer(ik),intent(in)::num_epochs,num_batch_size
+    integer(ik), intent(in) :: num_epochs, batch_size
     real(rk), intent(in) :: x(:,:), y(:,:), eta
 
-    integer(ik)::i,n,nsamples,nbatch
-    integer(ik)::batch_start,batch_end
+    integer(ik) :: i, n, nsamples, nbatch
+    integer(ik) :: batch_start, batch_end
 
-    real(rk)::pos
+    real(rk) :: pos
 
-    nsamples=size(y,dim=2)
+    nsamples = size(y, dim=2)
+    nbatch = nsamples / batch_size
 
-    nbatch=nsamples/num_batch_size
-
-    epoch: do n=1,num_epochs
-     mini_batches: do i=1,nbatch
+    epoch: do n = 1, num_epochs
+     mini_batches: do i = 1, nbatch
       
       !pull a random mini-batch from the dataset  
       call random_number(pos)
-      batch_start=int(pos*(nsamples-num_batch_size+1))
-      if(batch_start.eq.0)batch_start=1
-      batch_end=batch_start+num_batch_size-1
+      batch_start = int(pos * (nsamples - batch_size + 1))
+      if (batch_start == 0) batch_start = 1
+      batch_end = batch_start + batch_size - 1
    
-      call self%train(x(:,batch_start:batch_end),y(:,batch_start:batch_end),eta)
+      call self % train(x(:,batch_start:batch_end), y(:,batch_start:batch_end), eta)
        
      enddo mini_batches
     enddo epoch

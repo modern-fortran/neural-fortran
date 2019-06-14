@@ -30,12 +30,11 @@ program example_mnist
       net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
   end if
 
-  call net%train(tr_images,label_digits(tr_labels),3._rk,num_epochs,batch_size)
+  call net % train(tr_images, label_digits(tr_labels), 3._rk, num_epochs, batch_size)
    
   if (this_image() == 1) then
     write(*, '(a,f5.2,a)') 'Epochs done, Accuracy: ',&
      net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
   endif
-
 
 end program example_mnist
