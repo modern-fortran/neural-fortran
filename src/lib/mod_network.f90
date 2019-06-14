@@ -23,15 +23,18 @@ module mod_network
     procedure, public, pass(self) :: init
     procedure, public, pass(self) :: load
     procedure, public, pass(self) :: loss
-    procedure, public, pass(self) :: output
+    procedure, public, pass(self) :: output_batch
+    procedure, public, pass(self) :: output_single
     procedure, public, pass(self) :: save
     procedure, public, pass(self) :: set_activation
     procedure, public, pass(self) :: sync
     procedure, public, pass(self) :: train_batch
+    procedure, public, pass(self) :: train_epochs
     procedure, public, pass(self) :: train_single
     procedure, public, pass(self) :: update
 
-    generic, public :: train => train_batch, train_single
+    generic, public :: output => output_batch, output_single
+    generic, public :: train => train_batch, train_epochs, train_single
 
   end type network_type
 
@@ -159,7 +162,7 @@ contains
     loss = 0.5 * sum((y - self % output(x))**2) / size(x)
   end function loss
 
-  pure function output(self, x) result(a)
+  pure function output_single(self, x) result(a)
     ! Use forward propagation to compute the output of the network.
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:)
@@ -171,7 +174,21 @@ contains
         a = self % layers(n) % activation(matmul(transpose(layers(n-1) % w), a) + layers(n) % b)
       end do
     end associate
-  end function output
+  end function output_single
+
+  pure function output_batch(self, x) result(a)
+    class(network_type), intent(in) :: self
+    real(rk), intent(in) :: x(:,:)
+    real(rk), allocatable :: a(:,:)
+
+    integer(ik) :: i
+
+    allocate(a(self%dims(size(self%dims)),size(x,dim=2)))
+    do i = 1, size(x, dim=2)
+     a(:,i)=self%output(x(:,i))
+    enddo
+ 
+  end function output_batch
 
   subroutine save(self, filename)
     ! Saves the network to a file.
@@ -254,6 +271,37 @@ contains
     call self % update(dw_batch, db_batch, eta / im)
 
   end subroutine train_batch
+
+  subroutine train_epochs(self, x, y, eta,num_epochs,num_batch_size)
+    !Performs the training for nun_epochs epochs with mini-bachtes of size equal to num_batch_size
+    class(network_type), intent(in out) :: self
+    integer(ik),intent(in)::num_epochs,num_batch_size
+    real(rk), intent(in) :: x(:,:), y(:,:), eta
+
+    integer(ik)::i,n,nsamples,nbatch
+    integer(ik)::batch_start,batch_end
+
+    real(rk)::pos
+
+    nsamples=size(y,dim=2)
+
+    nbatch=nsamples/num_batch_size
+
+    epoch: do n=1,num_epochs
+     mini_batches: do i=1,nbatch
+      
+      !pull a random mini-batch from the dataset  
+      call random_number(pos)
+      batch_start=int(pos*(nsamples-num_batch_size+1))
+      if(batch_start.eq.0)batch_start=1
+      batch_end=batch_start+num_batch_size-1
+   
+      call self%train(x(:,batch_start:batch_end),y(:,batch_start:batch_end),eta)
+       
+     enddo mini_batches
+    enddo epoch
+
+  end subroutine train_epochs
 
   pure subroutine train_single(self, x, y, eta)
     ! Trains a network using a single set of input data x and output data y,
