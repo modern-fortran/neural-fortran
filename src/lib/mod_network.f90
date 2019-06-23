@@ -25,12 +25,14 @@ module mod_network
     procedure, public, pass(self) :: loss
     procedure, public, pass(self) :: output
     procedure, public, pass(self) :: save
-    procedure, public, pass(self) :: set_activation
+    procedure, public, pass(self) :: set_activation_equal
+    procedure, public, pass(self) :: set_activation_layers
     procedure, public, pass(self) :: sync
     procedure, public, pass(self) :: train_batch
     procedure, public, pass(self) :: train_single
     procedure, public, pass(self) :: update
 
+    generic, public :: set_activation => set_activation_equal, set_activation_layers
     generic, public :: train => train_batch, train_single
 
   end type network_type
@@ -136,13 +138,18 @@ contains
     ! Loads the network from file.
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: filename
-    integer(ik) :: fileunit, n, num_layers
+    integer(ik) :: fileunit, n, num_layers, layer_idx
     integer(ik), allocatable :: dims(:)
+    character(len=100) :: buffer ! activation string
     open(newunit=fileunit, file=filename, status='old', action='read')
     read(fileunit, fmt=*) num_layers
     allocate(dims(num_layers))
     read(fileunit, fmt=*) dims
     call self % init(dims)
+    do n = 1, num_layers
+      read(fileunit, fmt=*) layer_idx, buffer
+      call self % layers(layer_idx) % set_activation(trim(buffer))
+    end do
     do n = 2, size(self % dims)
       read(fileunit, fmt=*) self % layers(n) % b
     end do
@@ -181,6 +188,9 @@ contains
     open(newunit=fileunit, file=filename)
     write(fileunit, fmt=*) size(self % dims)
     write(fileunit, fmt=*) self % dims
+    do n = 1, size(self % dims)
+      write(fileunit, fmt=*) n, self % layers(n) % activation_str
+    end do
     do n = 2, size(self % dims)
       write(fileunit, fmt=*) self % layers(n) % b
     end do
@@ -190,17 +200,23 @@ contains
     close(fileunit)
   end subroutine save
 
-  pure subroutine set_activation(self, activation)
+  pure subroutine set_activation_equal(self, activation)
     ! A thin wrapper around layer % set_activation().
     ! This method can be used to set an activation function
     ! for all layers at once. 
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: activation
-    integer :: n
-    do concurrent(n = 1:size(self % layers))
-      call self % layers(n) % set_activation(activation)
-    end do
-  end subroutine set_activation
+    call self % layers(:) % set_activation(activation)
+  end subroutine set_activation_equal
+
+  pure subroutine set_activation_layers(self, activation)
+    ! A thin wrapper around layer % set_activation().
+    ! This method can be used to set different activation functions
+    ! for each layer separately. 
+    class(network_type), intent(in out) :: self
+    character(len=*), intent(in) :: activation(size(self%layers))
+    call self % layers(:) % set_activation(activation)
+  end subroutine set_activation_layers
 
   subroutine sync(self, image)
     ! Broadcasts network weights and biases from
