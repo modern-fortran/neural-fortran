@@ -14,8 +14,7 @@ program test_network_save
   do n = 1, size(net1 % layers)
     print *, 'Layer ', n, ', weights equal: ',&
       all(net1 % layers(n) % w == net2 % layers(n) % w),&
-      ', biases equal:', all(net1 % layers(n) % b == net2 % layers(n) % b),&
-      ', activation functions equal:', net1 % layers(n) % activation_str == net2 % layers(n) % activation_str
+      ', biases equal:', all(net1 % layers(n) % b == net2 % layers(n) % b)
   end do
   print *, ''
 
@@ -27,7 +26,7 @@ program test_network_save
   print *, 'Load network 2 from file'
   do n = 1, size(net1 % layers)
     print *, 'Layer ', n, ', activation functions equal:',&
-     net1 % layers(n) % activation_str == net2 % layers(n) % activation_str,&
-     '(network 1 - ', net1 % layers(n) % activation_str, ', network 2 - ', net2 % layers(n) % activation_str,')'
+     associated(net1 % layers(n) % activation, net2 % layers(n) % activation),&
+     '(network 1: ', net1 % layers(n) % activation_str, ', network 2: ', net2 % layers(n) % activation_str,')'
   end do  
 end program test_network_save
