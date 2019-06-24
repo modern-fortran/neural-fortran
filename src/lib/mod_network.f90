@@ -214,7 +214,7 @@ contains
     ! This method can be used to set different activation functions
     ! for each layer separately. 
     class(network_type), intent(in out) :: self
-    character(len=*), intent(in) :: activation(size(self%layers))
+    character(len=*), intent(in) :: activation(size(self % layers))
     call self % layers(:) % set_activation(activation)
   end subroutine set_activation_layers
 
