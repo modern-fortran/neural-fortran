@@ -31,6 +31,13 @@ else()
   add_definitions(-DREAL32)
 endif()
 
+if(SERIAL)
+  message(STATUS "Configuring build for serial execution")
+else()
+  message(STATUS "Configuring build for parallel execution")
+  add_definitions(-DCAF)
+endif()
+
 # compiler flags for gfortran
 if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
 
@@ -52,9 +59,15 @@ endif()
 
 # compiler flags for ifort
 if(CMAKE_Fortran_COMPILER_ID MATCHES Intel)
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -coarray=shared -fpp -assume byterecl,realloc_lhs -heap-arrays")
+
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fpp -assume byterecl,realloc_lhs -heap-arrays")
   set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -C -traceback")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
+
+  if(NOT SERIAL)
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -coarray=shared")
+  endif()
+
 endif()
 
 # compiler flags for Cray ftn
