@@ -18,6 +18,7 @@ module mod_layer
     real(rk), allocatable :: z(:) ! arg. to activation function
     procedure(activation_function), pointer, nopass :: activation => null()
     procedure(activation_function), pointer, nopass :: activation_prime => null()
+    character(len=:), allocatable :: activation_str ! activation character string
   contains
     procedure, public, pass(self) :: set_activation
   end type layer_type
@@ -102,7 +103,9 @@ contains
     type(array1d), allocatable, intent(in out) :: db(:)
     integer(ik) :: n
     do n = 2, size(db)
+#ifdef CAF
       call co_sum(db(n) % array)
+#endif
     end do
   end subroutine db_co_sum
 
@@ -111,11 +114,13 @@ contains
     type(array2d), allocatable, intent(in out) :: dw(:)
     integer(ik) :: n
     do n = 1, size(dw) - 1
+#ifdef CAF
       call co_sum(dw(n) % array)
+#endif
     end do
   end subroutine dw_co_sum
 
-  pure subroutine set_activation(self, activation)
+  pure elemental subroutine set_activation(self, activation)
     ! Sets the activation function. Input string must match one of
     ! provided activation functions, otherwise it defaults to sigmoid.
     ! If activation not present, defaults to sigmoid.
@@ -125,21 +130,27 @@ contains
       case('gaussian')
         self % activation => gaussian
         self % activation_prime => gaussian_prime
+        self % activation_str = 'gaussian'
       case('relu')
         self % activation => relu
         self % activation_prime => relu_prime
+        self % activation_str = 'relu'
       case('sigmoid')
         self % activation => sigmoid
         self % activation_prime => sigmoid_prime
+        self % activation_str = 'sigmoid'
       case('step')
         self % activation => step
         self % activation_prime => step_prime
+        self % activation_str = 'step'
       case('tanh')
         self % activation => tanhf
         self % activation_prime => tanh_prime
+        self % activation_str = 'tanh'
       case default
         self % activation => sigmoid
         self % activation_prime => sigmoid_prime
+        self % activation_str = 'sigmoid'
     end select
   end subroutine set_activation
 
