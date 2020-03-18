@@ -61,6 +61,7 @@ contains
     call net % sync(1)
   end function net_constructor
 
+
   pure real(rk) function accuracy(self, x, y)
     ! Given input x and output y, evaluates the position of the
     ! maximum value of the output and returns the number of matches
@@ -76,6 +77,7 @@ contains
     end do
     accuracy = real(good) / size(x, dim=2)
   end function accuracy
+
 
   pure subroutine backprop(self, y, dw, db)
     ! Applies a backward propagation through the network
@@ -107,6 +109,7 @@ contains
 
   end subroutine backprop
 
+
   pure subroutine fwdprop(self, x)
     ! Performs the forward propagation and stores arguments to activation
     ! functions and activations themselves for use in backprop.
@@ -121,6 +124,7 @@ contains
       end do
     end associate
   end subroutine fwdprop
+
 
   subroutine init(self, dims)
     ! Allocates and initializes the layers with given dimensions dims.
@@ -137,6 +141,7 @@ contains
     self % layers(size(dims)) % w = 0
   end subroutine init
 
+
   subroutine load(self, filename)
     ! Loads the network from file.
     class(network_type), intent(in out) :: self
@@ -145,22 +150,23 @@ contains
     integer(ik), allocatable :: dims(:)
     character(len=100) :: buffer ! activation string
     open(newunit=fileunit, file=filename, status='old', action='read')
-    read(fileunit, fmt=*) num_layers
+    read(fileunit, *) num_layers
     allocate(dims(num_layers))
-    read(fileunit, fmt=*) dims
+    read(fileunit, *) dims
     call self % init(dims)
     do n = 1, num_layers
-      read(fileunit, fmt=*) layer_idx, buffer
+      read(fileunit, *) layer_idx, buffer
       call self % layers(layer_idx) % set_activation(trim(buffer))
     end do
     do n = 2, size(self % dims)
-      read(fileunit, fmt=*) self % layers(n) % b
+      read(fileunit, *) self % layers(n) % b
     end do
     do n = 1, size(self % dims) - 1
-      read(fileunit, fmt=*) self % layers(n) % w
+      read(fileunit, *) self % layers(n) % w
     end do
     close(fileunit)
   end subroutine load
+
 
   pure real(rk) function loss(self, x, y)
     ! Given input x and expected output y, returns the loss of the network.
@@ -168,6 +174,7 @@ contains
     real(rk), intent(in) :: x(:), y(:)
     loss = 0.5 * sum((y - self % output(x))**2) / size(x)
   end function loss
+
 
   pure function output_single(self, x) result(a)
     ! Use forward propagation to compute the output of the network.
@@ -184,6 +191,7 @@ contains
     end associate
   end function output_single
 
+
   pure function output_batch(self, x) result(a)
     ! Use forward propagation to compute the output of the network.
     ! This specific procedure is for a batch of 1-d input data.
@@ -196,6 +204,7 @@ contains
      a(:,i) = self % output_single(x(:,i))
     end do
   end function output_batch
+
 
   subroutine save(self, filename)
     ! Saves the network to a file.
@@ -217,6 +226,7 @@ contains
     close(fileunit)
   end subroutine save
 
+
   pure subroutine set_activation_equal(self, activation)
     ! A thin wrapper around layer % set_activation().
     ! This method can be used to set an activation function
@@ -225,6 +235,7 @@ contains
     character(len=*), intent(in) :: activation
     call self % layers(:) % set_activation(activation)
   end subroutine set_activation_equal
+
 
   pure subroutine set_activation_layers(self, activation)
     ! A thin wrapper around layer % set_activation().
@@ -249,6 +260,7 @@ contains
 #endif
     end do layers
   end subroutine sync
+
 
   subroutine train_batch(self, x, y, eta)
     ! Trains a network using input data x and output data y,
@@ -290,6 +302,7 @@ contains
 
   end subroutine train_batch
 
+
   subroutine train_epochs(self, x, y, eta, num_epochs, batch_size)
     ! Trains for num_epochs epochs with mini-bachtes of size equal to batch_size.
     class(network_type), intent(in out) :: self
@@ -320,6 +333,7 @@ contains
 
   end subroutine train_epochs
 
+
   pure subroutine train_single(self, x, y, eta)
     ! Trains a network using a single set of input data x and output data y,
     ! and learning rate eta.
@@ -331,6 +345,7 @@ contains
     call self % backprop(y, dw, db)
     call self % update(dw, db, eta)
   end subroutine train_single
+
 
   pure subroutine update(self, dw, db, eta)
     ! Updates network weights and biases with gradients dw and db,
