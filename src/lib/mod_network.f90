@@ -23,23 +23,26 @@ module mod_network
     procedure, public, pass(self) :: init
     procedure, public, pass(self) :: load
     procedure, public, pass(self) :: loss
-    procedure, public, pass(self) :: output
+    procedure, public, pass(self) :: output_batch
+    procedure, public, pass(self) :: output_single
     procedure, public, pass(self) :: save
     procedure, public, pass(self) :: set_activation_equal
     procedure, public, pass(self) :: set_activation_layers
     procedure, public, pass(self) :: sync
     procedure, public, pass(self) :: train_batch
+    procedure, public, pass(self) :: train_epochs
     procedure, public, pass(self) :: train_single
     procedure, public, pass(self) :: update
 
+    generic, public :: output => output_batch, output_single
     generic, public :: set_activation => set_activation_equal, set_activation_layers
-    generic, public :: train => train_batch, train_single
+    generic, public :: train => train_batch, train_epochs, train_single
 
   end type network_type
 
   interface network_type
     module procedure :: net_constructor
-  endinterface network_type
+  end interface network_type
 
 contains
 
@@ -58,6 +61,7 @@ contains
     call net % sync(1)
   end function net_constructor
 
+
   pure real(rk) function accuracy(self, x, y)
     ! Given input x and output y, evaluates the position of the
     ! maximum value of the output and returns the number of matches
@@ -73,6 +77,7 @@ contains
     end do
     accuracy = real(good) / size(x, dim=2)
   end function accuracy
+
 
   pure subroutine backprop(self, y, dw, db)
     ! Applies a backward propagation through the network
@@ -104,6 +109,7 @@ contains
 
   end subroutine backprop
 
+
   pure subroutine fwdprop(self, x)
     ! Performs the forward propagation and stores arguments to activation
     ! functions and activations themselves for use in backprop.
@@ -118,6 +124,7 @@ contains
       end do
     end associate
   end subroutine fwdprop
+
 
   subroutine init(self, dims)
     ! Allocates and initializes the layers with given dimensions dims.
@@ -134,6 +141,7 @@ contains
     self % layers(size(dims)) % w = 0
   end subroutine init
 
+
   subroutine load(self, filename)
     ! Loads the network from file.
     class(network_type), intent(in out) :: self
@@ -142,22 +150,23 @@ contains
     integer(ik), allocatable :: dims(:)
     character(len=100) :: buffer ! activation string
     open(newunit=fileunit, file=filename, status='old', action='read')
-    read(fileunit, fmt=*) num_layers
+    read(fileunit, *) num_layers
     allocate(dims(num_layers))
-    read(fileunit, fmt=*) dims
+    read(fileunit, *) dims
     call self % init(dims)
     do n = 1, num_layers
-      read(fileunit, fmt=*) layer_idx, buffer
+      read(fileunit, *) layer_idx, buffer
       call self % layers(layer_idx) % set_activation(trim(buffer))
     end do
     do n = 2, size(self % dims)
-      read(fileunit, fmt=*) self % layers(n) % b
+      read(fileunit, *) self % layers(n) % b
     end do
     do n = 1, size(self % dims) - 1
-      read(fileunit, fmt=*) self % layers(n) % w
+      read(fileunit, *) self % layers(n) % w
     end do
     close(fileunit)
   end subroutine load
+
 
   pure real(rk) function loss(self, x, y)
     ! Given input x and expected output y, returns the loss of the network.
@@ -166,8 +175,10 @@ contains
     loss = 0.5 * sum((y - self % output(x))**2) / size(x)
   end function loss
 
-  pure function output(self, x) result(a)
+
+  pure function output_single(self, x) result(a)
     ! Use forward propagation to compute the output of the network.
+    ! This specific procedure is for a single sample of 1-d input data.
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:)
     real(rk), allocatable :: a(:)
@@ -178,7 +189,22 @@ contains
         a = self % layers(n) % activation(matmul(transpose(layers(n-1) % w), a) + layers(n) % b)
       end do
     end associate
-  end function output
+  end function output_single
+
+
+  pure function output_batch(self, x) result(a)
+    ! Use forward propagation to compute the output of the network.
+    ! This specific procedure is for a batch of 1-d input data.
+    class(network_type), intent(in) :: self
+    real(rk), intent(in) :: x(:,:)
+    real(rk), allocatable :: a(:,:)
+    integer(ik) :: i
+    allocate(a(self % dims(size(self % dims)), size(x, dim=2)))
+    do i = 1, size(x, dim=2)
+     a(:,i) = self % output_single(x(:,i))
+    end do
+  end function output_batch
+
 
   subroutine save(self, filename)
     ! Saves the network to a file.
@@ -200,6 +226,7 @@ contains
     close(fileunit)
   end subroutine save
 
+
   pure subroutine set_activation_equal(self, activation)
     ! A thin wrapper around layer % set_activation().
     ! This method can be used to set an activation function
@@ -208,6 +235,7 @@ contains
     character(len=*), intent(in) :: activation
     call self % layers(:) % set_activation(activation)
   end subroutine set_activation_equal
+
 
   pure subroutine set_activation_layers(self, activation)
     ! A thin wrapper around layer % set_activation().
@@ -232,6 +260,7 @@ contains
 #endif
     end do layers
   end subroutine sync
+
 
   subroutine train_batch(self, x, y, eta)
     ! Trains a network using input data x and output data y,
@@ -273,6 +302,38 @@ contains
 
   end subroutine train_batch
 
+
+  subroutine train_epochs(self, x, y, eta, num_epochs, batch_size)
+    ! Trains for num_epochs epochs with mini-bachtes of size equal to batch_size.
+    class(network_type), intent(in out) :: self
+    integer(ik), intent(in) :: num_epochs, batch_size
+    real(rk), intent(in) :: x(:,:), y(:,:), eta
+
+    integer(ik) :: i, n, nsamples, nbatch
+    integer(ik) :: batch_start, batch_end
+
+    real(rk) :: pos
+
+    nsamples = size(y, dim=2)
+    nbatch = nsamples / batch_size
+
+    epochs: do n = 1, num_epochs
+      batches: do i = 1, nbatch
+      
+        !pull a random mini-batch from the dataset  
+        call random_number(pos)
+        batch_start = int(pos * (nsamples - batch_size + 1))
+        if (batch_start == 0) batch_start = 1
+        batch_end = batch_start + batch_size - 1
+   
+        call self % train(x(:,batch_start:batch_end), y(:,batch_start:batch_end), eta)
+       
+      end do batches
+    end do epochs
+
+  end subroutine train_epochs
+
+
   pure subroutine train_single(self, x, y, eta)
     ! Trains a network using a single set of input data x and output data y,
     ! and learning rate eta.
@@ -284,6 +345,7 @@ contains
     call self % backprop(y, dw, db)
     call self % update(dw, db, eta)
   end subroutine train_single
+
 
   pure subroutine update(self, dw, db, eta)
     ! Updates network weights and biases with gradients dw and db,

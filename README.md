@@ -266,13 +266,11 @@ program example_mnist
   batch_size = 100
   num_epochs = 10
 
-  if (this_image() == 1) then
-    write(*, '(a,f5.2,a)') 'Initial accuracy: ',&
-      net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
-  end if
+  if (this_image() == 1) print '(a,f5.2,a)', 'Initial accuracy: ', &
+    net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
 
   epochs: do n = 1, num_epochs
-    mini_batches: do i = 1, size(tr_labels) / batch_size
+    batches: do i = 1, size(tr_labels) / batch_size
 
       ! pull a random mini-batch from the dataset
       call random_number(pos)
@@ -286,12 +284,10 @@ program example_mnist
       ! train the network on the mini-batch
       call net % train(input, output, eta=3._rk)
 
-    end do mini_batches
+    end do batches
 
-    if (this_image() == 1) then
-      write(*, '(a,i2,a,f5.2,a)') 'Epoch ', n, ' done, Accuracy: ',&
-        net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
-    end if
+    if (this_image() == 1) print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', &
+      net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
 
   end do epochs
 
@@ -321,6 +317,45 @@ for example on 16 cores using [OpenCoarrays](https://github.com/sourceryinstitut
 ```
 $ cafrun -n 16 ./example_mnist
 ```
+
+### Montesinos-Lopez et al. (2018) univariate example
+
+The Montesinos-Lopez et al. (2018) univariate example is extracted from the study:
+
+```
+Montesinos-Lopez et al. 2018. Multi-environment genomic prediction of plant traits using deep learners with dense architecture. G3, 8, 3813-3828.
+```
+
+This example uses the data from the dataset "Data\_Maize\_1to3", and was extracted using the R code in the Appendix of this paper.
+
+
+The Montesinos-Lopez univariate data is included with the repo and you will have to unpack it first:
+
+```
+cd data/montesinos_uni
+tar xzvf montesinos_uni.tar.gz
+cd -
+```
+
+### Montesinos-Lopez et al. (2018) multivariate example
+
+The Montesinos-Lopez et al. (2018) multivariate example is extracted from the study:
+
+```
+Montesinos-Lopez et al. 2018. Multi-trait, multi-environment deep learning modeling for genomic-enabled prediction of plant traits. G3, 8, 3829-3840.
+```
+
+This example uses the data from the dataset "Data\_Maize\_set\_1", and was extracted using the R code in the Appendix B of this paper.
+
+
+The Montesinos-Lopez multivariate data is included with the repo and you will have to unpack it first:
+
+```
+cd data/montesinos_multi
+tar xzvf montesinos_multi.tar.gz
+cd -
+```
+
 
 ## Contributing
 

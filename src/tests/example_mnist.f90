@@ -12,7 +12,6 @@ program example_mnist
 
   real(rk), allocatable :: tr_images(:,:), tr_labels(:)
   real(rk), allocatable :: te_images(:,:), te_labels(:)
-  !real(rk), allocatable :: va_images(:,:), va_labels(:)
   real(rk), allocatable :: input(:,:), output(:,:)
 
   type(network_type) :: net
@@ -23,18 +22,16 @@ program example_mnist
 
   call load_mnist(tr_images, tr_labels, te_images, te_labels)
 
-  net = network_type([784, 10, 10])
+  net = network_type([784, 30, 10])
 
-  batch_size = 1000
+  batch_size = 100
   num_epochs = 10
 
-  if (this_image() == 1) then
-    write(*, '(a,f5.2,a)') 'Initial accuracy: ',&
-      net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
-  end if
+  if (this_image() == 1) print '(a,f5.2,a)', 'Initial accuracy: ', &
+    net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
 
   epochs: do n = 1, num_epochs
-    mini_batches: do i = 1, size(tr_labels) / batch_size
+    batches: do i = 1, size(tr_labels) / batch_size
 
       ! pull a random mini-batch from the dataset
       call random_number(pos)
@@ -48,12 +45,10 @@ program example_mnist
       ! train the network on the mini-batch
       call net % train(input, output, eta=3._rk)
 
-    end do mini_batches
+    end do batches
 
-    if (this_image() == 1) then
-      write(*, '(a,i2,a,f5.2,a)') 'Epoch ', n, ' done, Accuracy: ',&
-        net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
-    end if
+    if (this_image() == 1) print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', &
+      net % accuracy(te_images, label_digits(te_labels)) * 100, ' %'
 
   end do epochs
 
