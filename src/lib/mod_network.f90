@@ -40,7 +40,7 @@ module mod_network
 
   interface network_type
     module procedure :: net_constructor
-  endinterface network_type
+  end interface network_type
 
 contains
 
@@ -286,19 +286,19 @@ contains
     nsamples = size(y, dim=2)
     nbatch = nsamples / batch_size
 
-    epoch: do n = 1, num_epochs
-     mini_batches: do i = 1, nbatch
+    epochs: do n = 1, num_epochs
+      batches: do i = 1, nbatch
       
-      !pull a random mini-batch from the dataset  
-      call random_number(pos)
-      batch_start = int(pos * (nsamples - batch_size + 1))
-      if (batch_start == 0) batch_start = 1
-      batch_end = batch_start + batch_size - 1
+        !pull a random mini-batch from the dataset  
+        call random_number(pos)
+        batch_start = int(pos * (nsamples - batch_size + 1))
+        if (batch_start == 0) batch_start = 1
+        batch_end = batch_start + batch_size - 1
    
-      call self % train(x(:,batch_start:batch_end), y(:,batch_start:batch_end), eta)
+        call self % train(x(:,batch_start:batch_end), y(:,batch_start:batch_end), eta)
        
-     enddo mini_batches
-    enddo epoch
+      end do batches
+    end do epochs
 
   end subroutine train_epochs
 

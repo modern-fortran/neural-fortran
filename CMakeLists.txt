@@ -78,7 +78,7 @@ foreach(execid mnist network_save network_sync set_activation_function)
   add_test(test_${execid} bin/test_${execid})
 endforeach()
   
-foreach(execid mnist montesinos_uni montesinos_multi save_and_load simple sine)
+foreach(execid mnist mnist_epochs save_and_load simple sine)
   add_executable(example_${execid} src/tests/example_${execid}.f90)
   target_link_libraries(example_${execid} neural ${LIBS})
   add_test(example_${execid} bin/example_${execid})
