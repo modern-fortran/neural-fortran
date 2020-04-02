@@ -20,6 +20,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   - [Saving and loading from file](https://github.com/modern-fortran/neural-fortran#saving-and-loading-from-file)
   - [MNIST training example](https://github.com/modern-fortran/neural-fortran#mnist-training-example)
  * [Contributing](https://github.com/modern-fortran/neural-fortran#contributing)
+ * [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
 
 ## Features
 
@@ -330,3 +331,8 @@ use in production. Contributions are welcome, especially for:
 * Others?
 
 You can start at the list of open [issues](https://github.com/modern-fortran/neural-fortran/issues).
+
+## Related projects
+
+* [Fortran Keras Bridge (FKB)](https://github.com/scientific-computing/FKB)
+* [rte-rrtmgp](https://github.com/peterukk/rte-rrtmgp)
