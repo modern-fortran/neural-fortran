@@ -78,7 +78,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES Cray)
 endif()
 
 # library to archive (libneural.a)
-add_library(neural src/lib/mod_activation.f90 src/lib/mod_io.f90 src/lib/mod_kinds.f90 src/lib/mod_layer.f90 src/lib/mod_mnist.f90 src/lib/mod_network.f90 src/lib/mod_parallel.f90 src/lib/mod_random.f90)
+add_library(neural src/mod_activation.f90 src/mod_io.f90 src/mod_kinds.f90 src/mod_layer.f90 src/mod_mnist.f90 src/mod_network.f90 src/mod_parallel.f90 src/mod_random.f90)
 
 # Remove leading or trailing whitespace
 string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
@@ -86,13 +86,13 @@ string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 # tests
 enable_testing()
 foreach(execid mnist network_save network_sync set_activation_function)
-  add_executable(test_${execid} src/tests/test_${execid}.f90)
+  add_executable(test_${execid} test/test_${execid}.f90)
   target_link_libraries(test_${execid} neural ${LIBS})
   add_test(test_${execid} bin/test_${execid})
 endforeach()
   
 foreach(execid mnist mnist_epochs save_and_load simple sine)
-  add_executable(example_${execid} src/tests/example_${execid}.f90)
+  add_executable(example_${execid} example/example_${execid}.f90)
   target_link_libraries(example_${execid} neural ${LIBS})
   add_test(example_${execid} bin/example_${execid})
 endforeach()

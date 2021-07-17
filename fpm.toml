@@ -1,0 +1,6 @@
+name = "neural-fortran"
+version = "0.1.0"
+license = "MIT"
+author = "Milan Curcic"
+maintainer = "milancurcic@hey.com"
+copyright = "Copyright 2018-2021, neural-fortran contributors"
