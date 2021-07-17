@@ -15,8 +15,8 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   - [Training the network](https://github.com/modern-fortran/neural-fortran#training-the-network)
   - [Saving and loading from file](https://github.com/modern-fortran/neural-fortran#saving-and-loading-from-file)
   - [MNIST training example](https://github.com/modern-fortran/neural-fortran#mnist-training-example)
- * [Contributing](https://github.com/modern-fortran/neural-fortran#contributing)
- * [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
+* [Contributing](https://github.com/modern-fortran/neural-fortran#contributing)
+* [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
 
 ## Features
 
