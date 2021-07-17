@@ -92,7 +92,7 @@ foreach(execid mnist network_save network_sync set_activation_function)
 endforeach()
   
 foreach(execid mnist mnist_epochs save_and_load simple sine)
-  add_executable(example_${execid} examples/example_${execid}.f90)
+  add_executable(example_${execid} example/example_${execid}.f90)
   target_link_libraries(example_${execid} neural ${LIBS})
   add_test(example_${execid} bin/example_${execid})
 endforeach()
