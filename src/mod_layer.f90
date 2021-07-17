@@ -60,14 +60,14 @@ contains
 
   pure type(array1d) function array1d_constructor(length) result(a)
     ! Overloads the default type constructor.
-    integer, intent(in) :: length
+    integer(ik), intent(in) :: length
     allocate(a % array(length))
     a % array = 0
   end function array1d_constructor
 
   pure type(array2d) function array2d_constructor(dims) result(a)
     ! Overloads the default type constructor.
-    integer, intent(in) :: dims(2)
+    integer(ik), intent(in) :: dims(2)
     allocate(a % array(dims(1), dims(2)))
     a % array = 0
   end function array2d_constructor
@@ -76,7 +76,7 @@ contains
     ! Initialises biases structure.
     type(array1d), allocatable, intent(in out) :: db(:)
     integer(ik), intent(in) :: dims(:)
-    integer :: n, nm
+    integer(ik) :: n, nm
     nm = size(dims)
     allocate(db(nm))
     do n = 1, nm - 1
@@ -89,7 +89,7 @@ contains
     ! Initialises weights structure.
     type(array2d), allocatable, intent(in out) :: dw(:)
     integer(ik), intent(in) :: dims(:)
-    integer :: n, nm
+    integer(ik) :: n, nm
     nm = size(dims)
     allocate(dw(nm))
     do n = 1, nm - 1

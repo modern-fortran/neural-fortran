@@ -13,7 +13,7 @@ module mod_network
   type :: network_type
 
     type(layer_type), allocatable :: layers(:)
-    integer, allocatable :: dims(:)
+    integer(ik), allocatable :: dims(:)
 
   contains
 
@@ -75,7 +75,7 @@ contains
         good = good + 1
       end if
     end do
-    accuracy = real(good) / size(x, dim=2)
+    accuracy = real(good, kind=rk) / size(x, dim=2)
   end function accuracy
 
 
@@ -86,7 +86,7 @@ contains
     real(rk), intent(in) :: y(:)
     type(array2d), allocatable, intent(out) :: dw(:)
     type(array1d), allocatable, intent(out) :: db(:)
-    integer :: n, nm
+    integer(ik) :: n, nm
 
     associate(dims => self % dims, layers => self % layers)
 
