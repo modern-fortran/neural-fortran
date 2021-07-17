@@ -8,12 +8,8 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 * [Features](https://github.com/modern-fortran/neural-fortran#features)
 * [Getting started](https://github.com/modern-fortran/neural-fortran#getting-started)
-  - [Building in serial mode](https://github.com/modern-fortran/neural-fortran#building-in-serial-mode)
-  - [Building in parallel mode](https://github.com/modern-fortran/neural-fortran#building-in-parallel-mode)
-  - [Building with a different compiler](https://github.com/modern-fortran/neural-fortran#building-with-a-different-compiler)
-  - [Building with BLAS or MKL](https://github.com/modern-fortran/neural-fortran#building-with-blas-or-mkl)
-  - [Building in double or quad precision](https://github.com/modern-fortran/neural-fortran#building-in-double-or-quad-precision)
-  - [Building in debug mode](https://github.com/modern-fortran/neural-fortran#building-in-debug-mode)
+  - [Building with fpm](https://github.com/modern-fortran/neural-fortran#building-with-fpm)
+  - [Building with CMake](https://github.com/modern-fortran/neural-fortran#building-with-cmake)
 * [Examples](https://github.com/modern-fortran/neural-fortran#examples)
   - [Creating a network](https://github.com/modern-fortran/neural-fortran#creating-a-network)
   - [Training the network](https://github.com/modern-fortran/neural-fortran#training-the-network)
@@ -36,18 +32,41 @@ Get the code:
 
 ```
 git clone https://github.com/modern-fortran/neural-fortran
+cd neural-fortran
 ```
 
 Dependencies:
 
 * Fortran 2018-compatible compiler
-* OpenCoarrays (optional, for parallel execution, gfortran only)
+* OpenCoarrays (optional, for parallel execution, GFortran only)
 * BLAS, MKL (optional)
 
-### Building in serial mode
+### Building with fpm
+
+#### Building in serial mode
 
 ```
-cd neural-fortran
+fpm build --flag "-cpp -O3 -ffast-math fcoarrays=single"
+```
+
+#### Building in parallel mode
+
+If you use GFortran and want to run neural-fortran in parallel,
+you must first install [OpenCoarrays](https://github.com/sourceryinstitute/OpenCoarrays).
+Once installed, use the compiler wrappers `caf` and `cafrun` to build and execute
+in parallel, respectively:
+
+```
+fpm build --compiler caf --flag "-cpp -DCAF -O3 -ffast-math"
+```
+
+See [Fortran Package Manager](https://github.com/fortran-lang/fpm) for more info on fpm.
+
+### Building with CMake
+
+#### Building in serial mode
+
+```
 mkdir build
 cd build
 cmake .. -DSERIAL=1
@@ -56,12 +75,13 @@ make
 
 Tests and examples will be built in the `bin/` directory.
 
-### Building in parallel mode
+#### Building in parallel mode
 
-If you use gfortran and want to build neural-fortran in parallel mode,
+If you use GFortran and want to run neural-fortran in parallel,
 you must first install [OpenCoarrays](https://github.com/sourceryinstitute/OpenCoarrays).
 Once installed, use the compiler wrappers `caf` and `cafrun` to build and execute
 in parallel, respectively:
+
 
 ```
 FC=caf cmake ..
@@ -69,7 +89,7 @@ make
 cafrun -n 4 bin/example_mnist # run MNIST example on 4 cores
 ```
 
-### Building with a different compiler
+#### Building with a different compiler
 
 If you want to build with a different compiler, such as Intel Fortran,
 specify `FC` when issuing `cmake`:
@@ -78,7 +98,7 @@ specify `FC` when issuing `cmake`:
 FC=ifort cmake ..
 ```
 
-### Building with BLAS or MKL
+#### Building with BLAS or MKL
 
 To use an external BLAS or MKL library for `matmul` calls,
 run cmake like this:
@@ -91,7 +111,7 @@ where the value of `-DBLAS` should point to the desired BLAS implementation,
 which has to be available in the linking path.
 This option is currently available only with gfortran.
 
-### Building in double or quad precision
+#### Building in double or quad precision
 
 By default, neural-fortran is built in single precision mode
 (32-bit floating point numbers). Alternatively, you can configure to build
@@ -107,7 +127,7 @@ or
 cmake .. -DREAL=128
 ```
 
-### Building in debug mode
+#### Building in debug mode
 
 To build with debugging flags enabled, type:
 
