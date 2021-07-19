@@ -46,7 +46,7 @@ Dependencies:
 #### Building in serial mode
 
 ```
-fpm build --flag "-cpp -O3 -ffast-math fcoarrays=single"
+fpm build --flag "-cpp -O3 -ffast-math fcoarray=single"
 ```
 
 #### Building in parallel mode
