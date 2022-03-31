@@ -16,6 +16,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   - [Saving and loading from file](https://github.com/modern-fortran/neural-fortran#saving-and-loading-from-file)
   - [MNIST training example](https://github.com/modern-fortran/neural-fortran#mnist-training-example)
 * [Contributing](https://github.com/modern-fortran/neural-fortran#contributing)
+* [Contributors](https://github.com/modern-fortran/neural-fortran#contributors)
 * [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
 
 ## Features
@@ -351,6 +352,17 @@ use in production. Contributions are welcome, especially for:
 * Others?
 
 You can start at the list of open [issues](https://github.com/modern-fortran/neural-fortran/issues).
+
+## Contributors
+
+Thanks to all open-source contributors to neural-fortran:
+
+* [@ivan-pi](https://github.com/ivan-pi)
+* [@jvdp1](https://github.com/jvdp1)
+* [@milancurcic](https://github.com/milancurcic)
+* [@pirpyn](https://github.com/pirpyn)
+* [@rouson](https://github.com/rouson)
+* [@scivision](https://github.com/scivision)
 
 ## Related projects
 
