@@ -352,17 +352,6 @@ use in production. Contributions are welcome, especially for:
 
 You can start at the list of open [issues](https://github.com/modern-fortran/neural-fortran/issues).
 
-## Contributors
-
-Thank you to all open-source contributors to neural-fortran:
-
-* [@ivan-pi](https://github.com/ivan-pi)
-* [@jvdp1](https://github.com/jvdp1)
-* [@milancurcic](https://github.com/milancurcic)
-* [@pirpyn](https://github.com/pirpyn)
-* [@rouson](https://github.com/rouson)
-* [@scivision](https://github.com/scivision)
-
 ## Related projects
 
 * [Fortran Keras Bridge (FKB)](https://github.com/scientific-computing/FKB)
