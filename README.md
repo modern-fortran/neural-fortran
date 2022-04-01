@@ -61,6 +61,16 @@ in parallel, respectively:
 fpm build --compiler caf --flag "-cpp -DCAF -O3 -ffast-math"
 ```
 
+#### Testing with fpm
+
+```
+fpm test --flag "-cpp -O3 -ffast-math -fcoarray=single"
+```
+
+For the time being, you need to specify the same compiler flags to `fpm test`
+as you did in `fpm build` so that fpm can figure out to use the same build
+profile.
+
 See [Fortran Package Manager](https://github.com/fortran-lang/fpm) for more info on fpm.
 
 ### Building with CMake
@@ -135,6 +145,25 @@ To build with debugging flags enabled, type:
 ```
 cmake .. -DCMAKE_BUILD_TYPE=debug
 ```
+
+#### Running tests with CMake
+
+Before running the tests, link the the data/ directory to the current directory:
+
+```
+ln -s ../data
+```
+
+The MNIST dataset which comes with the code as a tarball must be unpacked first.
+See [MNIST training example](#mnist-training-example) on how to do that.
+Once the MNIST dataset is unpacked and the data/ directory is linked in your
+CMake build/ directory, run
+
+```
+ctest
+```
+
+to run the tests.
 
 ## Examples
 
