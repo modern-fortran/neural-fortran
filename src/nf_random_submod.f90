@@ -1,7 +1,6 @@
 submodule(nf_random_mod) nf_random_submod
-
-  ! Provides a random number generator with
-  ! normal distribution, centered on zero.
+  !! Provides a random number generator with
+  !! normal distribution, centered on zero.
 
   implicit none
 
