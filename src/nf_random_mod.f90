@@ -1,4 +1,4 @@
-module mod_random
+module nf_random_mod
 
   ! Provides a random number generator with
   ! normal distribution, centered on zero.
@@ -27,4 +27,4 @@ module mod_random
   
   end interface randn
 
-end module mod_random
+end module nf_random_mod

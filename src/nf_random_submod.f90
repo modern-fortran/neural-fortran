@@ -1,4 +1,4 @@
-submodule(mod_random) submod_random
+submodule(nf_random_mod) nf_random_submod
 
   ! Provides a random number generator with
   ! normal distribution, centered on zero.
@@ -23,4 +23,4 @@ contains
     r = sqrt(-2 * log(r)) * cos(2 * pi * r2)
   end procedure randn2d
 
-end submodule submod_random
+end submodule nf_random_submod

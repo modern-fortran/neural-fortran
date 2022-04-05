@@ -4,7 +4,7 @@ module mod_layer
 
   use mod_activation
   use mod_kinds, only: ik, rk
-  use mod_random, only: randn
+  use nf_random_mod, only: randn
 
   implicit none
 
