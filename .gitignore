@@ -2,3 +2,4 @@
 *.mod
 build
 data/*/*.dat
+doc
