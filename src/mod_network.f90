@@ -47,9 +47,9 @@ module mod_network
 contains
 
   type(network_type) function net_constructor(dims, activation) result(net)
-    ! Network class constructor. Size of input array dims indicates the total
-    ! number of layers (input + hidden + output), and the value of its elements
-    ! corresponds the size of each layer.
+    !! Network class constructor. Size of input array dims indicates the total
+    !! number of layers (input + hidden + output), and the value of its elements
+    !! corresponds the size of each layer.
     integer(ik), intent(in) :: dims(:)
     character(len=*), intent(in), optional :: activation
     call net % init(dims)
@@ -63,9 +63,9 @@ contains
 
 
   pure real(rk) function accuracy(self, x, y)
-    ! Given input x and output y, evaluates the position of the
-    ! maximum value of the output and returns the number of matches
-    ! relative to the size of the dataset.
+    !! Given input x and output y, evaluates the position of the
+    !! maximum value of the output and returns the number of matches
+    !! relative to the size of the dataset.
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:,:), y(:,:)
     integer(ik) :: i, good
@@ -80,8 +80,8 @@ contains
 
 
   pure subroutine backprop(self, y, dw, db)
-    ! Applies a backward propagation through the network
-    ! and returns the weight and bias gradients.
+    !! Applies a backward propagation through the network
+    !! and returns the weight and bias gradients.
     class(network_type), intent(in out) :: self
     real(rk), intent(in) :: y(:)
     type(array2d), allocatable, intent(out) :: dw(:)
@@ -111,8 +111,8 @@ contains
 
 
   pure subroutine fwdprop(self, x)
-    ! Performs the forward propagation and stores arguments to activation
-    ! functions and activations themselves for use in backprop.
+    !! Performs the forward propagation and stores arguments to activation
+    !! functions and activations themselves for use in backprop.
     class(network_type), intent(in out) :: self
     real(rk), intent(in) :: x(:)
     integer(ik) :: n
@@ -127,7 +127,7 @@ contains
 
 
   subroutine init(self, dims)
-    ! Allocates and initializes the layers with given dimensions dims.
+    !! Allocates and initializes the layers with given dimensions dims.
     class(network_type), intent(in out) :: self
     integer(ik), intent(in) :: dims(:)
     integer(ik) :: n
@@ -143,12 +143,12 @@ contains
 
 
   subroutine load(self, filename)
-    ! Loads the network from file.
+    !! Loads the network from file.
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: filename
     integer(ik) :: fileunit, n, num_layers, layer_idx
     integer(ik), allocatable :: dims(:)
-    character(len=100) :: buffer ! activation string
+    character(len=100) :: buffer !! activation string
     open(newunit=fileunit, file=filename, status='old', action='read')
     read(fileunit, *) num_layers
     allocate(dims(num_layers))
@@ -169,7 +169,7 @@ contains
 
 
   pure real(rk) function loss(self, x, y)
-    ! Given input x and expected output y, returns the loss of the network.
+    !! Given input x and expected output y, returns the loss of the network.
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:), y(:)
     loss = 0.5 * sum((y - self % output(x))**2) / size(x)
@@ -177,8 +177,8 @@ contains
 
 
   pure function output_single(self, x) result(a)
-    ! Use forward propagation to compute the output of the network.
-    ! This specific procedure is for a single sample of 1-d input data.
+    !! Use forward propagation to compute the output of the network.
+    !! This specific procedure is for a single sample of 1-d input data.
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:)
     real(rk), allocatable :: a(:)
@@ -193,8 +193,8 @@ contains
 
 
   pure function output_batch(self, x) result(a)
-    ! Use forward propagation to compute the output of the network.
-    ! This specific procedure is for a batch of 1-d input data.
+    !! Use forward propagation to compute the output of the network.
+    !! This specific procedure is for a batch of 1-d input data.
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:,:)
     real(rk), allocatable :: a(:,:)
@@ -207,7 +207,7 @@ contains
 
 
   subroutine save(self, filename)
-    ! Saves the network to a file.
+    !! Saves the network to a file.
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: filename
     integer(ik) :: fileunit, n
@@ -228,9 +228,9 @@ contains
 
 
   pure subroutine set_activation_equal(self, activation)
-    ! A thin wrapper around layer % set_activation().
-    ! This method can be used to set an activation function
-    ! for all layers at once. 
+    !! A thin wrapper around layer % set_activation().
+    !! This method can be used to set an activation function
+    !! for all layers at once. 
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: activation
     call self % layers(:) % set_activation(activation)
@@ -238,17 +238,17 @@ contains
 
 
   pure subroutine set_activation_layers(self, activation)
-    ! A thin wrapper around layer % set_activation().
-    ! This method can be used to set different activation functions
-    ! for each layer separately. 
+    !! A thin wrapper around layer % set_activation().
+    !! This method can be used to set different activation functions
+    !! for each layer separately. 
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: activation(size(self % layers))
     call self % layers(:) % set_activation(activation)
   end subroutine set_activation_layers
 
   subroutine sync(self, image)
-    ! Broadcasts network weights and biases from
-    ! specified image to all others.
+    !! Broadcasts network weights and biases from
+    !! specified image to all others.
     class(network_type), intent(in out) :: self
     integer(ik), intent(in) :: image
     integer(ik) :: n
@@ -263,9 +263,9 @@ contains
 
 
   subroutine train_batch(self, x, y, eta)
-    ! Trains a network using input data x and output data y,
-    ! and learning rate eta. The learning rate is normalized
-    ! with the size of the data batch.
+    !! Trains a network using input data x and output data y,
+    !! and learning rate eta. The learning rate is normalized
+    !! with the size of the data batch.
     class(network_type), intent(in out) :: self
     real(rk), intent(in) :: x(:,:), y(:,:), eta
     type(array1d), allocatable :: db(:), db_batch(:)
@@ -273,8 +273,8 @@ contains
     integer(ik) :: i, im, n, nm
     integer(ik) :: is, ie, indices(2)
 
-    im = size(x, dim=2) ! mini-batch size
-    nm = size(self % dims) ! number of layers
+    im = size(x, dim=2) !! mini-batch size
+    nm = size(self % dims) !! number of layers
 
     ! get start and end index for mini-batch
     indices = tile_indices(im)
@@ -304,7 +304,7 @@ contains
 
 
   subroutine train_epochs(self, x, y, eta, num_epochs, batch_size)
-    ! Trains for num_epochs epochs with mini-bachtes of size equal to batch_size.
+    !! Trains for num_epochs epochs with mini-bachtes of size equal to batch_size.
     class(network_type), intent(in out) :: self
     integer(ik), intent(in) :: num_epochs, batch_size
     real(rk), intent(in) :: x(:,:), y(:,:), eta
@@ -335,8 +335,8 @@ contains
 
 
   pure subroutine train_single(self, x, y, eta)
-    ! Trains a network using a single set of input data x and output data y,
-    ! and learning rate eta.
+    !! Trains a network using a single set of input data x and output data y,
+    !! and learning rate eta.
     class(network_type), intent(in out) :: self
     real(rk), intent(in) :: x(:), y(:), eta
     type(array2d), allocatable :: dw(:)
@@ -348,8 +348,8 @@ contains
 
 
   pure subroutine update(self, dw, db, eta)
-    ! Updates network weights and biases with gradients dw and db,
-    ! scaled by learning rate eta.
+    !! Updates network weights and biases with gradients dw and db,
+    !! scaled by learning rate eta.
     class(network_type), intent(in out) :: self
     class(array2d), intent(in) :: dw(:)
     class(array1d), intent(in) :: db(:)
@@ -357,11 +357,11 @@ contains
     integer(ik) :: n
 
     associate(layers => self % layers, nm => size(self % dims))
-      ! update biases
+      !! update biases
       do concurrent(n = 2:nm)
         layers(n) % b = layers(n) % b - eta * db(n) % array
       end do
-      ! update weights
+      !! update weights
       do concurrent(n = 1:nm-1)
         layers(n) % w = layers(n) % w - eta * dw(n) % array
       end do

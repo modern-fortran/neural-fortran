@@ -1,7 +1,7 @@
 module mod_random
 
-  ! Provides a random number generator with
-  ! normal distribution, centered on zero.
+  !! Provides a random number generator with
+  !! normal distribution, centered on zero.
 
   use mod_kinds, only: ik, rk
 
@@ -19,7 +19,7 @@ module mod_random
 contains
 
   function randn1d(n) result(r)
-    ! Generates n random numbers with a normal distribution.
+    !! Generates n random numbers with a normal distribution.
     integer(ik), intent(in) :: n
     real(rk) :: r(n), r2(n)
     call random_number(r)
@@ -28,7 +28,7 @@ contains
   end function randn1d
 
   function randn2d(m, n) result(r)
-    ! Generates m x n random numbers with a normal distribution.
+    !! Generates m x n random numbers with a normal distribution.
     integer(ik), intent(in) :: m, n
     real(rk) :: r(m, n), r2(m, n)
     call random_number(r)

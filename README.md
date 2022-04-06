@@ -15,6 +15,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   - [Training the network](https://github.com/modern-fortran/neural-fortran#training-the-network)
   - [Saving and loading from file](https://github.com/modern-fortran/neural-fortran#saving-and-loading-from-file)
   - [MNIST training example](https://github.com/modern-fortran/neural-fortran#mnist-training-example)
+* [API documentation](https://github.com/modern-fortran/neural-fortran#api-documentation)
 * [Contributing](https://github.com/modern-fortran/neural-fortran#contributing)
 * [Contributors](https://github.com/modern-fortran/neural-fortran#contributors)
 * [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
@@ -368,6 +369,18 @@ for example on 16 cores using [OpenCoarrays](https://github.com/sourceryinstitut
 ```
 $ cafrun -n 16 ./example_mnist
 ```
+
+## API documentation
+
+API documentation can be generated with [FORD](https://github.com/Fortran-FOSS-Programmers/ford/).
+Assuming you have FORD installed on your system, run
+
+```
+ford ford.md
+```
+
+from the neural-fortran top-level directory to generate the API documentation in doc/html.
+Point your browser to doc/html/index.html to read it.
 
 ## Contributing
 

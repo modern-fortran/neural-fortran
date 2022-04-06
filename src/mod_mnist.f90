@@ -1,9 +1,9 @@
 module mod_mnist
 
-  ! Procedures to work with MNIST dataset, usable with data format
-  ! as provided in this repo and not the original data format (idx).
+  !! Procedures to work with MNIST dataset, usable with data format
+  !! as provided in this repo and not the original data format (idx).
 
-  use iso_fortran_env, only: real32 ! TODO make MNIST work with arbitrary precision
+  use iso_fortran_env, only: real32 !! TODO make MNIST work with arbitrary precision
   use mod_io, only: read_binary_file
   use mod_kinds, only: ik, rk
 
@@ -16,11 +16,11 @@ module mod_mnist
 contains
 
   pure function digits(x)
-    ! Returns an array of 10 reals, with zeros everywhere
-    ! and a one corresponding to the input number, for example:
-    !   digits(0) = [1., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
-    !   digits(1) = [0., 1., 0., 0., 0., 0., 0., 0., 0., 0.]
-    !   digits(6) = [0., 0., 0., 0., 0., 0., 1., 0., 0., 0.]
+    !! Returns an array of 10 reals, with zeros everywhere
+    !! and a one corresponding to the input number, for example:
+    !!   digits(0) = [1., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
+    !!   digits(1) = [0., 1., 0., 0., 0., 0., 0., 0., 0., 0.]
+    !!   digits(6) = [0., 0., 0., 0., 0., 0., 1., 0., 0., 0.]
     real(rk), intent(in) :: x
     real(rk) :: digits(10)
     digits = 0
@@ -28,8 +28,8 @@ contains
   end function digits
 
   pure function label_digits(labels) result(res)
-    ! Converts an array of MNIST labels into a form
-    ! that can be input to the network_type instance.
+    !! Converts an array of MNIST labels into a form
+    !! that can be input to the network_type instance.
     real(rk), intent(in) :: labels(:)
     real(rk) :: res(10, size(labels))
     integer(ik) :: i
@@ -40,7 +40,7 @@ contains
 
   subroutine load_mnist(tr_images, tr_labels, te_images,&
                         te_labels, va_images, va_labels)
-    ! Loads the MNIST dataset into arrays.
+    !! Loads the MNIST dataset into arrays.
     real(rk), allocatable, intent(in out) :: tr_images(:,:), tr_labels(:)
     real(rk), allocatable, intent(in out) :: te_images(:,:), te_labels(:)
     real(rk), allocatable, intent(in out), optional :: va_images(:,:), va_labels(:)
@@ -69,7 +69,7 @@ contains
   end subroutine load_mnist
 
   subroutine print_image(images, labels, n)
-    ! Prints a single image and label to screen.
+    !! Prints a single image and label to screen.
     real(rk), intent(in) :: images(:,:), labels(:)
     integer(ik), intent(in) :: n
     real(rk) :: image(28, 28)
