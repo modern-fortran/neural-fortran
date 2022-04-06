@@ -3,8 +3,6 @@ summary: A parallel neural net microframework
 src_dir: src
 output_dir: doc/html
 preprocess: true
-macro: FORD
-preprocessor: gfortran -E
 display: public
          protected
          private
@@ -21,9 +19,5 @@ creation_date: %Y-%m-%d %H:%M %z
 project_github: https://github.com/modern-fortran/neural-fortran
 project_download: https://github.com/modern-fortran/neural-fortran/releases
 github: https://github.com/modern-fortran
-predocmark_alt: >
-predocmark: <
-docmark_alt:
-docmark: !
 
 {!README.md!}
