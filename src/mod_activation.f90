@@ -16,94 +16,86 @@ module mod_activation
   public :: tanhf, tanh_prime
 
   interface
+
     pure function activation_function(x)
       import :: rk
       real(rk), intent(in) :: x(:)
       real(rk) :: activation_function(size(x))
     end function activation_function
+
+    pure module function gaussian(x) result(res)
+      !! Gaussian activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function gaussian
+
+    pure module function gaussian_prime(x) result(res)
+      !! First derivative of the Gaussian activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function gaussian_prime
+
+    pure module function relu(x) result(res)
+      !! REctified Linear Unit (RELU) activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function relu
+
+    pure module function relu_prime(x) result(res)
+      !! First derivative of the REctified Linear Unit (RELU) activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function relu_prime
+
+    pure module function sigmoid(x) result(res)
+      !! Sigmoid activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function sigmoid
+
+    pure module function sigmoid_prime(x) result(res)
+      !! First derivative of the sigmoid activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function sigmoid_prime
+
+    pure module function step(x) result(res)
+      !! Step activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function step
+
+    pure module function step_prime(x) result(res)
+      !! First derivative of the step activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function step_prime
+
+    pure module function tanhf(x) result(res)
+      !! Tangent hyperbolic activation function. 
+      !! Same as the intrinsic tanh, but must be 
+      !! defined here so that we can use procedure
+      !! pointer with it.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function tanhf
+
+    pure module function tanh_prime(x) result(res)
+      !! First derivative of the tanh activation function.
+      implicit none
+      real(rk), intent(in) :: x(:)
+      real(rk) :: res(size(x))
+    end function tanh_prime
+
   end interface
-
-contains
-
-  pure function gaussian(x) result(res)
-    !! Gaussian activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    res = exp(-x**2)
-  end function gaussian
-
-  pure function gaussian_prime(x) result(res)
-    !! First derivative of the Gaussian activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    res = -2 * x * gaussian(x)
-  end function gaussian_prime
-
-  pure function relu(x) result(res)
-    !! REctified Linear Unit (RELU) activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    res = max(0., x)
-  end function relu
-
-  pure function relu_prime(x) result(res)
-    !! First derivative of the REctified Linear Unit (RELU) activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    where (x > 0)
-      res = 1
-    elsewhere
-      res = 0
-    end where
-  end function relu_prime
-
-  pure function sigmoid(x) result(res)
-    !! Sigmoid activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    res = 1 / (1 + exp(-x))
-  endfunction sigmoid
-
-  pure function sigmoid_prime(x) result(res)
-    !! First derivative of the sigmoid activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    res = sigmoid(x) * (1 - sigmoid(x))
-  end function sigmoid_prime
-
-  pure function step(x) result(res)
-    !! Step activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    where (x > 0)
-      res = 1
-    elsewhere
-      res = 0
-    end where
-  end function step
-
-  pure function step_prime(x) result(res)
-    !! First derivative of the step activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    res = 0
-  end function step_prime
-
-  pure function tanhf(x) result(res)
-    !! Tangent hyperbolic activation function. 
-    !! Same as the intrinsic tanh, but must be 
-    !! defined here so that we can use procedure
-    !! pointer with it.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    res = tanh(x)
-  end function tanhf
-
-  pure function tanh_prime(x) result(res)
-    !! First derivative of the tanh activation function.
-    real(rk), intent(in) :: x(:)
-    real(rk) :: res(size(x))
-    res = 1 - tanh(x)**2
-  end function tanh_prime
 
 end module mod_activation
