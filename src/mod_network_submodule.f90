@@ -8,7 +8,7 @@ submodule(mod_network) mod_network_submodule
 
 contains
 
-  type(network_type) function net_constructor(dims, activation) result(net)
+  type(network_type) module function net_constructor(dims, activation) result(net)
     integer(ik), intent(in) :: dims(:)
     character(len=*), intent(in), optional :: activation
     call net % init(dims)
@@ -21,7 +21,7 @@ contains
   end function net_constructor
 
 
-  pure real(rk) function accuracy(self, x, y)
+  pure real(rk) module function accuracy(self, x, y)
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:,:), y(:,:)
     integer(ik) :: i, good
@@ -35,7 +35,7 @@ contains
   end function accuracy
 
 
-  pure subroutine backprop(self, y, dw, db)
+  pure module subroutine backprop(self, y, dw, db)
     class(network_type), intent(in out) :: self
     real(rk), intent(in) :: y(:)
     type(array2d), allocatable, intent(out) :: dw(:)
@@ -64,7 +64,7 @@ contains
   end subroutine backprop
 
 
-  pure subroutine fwdprop(self, x)
+  pure module subroutine fwdprop(self, x)
     class(network_type), intent(in out) :: self
     real(rk), intent(in) :: x(:)
     integer(ik) :: n
@@ -78,7 +78,7 @@ contains
   end subroutine fwdprop
 
 
-  subroutine init(self, dims)
+  module subroutine init(self, dims)
     class(network_type), intent(in out) :: self
     integer(ik), intent(in) :: dims(:)
     integer(ik) :: n
@@ -93,7 +93,7 @@ contains
   end subroutine init
 
 
-  subroutine load(self, filename)
+  module subroutine load(self, filename)
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: filename
     integer(ik) :: fileunit, n, num_layers, layer_idx
@@ -118,14 +118,14 @@ contains
   end subroutine load
 
 
-  pure real(rk) function loss(self, x, y)
+  pure real(rk) module function loss(self, x, y)
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:), y(:)
     loss = 0.5 * sum((y - self % output(x))**2) / size(x)
   end function loss
 
 
-  pure function output_single(self, x) result(a)
+  pure module function output_single(self, x) result(a)
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:)
     real(rk), allocatable :: a(:)
@@ -139,7 +139,7 @@ contains
   end function output_single
 
 
-  pure function output_batch(self, x) result(a)
+  pure module function output_batch(self, x) result(a)
     class(network_type), intent(in) :: self
     real(rk), intent(in) :: x(:,:)
     real(rk), allocatable :: a(:,:)
@@ -151,7 +151,7 @@ contains
   end function output_batch
 
 
-  subroutine save(self, filename)
+  module subroutine save(self, filename)
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: filename
     integer(ik) :: fileunit, n
@@ -171,20 +171,20 @@ contains
   end subroutine save
 
 
-  pure subroutine set_activation_equal(self, activation)
+  pure module subroutine set_activation_equal(self, activation)
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: activation
     call self % layers(:) % set_activation(activation)
   end subroutine set_activation_equal
 
 
-  pure subroutine set_activation_layers(self, activation)
+  pure module subroutine set_activation_layers(self, activation)
     class(network_type), intent(in out) :: self
     character(len=*), intent(in) :: activation(size(self % layers))
     call self % layers(:) % set_activation(activation)
   end subroutine set_activation_layers
 
-  subroutine sync(self, image)
+  module subroutine sync(self, image)
     class(network_type), intent(in out) :: self
     integer(ik), intent(in) :: image
     integer(ik) :: n
@@ -197,8 +197,7 @@ contains
     end do layers
   end subroutine sync
 
-
-  subroutine train_batch(self, x, y, eta)
+  module subroutine train_batch(self, x, y, eta)
     class(network_type), intent(in out) :: self
     real(rk), intent(in) :: x(:,:), y(:,:), eta
     type(array1d), allocatable :: db(:), db_batch(:)
@@ -235,8 +234,7 @@ contains
 
   end subroutine train_batch
 
-
-  subroutine train_epochs(self, x, y, eta, num_epochs, batch_size)
+  module subroutine train_epochs(self, x, y, eta, num_epochs, batch_size)
     class(network_type), intent(in out) :: self
     integer(ik), intent(in) :: num_epochs, batch_size
     real(rk), intent(in) :: x(:,:), y(:,:), eta
@@ -266,7 +264,7 @@ contains
   end subroutine train_epochs
 
 
-  pure subroutine train_single(self, x, y, eta)
+  pure module subroutine train_single(self, x, y, eta)
     class(network_type), intent(in out) :: self
     real(rk), intent(in) :: x(:), y(:), eta
     type(array2d), allocatable :: dw(:)
@@ -277,7 +275,7 @@ contains
   end subroutine train_single
 
 
-  pure subroutine update(self, dw, db, eta)
+  pure module subroutine update(self, dw, db, eta)
     class(network_type), intent(in out) :: self
     class(array2d), intent(in) :: dw(:)
     class(array1d), intent(in) :: db(:)
