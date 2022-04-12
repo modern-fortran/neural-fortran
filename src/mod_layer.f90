@@ -31,13 +31,13 @@ module mod_layer
   end type array2d
 
   interface layer_type
-      type(layer_type) module function constructor(this_size, next_size) result(layer)
-        !! Layer class constructor. this_size is the number of neurons in the layer.
-        !! next_size is the number of neurons in the next layer, used to allocate
-        !! the weights.
-        implicit none
-        integer(ik), intent(in) :: this_size, next_size
-      end function constructor
+    type(layer_type) module function constructor(this_size, next_size) result(layer)
+      !! Layer class constructor. this_size is the number of neurons in the layer.
+      !! next_size is the number of neurons in the next layer, used to allocate
+      !! the weights.
+      implicit none
+      integer(ik), intent(in) :: this_size, next_size
+    end function constructor
   end interface layer_type
 
   interface array1d
