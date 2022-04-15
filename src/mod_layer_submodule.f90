@@ -6,8 +6,9 @@ submodule(mod_layer) mod_layer_submodule
 
 contains
 
-  type(layer_type) module function constructor(this_size, next_size) result(layer)
+  module function constructor(this_size, next_size) result(layer)
     integer(ik), intent(in) :: this_size, next_size
+    type(layer_type) :: layer
     allocate(layer % a(this_size))
     allocate(layer % z(this_size))
     layer % a = 0
@@ -16,14 +17,16 @@ contains
     layer % b = randn(this_size)
   end function constructor
 
-  pure type(array1d) module function array1d_constructor(length) result(a)
+  pure module function array1d_constructor(length) result(a)
     integer(ik), intent(in) :: length
+    type(array1d) :: a
     allocate(a % array(length))
     a % array = 0
   end function array1d_constructor
   
-  pure type(array2d) module function array2d_constructor(dims) result(a)
+  pure module function array2d_constructor(dims) result(a)
     integer(ik), intent(in) :: dims(2)
+    type(array2d) :: a
     allocate(a % array(dims(1), dims(2)))
     a % array = 0
   end function array2d_constructor
