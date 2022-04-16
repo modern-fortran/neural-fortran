@@ -1,5 +1,5 @@
 *.o
 *.mod
+*.dat
 build
-data/*/*.dat
 doc
