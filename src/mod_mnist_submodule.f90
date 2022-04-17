@@ -43,20 +43,20 @@ contains
     integer(ik), parameter :: te_nimages = 10000
     integer(ik), parameter :: va_nimages = 10000
 
-    call read_binary_file('data/mnist/mnist_training_images.dat',&
+    call read_binary_file('mnist_training_images.dat',&
                           dtype, image_size, tr_nimages, tr_images)
-    call read_binary_file('data/mnist/mnist_training_labels.dat',&
+    call read_binary_file('mnist_training_labels.dat',&
                           dtype, tr_nimages, tr_labels)
 
-    call read_binary_file('data/mnist/mnist_testing_images.dat',&
+    call read_binary_file('mnist_testing_images.dat',&
                           dtype, image_size, te_nimages, te_images)
-    call read_binary_file('data/mnist/mnist_testing_labels.dat',&
+    call read_binary_file('mnist_testing_labels.dat',&
                           dtype, te_nimages, te_labels)
 
     if (present(va_images) .and. present(va_labels)) then
-      call read_binary_file('data/mnist/mnist_validation_images.dat',&
+      call read_binary_file('mnist_validation_images.dat',&
                             dtype, image_size, va_nimages, va_images)
-      call read_binary_file('data/mnist/mnist_validation_labels.dat',&
+      call read_binary_file('mnist_validation_labels.dat',&
                             dtype, va_nimages, va_labels)
     end if
 
