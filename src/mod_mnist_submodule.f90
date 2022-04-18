@@ -10,7 +10,40 @@ submodule(mod_mnist) mod_mnist_submodule
 
   implicit none
 
+  integer, parameter :: message_len = 128
+
 contains
+
+  subroutine download_and_uncompress()
+    character(len=*), parameter :: download_mechanism = 'curl -LO '
+    character(len=*), parameter :: base_url='https://github.com/modern-fortran/neural-fortran/files/8498876/'
+    character(len=*), parameter :: download_filename = 'mnist.tar.gz'
+    character(len=*), parameter :: download_command = download_mechanism // base_url // download_filename
+    character(len=*), parameter :: uncompress_file = 'tar xvzf ' // download_filename
+    character(len=message_len) :: command_message
+    character(len=:), allocatable :: error_message
+    integer :: exit_status, command_status
+
+    exit_status=0
+    call execute_command_line(command=download_command, wait=.true., &
+      exitstat=exit_status, cmdstat=command_status, cmdmsg=command_message)
+
+    if (any([exit_status, command_status] /= 0)) then
+      error_message = 'command "' // download_command // '" failed'
+      if (command_status /= 0) error_message = error_message // " with message " // trim(command_message)
+      error stop error_message
+    end if
+
+    call execute_command_line(command=uncompress_file, wait=.true., &
+      exitstat=exit_status, cmdstat=command_status, cmdmsg=command_message)
+
+    if (any([exit_status, command_status] /= 0)) then
+      error_message = 'command "' // uncompress_file // '" failed'
+      if (command_status /= 0) error_message = error_message // " with message " // trim(command_message)
+      error stop  error_message
+    end if
+
+  end subroutine download_and_uncompress
 
   pure module function label_digits(labels) result(res)
     real(rk), intent(in) :: labels(:)
@@ -42,6 +75,11 @@ contains
     integer(ik), parameter :: tr_nimages = 50000
     integer(ik), parameter :: te_nimages = 10000
     integer(ik), parameter :: va_nimages = 10000
+    logical :: file_exists
+
+    ! Check if MNIST data is present and download it if not.
+    inquire(file='mnist_training_images.dat', exist=file_exists)
+    if (.not. file_exists) call download_and_uncompress()
 
     call read_binary_file('mnist_training_images.dat',&
                           dtype, image_size, tr_nimages, tr_images)
