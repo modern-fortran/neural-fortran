@@ -59,9 +59,7 @@ contains
     type(array1d), allocatable, intent(in out) :: db(:)
     integer(ik) :: n
     do n = 2, size(db)
-#ifdef CAF
       call co_sum(db(n) % array)
-#endif
     end do
   end subroutine db_co_sum
   
@@ -69,9 +67,7 @@ contains
     type(array2d), allocatable, intent(in out) :: dw(:)
     integer(ik) :: n
     do n = 1, size(dw) - 1
-#ifdef CAF
       call co_sum(dw(n) % array)
-#endif
     end do
   end subroutine dw_co_sum
   

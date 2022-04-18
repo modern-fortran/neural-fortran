@@ -43,6 +43,12 @@ Dependencies:
 * OpenCoarrays (optional, for parallel execution, GFortran only)
 * BLAS, MKL (optional)
 
+Compilers tested include:
+
+* gfortran-10.3.0
+* ifort-2021.4
+* ifx-2021.4
+
 ### Building with fpm
 
 #### Building in serial mode
@@ -59,7 +65,7 @@ Once installed, use the compiler wrappers `caf` and `cafrun` to build and execut
 in parallel, respectively:
 
 ```
-fpm build --compiler caf --flag "-cpp -DCAF -O3 -ffast-math"
+fpm build --compiler caf --flag "-cpp -O3 -ffast-math"
 ```
 
 #### Testing with fpm
