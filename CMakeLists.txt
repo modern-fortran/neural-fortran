@@ -35,7 +35,6 @@ if(SERIAL)
   message(STATUS "Configuring build for serial execution")
 else()
   message(STATUS "Configuring build for parallel execution")
-  add_definitions(-DCAF)
 endif()
 
 # compiler flags for gfortran
@@ -59,6 +58,11 @@ endif()
 
 # compiler flags for ifort
 if(CMAKE_Fortran_COMPILER_ID MATCHES Intel)
+
+  if(SERIAL)
+    message(STATUS "Configuring to build with -coarray=single")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -coarray=single")
+  endif()
 
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fpp -assume byterecl,realloc_lhs -heap-arrays")
   set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -C -traceback")
