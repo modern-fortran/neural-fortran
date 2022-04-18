@@ -190,10 +190,8 @@ contains
     integer(ik) :: n
     if (num_images() == 1) return
     layers: do n = 1, size(self % dims)
-#ifdef CAF
       call co_broadcast(self % layers(n) % b, image)
       call co_broadcast(self % layers(n) % w, image)
-#endif
     end do layers
   end subroutine sync
 

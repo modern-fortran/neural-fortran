@@ -65,7 +65,7 @@ Once installed, use the compiler wrappers `caf` and `cafrun` to build and execut
 in parallel, respectively:
 
 ```
-fpm build --compiler caf --flag "-cpp -DCAF -O3 -ffast-math"
+fpm build --compiler caf --flag "-cpp -O3 -ffast-math"
 ```
 
 #### Testing with fpm
