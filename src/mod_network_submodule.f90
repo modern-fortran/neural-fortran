@@ -8,9 +8,10 @@ submodule(mod_network) mod_network_submodule
 
 contains
 
-  type(network_type) module function net_constructor(dims, activation) result(net)
+  module function net_constructor(dims, activation) result(net)
     integer(ik), intent(in) :: dims(:)
     character(len=*), intent(in), optional :: activation
+    type(network_type) :: net
     call net % init(dims)
     if (present(activation)) then
       call net % set_activation(activation)
@@ -19,7 +20,6 @@ contains
     end if
     call net % sync(1)
   end function net_constructor
-
 
   pure real(rk) module function accuracy(self, x, y)
     class(network_type), intent(in) :: self

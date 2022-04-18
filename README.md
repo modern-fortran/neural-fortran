@@ -43,6 +43,12 @@ Dependencies:
 * OpenCoarrays (optional, for parallel execution, GFortran only)
 * BLAS, MKL (optional)
 
+Compilers tested include:
+
+* gfortran-10.3.0
+* ifort-2021.4
+* ifx-2021.4
+
 ### Building with fpm
 
 #### Building in serial mode

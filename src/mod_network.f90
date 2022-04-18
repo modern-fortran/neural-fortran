@@ -40,13 +40,14 @@ module mod_network
 
   interface network_type
     
-    type(network_type) module function net_constructor(dims, activation) result(net)
+    module function net_constructor(dims, activation) result(net)
       !! Network class constructor. Size of input array dims indicates the total
       !! number of layers (input + hidden + output), and the value of its elements
       !! corresponds the size of each layer.
       implicit none
       integer(ik), intent(in) :: dims(:)
       character(len=*), intent(in), optional :: activation
+      type(network_type) :: net
     end function net_constructor
           
   end interface network_type
@@ -61,7 +62,6 @@ module mod_network
       class(network_type), intent(in) :: self
       real(rk), intent(in) :: x(:,:), y(:,:)
     end function accuracy
-
 
     pure module subroutine backprop(self, y, dw, db)
       !! Applies a backward propagation through the network
@@ -81,7 +81,6 @@ module mod_network
       class(network_type), intent(in out) :: self
       real(rk), intent(in) :: x(:)
     end subroutine fwdprop
-
 
     module subroutine init(self, dims)
       !! Allocates and initializes the layers with given dimensions dims.
