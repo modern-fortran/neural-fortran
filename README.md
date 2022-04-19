@@ -155,16 +155,7 @@ cmake .. -DCMAKE_BUILD_TYPE=debug
 
 #### Running tests with CMake
 
-Before running the tests, link the the data/ directory to the current directory:
-
-```
-ln -s ../data
-```
-
-The MNIST dataset which comes with the code as a tarball must be unpacked first.
-See [MNIST training example](#mnist-training-example) on how to do that.
-Once the MNIST dataset is unpacked and the data/ directory is linked in your
-CMake build/ directory, run
+Type:
 
 ```
 ctest
@@ -284,15 +275,7 @@ broadcast. It can be any positive number not greater than `num_images()`.
 
 ### MNIST training example
 
-The MNIST data is included with the repo and you will have to unpack it first:
-
-```
-cd data/mnist
-tar xzvf mnist.tar.gz
-cd -
-```
-
-The complete program:
+Here's the complete program:
 
 ```fortran
 program example_mnist
@@ -352,7 +335,10 @@ program example_mnist
 end program example_mnist
 ```
 
-The program will report the accuracy after each epoch:
+The MNIST data will be automatically downloaded at the first attempt at loading it
+with the `load_mnist` subroutine.
+
+Running the program will report the accuracy after each epoch:
 
 ```
 $ ./example_mnist
