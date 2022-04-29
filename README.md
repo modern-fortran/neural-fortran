@@ -1,6 +1,5 @@
 # neural-fortran
 
-[![Build Status](https://travis-ci.org/modern-fortran/neural-fortran.svg?branch=master)](https://travis-ci.org/modern-fortran/neural-fortran)
 [![GitHub issues](https://img.shields.io/github/issues/modern-fortran/neural-fortran.svg)](https://github.com/modern-fortran/neural-fortran/issues)
 
 A parallel neural net microframework. 
