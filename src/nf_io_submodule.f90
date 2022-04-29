@@ -1,4 +1,4 @@
-submodule(mod_io) mod_io_submodule
+submodule(nf_io) nf_io_submodule
 
   implicit none
 
@@ -7,11 +7,11 @@ submodule(mod_io) mod_io_submodule
 contains
 
   module subroutine read_binary_file_1d(filename, dtype, nrec, array)
-    character(len=*), intent(in) :: filename
-    integer(ik), intent(in) :: dtype, nrec
-    real(rk), allocatable, intent(in out) :: array(:)
-    integer(ik) :: fileunit
-    character(len=message_len) :: io_message
+    character(*), intent(in) :: filename
+    integer, intent(in) :: dtype, nrec
+    real, allocatable, intent(in out) :: array(:)
+    integer :: fileunit
+    character(message_len) :: io_message
     integer :: io_status
     io_status = 0
     open(newunit=fileunit, file=filename, access='direct', action='read', &
@@ -23,11 +23,11 @@ contains
   end subroutine read_binary_file_1d
 
   module subroutine read_binary_file_2d(filename, dtype, dsize, nrec, array)
-    character(len=*), intent(in) :: filename
-    integer(ik), intent(in) :: dtype, dsize, nrec
-    real(rk), allocatable, intent(in out) :: array(:,:)
-    integer(ik) :: fileunit, i
-    character(len=message_len) :: io_message
+    character(*), intent(in) :: filename
+    integer, intent(in) :: dtype, dsize, nrec
+    real, allocatable, intent(in out) :: array(:,:)
+    integer :: fileunit, i
+    character(message_len) :: io_message
     integer :: io_status
     io_status = 0
     open(newunit=fileunit, file=filename, access='direct', action='read', &
@@ -40,4 +40,4 @@ contains
     close(fileunit)
   end subroutine read_binary_file_2d
 
-end submodule mod_io_submodule
+end submodule nf_io_submodule

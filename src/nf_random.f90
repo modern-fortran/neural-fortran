@@ -1,9 +1,7 @@
-module mod_random
+module nf_random
 
   !! Provides a random number generator with
   !! normal distribution, centered on zero.
-
-  use mod_kinds, only: ik, rk
 
   implicit none
 
@@ -13,19 +11,21 @@ module mod_random
   interface randn
 
     module function randn1d(n) result(r)
-      !! Generates n random numbers with a normal distribution.
+      !! Generates n random numbers with a normal distribution,
+      !! using the Box-Muller method.
       implicit none
-      integer(ik), intent(in) :: n
-      real(rk) :: r(n)
+      integer, intent(in) :: n
+      real :: r(n)
     end function randn1d
 
     module function randn2d(m, n) result(r)
-      !! Generates m x n random numbers with a normal distribution.
+      !! Generates m x n random numbers with a normal distribution,
+      !! using the Box-Muller method.
       implicit none
-      integer(ik), intent(in) :: m, n
-      real(rk) :: r(m, n)
+      integer, intent(in) :: m, n
+      real :: r(m,n)
     end function randn2d
 
   end interface randn
 
-end module mod_random
+end module nf_random

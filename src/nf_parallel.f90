@@ -1,6 +1,5 @@
-module mod_parallel
+module nf_parallel
 
-  use mod_kinds, only: ik, rk
   implicit none
 
   private
@@ -8,14 +7,14 @@ module mod_parallel
 
   interface
   
-    pure module function tile_indices(dims)
+    pure module function tile_indices(dims) result(res)
       !! Given input global array size, return start and end index
       !! of a parallel 1-d tile that correspond to this image.
       implicit none
-      integer(ik), intent(in) :: dims
-      integer(ik) :: tile_indices(2)
+      integer, intent(in) :: dims
+      integer :: res(2)
     end function tile_indices
   
   end interface
 
-end module mod_parallel
+end module nf_parallel
