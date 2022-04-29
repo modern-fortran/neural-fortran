@@ -13,24 +13,6 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "release")
 endif()
 
-# handle integer size
-if(INT)
-  message(STATUS "Configuring build for ${INT}-bit integers")
-  add_definitions(-DINT${INT})
-else()
-  message(STATUS "Configuring build for 32-bit integers")
-  add_definitions(-DINT32)
-endif()
-
-# handle real size
-if(REAL)
-  message(STATUS "Configuring build for ${REAL}-bit reals")
-  add_definitions(-DREAL${REAL})
-else()
-  message(STATUS "Configuring build for 32-bit reals")
-  add_definitions(-DREAL32)
-endif()
-
 if(SERIAL)
   message(STATUS "Configuring build for serial execution")
 else()
@@ -51,7 +33,6 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
     message(STATUS "Configuring build to use BLAS from ${BLAS}")
   endif()
     
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
   set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -C -fbacktrace")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -ffast-math")
 endif()
@@ -64,7 +45,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES Intel)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -coarray=single")
   endif()
 
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fpp -assume byterecl,realloc_lhs -heap-arrays")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -assume byterecl")
   set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -C -traceback")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
 
@@ -83,21 +64,34 @@ endif()
 
 # library to archive (libneural.a)
 add_library(neural
-  src/mod_activation.f90
-  src/mod_activation_submodule.f90
-  src/mod_io.f90
-  src/mod_io_submodule.f90
-  src/mod_kinds.f90
-  src/mod_layer.f90
-  src/mod_layer_submodule.f90
-  src/mod_mnist.f90
-  src/mod_mnist_submodule.f90
-  src/mod_network.f90
-  src/mod_network_submodule.f90
-  src/mod_parallel.f90
-  src/mod_parallel_submodule.f90
-  src/mod_random.f90
-  src/mod_random_submodule.f90
+  src/nf_activation.f90
+  src/nf_base_layer.f90
+  src/nf_base_layer_submodule.f90
+  src/nf_conv2d_layer.f90
+  src/nf_datasets_mnist.f90
+  src/nf_datasets_mnist_submodule.f90
+  src/nf_dense_layer.f90
+  src/nf_dense_layer_submodule.f90
+  src/nf.f90
+  src/nf_input1d_layer.f90
+  src/nf_input1d_layer_submodule.f90
+  src/nf_input3d_layer.f90
+  src/nf_input3d_layer_submodule.f90
+  src/nf_io.f90
+  src/nf_io_submodule.f90
+  src/nf_layer_constructors.f90
+  src/nf_layer_constructors_submodule.f90
+  src/nf_layer.f90
+  src/nf_layer_submodule.f90
+  src/nf_loss.f90
+  src/nf_loss_submodule.f90
+  src/nf_network.f90
+  src/nf_network_submodule.f90
+  src/nf_optimizers.f90
+  src/nf_parallel.f90
+  src/nf_parallel_submodule.f90
+  src/nf_random.f90
+  src/nf_random_submodule.f90
 )
 
 # Remove leading or trailing whitespace
@@ -105,14 +99,14 @@ string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 
 # tests
 enable_testing()
-foreach(execid mnist network_save network_sync set_activation_function)
+foreach(execid dense_layer input1d_layer)
   add_executable(test_${execid} test/test_${execid}.f90)
   target_link_libraries(test_${execid} neural ${LIBS})
   add_test(test_${execid} bin/test_${execid})
 endforeach()
   
-foreach(execid mnist mnist_epochs save_and_load simple sine)
-  add_executable(example_${execid} example/example_${execid}.f90)
-  target_link_libraries(example_${execid} neural ${LIBS})
-  add_test(example_${execid} bin/example_${execid})
+foreach(execid mnist simple sine)
+  add_executable(${execid} example/${execid}.f90)
+  target_link_libraries(${execid} neural ${LIBS})
+  #add_test(example_${execid} bin/example_${execid})
 endforeach()
