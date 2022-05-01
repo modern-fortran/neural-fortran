@@ -48,9 +48,9 @@ program test_input1d_layer
   end if
 
   if (ok) then
-    print '(a)', 'test_dense_layer: All tests passed.'
+    print '(a)', 'test_input1d_layer: All tests passed.'
   else
-    write(stderr, '(a)') 'test_dense_layer: One or more tests failed.'
+    write(stderr, '(a)') 'test_input1d_layer: One or more tests failed.'
     stop 1
   end if
 
