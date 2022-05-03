@@ -33,8 +33,8 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
     message(STATUS "Configuring build to use BLAS from ${BLAS}")
   endif()
     
-  set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -C -fbacktrace")
-  set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -ffast-math")
+  set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -fcheck=bounds -fbacktrace")
+  set(CMAKE_Fortran_FLAGS_RELEASE "-Ofast -fno-frontend-optimize")
 endif()
 
 # compiler flags for ifort

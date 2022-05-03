@@ -50,6 +50,23 @@ Compilers tested include:
 fpm build
 ```
 
+By default, without specifying the build profile, fpm will build neural-fortran
+using the debug compiler flags, and without optimization.
+To build optimized code, build with the release profile:
+
+```
+fpm build --profile release
+```
+
+If you're using GFortran, make sure to also pass an additional flag:
+
+```
+fpm build --profile release --flag "-fno-frontend-optimize"
+```
+
+The `-fno-frontend-optimize` disables some optimizations that may be harmful
+when building neural-fortran.
+
 #### Building in parallel mode
 
 If you use GFortran and want to run neural-fortran in parallel,
@@ -58,7 +75,7 @@ Once installed, use the compiler wrappers `caf` and `cafrun` to build and execut
 in parallel, respectively:
 
 ```
-fpm build --compiler caf
+fpm build --compiler caf --profile release --flag "-fno-frontend-optimize"
 ```
 
 #### Testing with fpm
@@ -68,7 +85,7 @@ fpm test
 ```
 
 For the time being, you need to specify the same compiler flags to `fpm test`
-as you did in `fpm build` so that fpm can figure out to use the same build
+as you did in `fpm build` so that fpm knows it should use the same build
 profile.
 
 See [Fortran Package Manager](https://github.com/fortran-lang/fpm) for more info on fpm.
@@ -148,6 +165,12 @@ examples, in increasing level of complexity:
 1. [simple](example/simple.f90): Approximating a simple, constant data relationship
 2. [sine](example/sine.f90): Approximating a sine function
 3. [mnist](example/mnist.f90): Hand-written digit recognition using the MNIST dataset
+
+The MNIST example uses [curl](https://curl.se/) to download the dataset,
+so make sure you have it installed on your system.
+Most Linux OSs have it out of the box.
+The dataset will be downloaded only the first time you run the example in any
+given directory.
 
 ## API documentation
 
