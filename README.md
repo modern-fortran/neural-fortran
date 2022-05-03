@@ -45,7 +45,7 @@ Dependencies:
 
 Compilers tested include:
 
-* gfortran-10.3.0
+* gfortran-9.4.0
 * ifort-2021.4
 * ifx-2021.4
 
