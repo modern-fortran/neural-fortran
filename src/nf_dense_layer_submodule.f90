@@ -24,11 +24,11 @@ contains
     real :: db(self % output_size)
     real :: dw(self % input_size, self % output_size)
 
-     db = gradient * self % activation_prime(self % z)
-     dw = matmul(reshape(input, [size(input), 1]), reshape(db, [1, size(db)]))
-     self % gradient = matmul(self % weights, db)
-     self % dw = self % dw + dw
-     self % db = self % db + db
+    db = gradient * self % activation_prime(self % z)
+    dw = matmul(reshape(input, [size(input), 1]), reshape(db, [1, size(db)]))
+    self % gradient = matmul(self % weights, db)
+    self % dw = self % dw + dw
+    self % db = self % db + db
 
   end subroutine backward
 
