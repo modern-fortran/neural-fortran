@@ -14,6 +14,7 @@ contains
     call res % set_activation(activation)
   end function conv2d_layer_cons
 
+
   module subroutine init(self, input_shape)
     class(conv2d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
@@ -38,7 +39,21 @@ contains
   module subroutine forward(self, input)
     class(conv2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
-    print *, 'Warning: conv2d forward pass not implemented'
+    integer :: i, j, n
+
+    do j = 2, self % height - 1 ! FIXME
+      do i = 2, self % width - 1 ! FIXME
+
+        do n = 1, self % filters
+          !FIXME indices of self % output
+          self % output(n,i,j) = &
+            sum(self % kernel(n,:,i-1:i+1,j-1:j+1) * input(:,i-1:i+1,j-1:j+1)) &
+            + self % biases(n)
+        end do
+
+      end do
+    end do
+
   end subroutine forward
 
 
