@@ -30,55 +30,32 @@ module nf_conv2d_layer
   end type conv2d_layer
 
   interface conv2d_layer
-    module procedure :: conv2d_layer_cons
+    pure module function conv2d_layer_cons(window_size, filters, activation) result(res)
+      integer, intent(in) :: window_size
+      integer, intent(in) :: filters
+      character(*), intent(in) :: activation
+      type(conv2d_layer) :: res
+    end function conv2d_layer_cons
   end interface conv2d_layer
 
-contains
+  interface
 
-  pure function conv2d_layer_cons(window_size, filters, activation) result(res)
-    integer, intent(in) :: window_size
-    integer, intent(in) :: filters
-    character(*), intent(in) :: activation
-    type(conv2d_layer) :: res
-    res % window_size = window_size
-    res % filters = filters
-    call res % set_activation(activation)
-  end function conv2d_layer_cons
+    module subroutine init(self, input_shape)
+      class(conv2d_layer), intent(in out) :: self
+      integer, intent(in) :: input_shape(:)
+    end subroutine init
 
+    module subroutine forward(self, input)
+      class(conv2d_layer), intent(in out) :: self
+      real, intent(in) :: input(:,:,:)
+    end subroutine forward
 
-  subroutine init(self, input_shape)
-    class(conv2d_layer), intent(in out) :: self
-    integer, intent(in) :: input_shape(:)
+    module subroutine backward(self, input, gradient)
+      class(conv2d_layer), intent(in out) :: self
+      real, intent(in) :: input(:,:,:)
+      real, intent(in) :: gradient(:,:,:)
+    end subroutine backward
 
-    self % width = input_shape(1) - self % window_size + 1
-    self % height = input_shape(2) - self % window_size + 1
-    self % channels = input_shape(3)
-
-    allocate(self % output(self % width, self % height, self % filters))
-    self % output = 0
-
-    allocate(self % kernel(self % window_size, self % window_size, &
-                           self % channels, self % filters))
-    self % kernel = 0 ! TODO 4-d randn
-
-    allocate(self % biases(self % filters))
-    self % biases = 0
-
-  end subroutine init
-
-
-  subroutine forward(self, input)
-    class(conv2d_layer), intent(in out) :: self
-    real, intent(in) :: input(:,:,:)
-    print *, 'Warning: conv2d forward pass not implemented'
-  end subroutine forward
-
-
-  subroutine backward(self, input, gradient)
-    class(conv2d_layer), intent(in out) :: self
-    real, intent(in) :: input(:,:,:)
-    real, intent(in) :: gradient(:,:,:)
-    print *, 'Warning: conv2d backward pass not implemented'
-  end subroutine backward
+  end interface
 
 end module nf_conv2d_layer
