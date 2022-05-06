@@ -75,6 +75,9 @@ contains
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: input
 
+    if (self % initialized) &
+      error stop self % name // ' layer is already initialized.'
+
     select type(this_layer => self % p); class default
       call this_layer % init(input % layer_shape)
     end select
