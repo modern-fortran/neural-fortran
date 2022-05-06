@@ -39,7 +39,6 @@ contains
 
     select type(this_layer => self % p)
 
-      ! Only dense layer is supported for now
       type is(dense_layer)
 
         ! Input layers permitted: input1d, dense
@@ -47,6 +46,14 @@ contains
           type is(input1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(dense_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(conv2d_layer)
+
+        ! Input layers permitted: input3d
+        select type(prev_layer => input % p)
+          type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
         end select
 

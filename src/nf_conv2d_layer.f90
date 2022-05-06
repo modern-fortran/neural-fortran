@@ -45,7 +45,7 @@ module nf_conv2d_layer
       integer, intent(in) :: input_shape(:)
     end subroutine init
 
-    module subroutine forward(self, input)
+    pure module subroutine forward(self, input)
       class(conv2d_layer), intent(in out) :: self
       real, intent(in) :: input(:,:,:)
     end subroutine forward

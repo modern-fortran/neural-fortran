@@ -36,20 +36,46 @@ contains
   end subroutine init
 
 
-  module subroutine forward(self, input)
+  pure module subroutine forward(self, input)
     class(conv2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
+    integer :: input_width, input_height, input_channels
+    integer :: istart, iend
+    integer :: jstart, jend
     integer :: i, j, n
+    integer :: ii, jj
 
-    do j = 2, self % height - 1 ! FIXME
-      do i = 2, self % width - 1 ! FIXME
+    input_width = size(input, dim=1)
+    input_height = size(input, dim=2)
+    input_channels = size(input, dim=3)
+
+    istart = self % window_size / 2 + 1 ! TODO window_width
+    jstart = self % window_size / 2 + 1 ! TODO window_height
+    iend = input_width - istart + 1
+    jend = input_height - jstart + 1
+
+    do j = jstart, jend
+      do i = istart, iend
+
+        ! Indices of the output matrix
+        ii = i - self % window_size / 2 ! TODO window_width
+        jj = j - self % window_size / 2 ! TODO window_height
 
         do n = 1, self % filters
-          !FIXME indices of self % output
-          self % output(n,i,j) = &
-            sum(self % kernel(n,:,i-1:i+1,j-1:j+1) * input(:,i-1:i+1,j-1:j+1)) &
-            + self % biases(n)
+
+          associate( &
+            kernel => self % kernel(:,:,:,n), &
+            filtered_input => input(i-1:i+1,j-1:j+1,:) &
+          )
+
+            self % output(ii,jj,n) = sum(kernel * filtered_input) &
+                                 + self % biases(n)
+
+          end associate
+
         end do
+
+        self % output(ii,jj,:) = self % activation(self % output(ii,jj,:))
 
       end do
     end do
