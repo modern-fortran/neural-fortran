@@ -1,5 +1,7 @@
 submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
+  use nf_random, only: randn
+
   implicit none
 
 contains
@@ -28,7 +30,11 @@ contains
 
     allocate(self % kernel(self % window_size, self % window_size, &
                            self % channels, self % filters))
-    self % kernel = 0 ! TODO 4-d randn
+
+    ! Initialize the kernel with random values with a normal distribution.
+    self % kernel = randn(self % window_size, self % window_size, &
+                          self % channels, self % filters) &
+                  / self % window_size**2 !TODO window_width * window_height
 
     allocate(self % biases(self % filters))
     self % biases = 0
