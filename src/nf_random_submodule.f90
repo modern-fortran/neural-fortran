@@ -5,22 +5,31 @@ submodule(nf_random) nf_random_submodule
 
 contains
 
-  module function randn1d(n) result(x)
-    integer, intent(in) :: n
-    real :: x(n)
-    real :: u(n), v(n)
+  module function randn_1d(i) result(x)
+    integer, intent(in) :: i
+    real :: x(i)
+    real :: u(i), v(i)
     call random_number(u)
     call random_number(v)
     x = sqrt(-2 * log(u)) * cos(2 * pi * v)
-  end function randn1d
+  end function randn_1d
 
-  module function randn2d(m, n) result(x)
-    integer, intent(in) :: m, n
-    real :: x(m,n)
-    real :: u(m,n), v(m,n)
+  module function randn_2d(i, j) result(x)
+    integer, intent(in) :: i, j
+    real :: x(i,j)
+    real :: u(i,j), v(i,j)
     call random_number(u)
     call random_number(v)
     x = sqrt(-2 * log(u)) * cos(2 * pi * v)
-  end function randn2d
+  end function randn_2d
+
+  module function randn_4d(i, j, k, l) result(x)
+    integer, intent(in) :: i, j, k, l
+    real :: x(i,j,k,l)
+    real :: u(i,j,k,l), v(i,j,k,l)
+    call random_number(u)
+    call random_number(v)
+    x = sqrt(-2 * log(u)) * cos(2 * pi * v)
+  end function randn_4d
 
 end submodule nf_random_submodule
