@@ -55,33 +55,46 @@ contains
     integer :: jstart, jend
     integer :: i, j, n
     integer :: ii, jj
+    integer :: iws, iwe, jws, jwe
+    integer :: half_window
 
     ! Input dimensions are channels x width x height
     input_channels = size(input, dim=1)
     input_width = size(input, dim=2)
     input_height = size(input, dim=3)
 
+    ! Half-window is 1 for window size 3; 2 for window size 5; etc.
+    half_window = self % window_size / 2
+
     ! Determine the start and end indices for the width and height dimensions
-    ! of the input that correspond to the center of each filter (window).
-    istart = self % window_size / 2 + 1 ! TODO window_width
-    jstart = self % window_size / 2 + 1 ! TODO window_height
+    ! of the input that correspond to the center of each window.
+    istart = half_window + 1 ! TODO window_width
+    jstart = half_window + 1 ! TODO window_height
     iend = input_width - istart + 1
     jend = input_height - jstart + 1
 
     convolution: do concurrent(i = istart:iend, j = jstart:jend)
 
-      ! Indices of the output matrix
-      ii = i - self % window_size / 2 ! TODO window_width
-      jj = j - self % window_size / 2 ! TODO window_height
+      ! Start and end indices of the input data on the filter window
+      ! iws and jws are also coincidentally the indices of the output matrix
+      iws = i - half_window ! TODO window_width
+      iwe = i + half_window ! TODO window_width
+      jws = j - half_window ! TODO window_height
+      jwe = j + half_window ! TODO window_height
 
+      ! This computes the inner tensor product, sum(w_ij * x_ij), for each filter,
+      ! and we add bias b_n to it.
       inner_product: do concurrent(n = 1:self % filters)
-        self % output(n,ii,jj) = &
-          sum(self % kernel(n,:,:,:) * input(:,i-1:i+1,j-1:j+1)) &
+        self % output(n,iws,jws) = &
+          sum(self % kernel(n,:,:,:) * input(:,iws:iwe,jws:jwe)) &
           + self % biases(n)
       end do inner_product
 
+      ! TODO We may need to store self % output before we activate it for the backward
+      ! TODO pass, just like we do for the dense layer.
+
       ! Activate
-      self % output(:,ii,jj) = self % activation(self % output(:,ii,jj))
+      self % output(:,iws,jws) = self % activation(self % output(:,iws,jws))
 
     end do convolution
 
