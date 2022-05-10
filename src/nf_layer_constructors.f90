@@ -7,7 +7,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, input
+  public :: conv2d, dense, input, maxpool2d
 
   interface input
 
@@ -110,6 +110,27 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function conv2d
+
+    pure module function maxpool2d(pool_size, stride) result(res)
+      !! 2-d maxpooling layer constructor.
+      !!
+      !! TODO description
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: maxpool2d, layer
+      !! type(layer) :: maxpool2d_layer
+      !! maxpool2d_layer = maxpool2d(pool_size=3, stride=2)
+      !! ```
+      integer, intent(in) :: pool_size
+        !! Width of the pooling window, commonly 2
+      integer, intent(in), optional :: stride
+        !! Stride of the pooling window, commonly equal to `pool_size`.
+        !! Defaults to `pool_size` if omitted.
+      type(layer) :: res
+        !! Resulting layer instance
+    end function maxpool2d
 
   end interface
 

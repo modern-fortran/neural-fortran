@@ -5,6 +5,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_dense_layer, only: dense_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_maxpool2d_layer, only: maxpool2d_layer
 
   implicit none
 
@@ -71,5 +72,27 @@ contains
     )
 
   end function conv2d
+
+
+  pure module function maxpool2d(pool_size, stride) result(res)
+    integer, intent(in) :: pool_size
+    integer, intent(in), optional :: stride
+    integer :: stride_
+    type(layer) :: res
+
+    res % name = 'maxpool2d'
+
+    if (present(stride)) then
+      stride_ = stride
+    else
+      stride_ = pool_size
+    end if
+
+    allocate( &
+      res % p, &
+      source=maxpool2d_layer(pool_size, stride) &
+    )
+
+  end function maxpool2d
 
 end submodule nf_layer_constructors_submodule
