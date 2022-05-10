@@ -41,13 +41,21 @@ module nf_conv2d_layer
   interface
 
     module subroutine init(self, input_shape)
+      !! Initialize the layer data structures.
+      !!
+      !! This is a deferred procedure from the `base_layer` abstract type.
       class(conv2d_layer), intent(in out) :: self
+        !! A `conv2d_layer` instance
       integer, intent(in) :: input_shape(:)
+        !! Input layer dimensions
     end subroutine init
 
     pure module subroutine forward(self, input)
+      !! Apply a forward pass on the `conv2d` layer.
       class(conv2d_layer), intent(in out) :: self
+        !! A `conv2d_layer` instance
       real, intent(in) :: input(:,:,:)
+        !! Input data
     end subroutine forward
 
     module subroutine backward(self, input, gradient)
