@@ -62,7 +62,7 @@ contains
   end subroutine forward
 
 
-  pure module subroutine get_output(self, output)
+  pure module subroutine get_output_1d(self, output)
     class(layer), intent(in) :: self
     real, allocatable, intent(out) :: output(:)
 
@@ -72,10 +72,30 @@ contains
         allocate(output, source=this_layer % output)
       type is(dense_layer)
         allocate(output, source=this_layer % output)
+      class default
+        error stop '1-d output can only be read from an input1d or dense layer.'
 
     end select
 
-  end subroutine get_output
+  end subroutine get_output_1d
+
+
+  pure module subroutine get_output_3d(self, output)
+    class(layer), intent(in) :: self
+    real, allocatable, intent(out) :: output(:,:,:)
+
+    select type(this_layer => self % p)
+
+      type is(input3d_layer)
+        allocate(output, source=this_layer % output)
+      type is(conv2d_layer)
+        allocate(output, source=this_layer % output)
+      class default
+        error stop '3-d output can only be read from an input3d or conv2d layer.'
+
+    end select
+
+  end subroutine get_output_3d
 
 
   impure elemental module subroutine init(self, input)

@@ -26,10 +26,16 @@ module nf_layer
 
     procedure :: backward
     procedure :: forward
-    procedure :: get_output
     procedure :: init
     procedure :: print_info
     procedure :: update
+
+    ! Specific output subroutines for different array ranks,
+    ! available via generic `get_output`.
+    procedure, private :: get_output_1d
+    procedure, private :: get_output_3d
+
+    generic :: get_output => get_output_1d, get_output_3d
 
   end type layer
 
@@ -59,13 +65,22 @@ module nf_layer
         !! Input layer instance
     end subroutine forward
 
-    pure module subroutine get_output(self, output)
+    pure module subroutine get_output_1d(self, output)
       !! Returns the output values (activations) from this layer.
       class(layer), intent(in) :: self
         !! Layer instance
       real, allocatable, intent(out) :: output(:)
         !! Output values from this layer
-    end subroutine get_output
+    end subroutine get_output_1d
+
+    pure module subroutine get_output_3d(self, output)
+      !! Returns the output values (activations) from a layer with a 3-d output
+      !! (e.g. input3d, conv2d)
+      class(layer), intent(in) :: self
+        !! Layer instance
+      real, allocatable, intent(out) :: output(:,:,:)
+        !! Output values from this layer
+    end subroutine get_output_3d
 
     impure elemental module subroutine init(self, input)
       !! Initialize the layer, using information from the input layer,
