@@ -114,19 +114,20 @@ module nf_layer_constructors
     pure module function maxpool2d(pool_size, stride) result(res)
       !! 2-d maxpooling layer constructor.
       !!
-      !! TODO description
+      !! This layer is for downscaling other layers, typically `conv2d`.
       !!
       !! Example:
       !!
       !! ```
       !! use nf, only :: maxpool2d, layer
       !! type(layer) :: maxpool2d_layer
-      !! maxpool2d_layer = maxpool2d(pool_size=3, stride=2)
+      !! maxpool2d_layer = maxpool2d(pool_size=2)
+      !! maxpool2d_layer = maxpool2d(pool_size=2, stride=3)
       !! ```
       integer, intent(in) :: pool_size
         !! Width of the pooling window, commonly 2
       integer, intent(in), optional :: stride
-        !! Stride of the pooling window, commonly equal to `pool_size`.
+        !! Stride of the pooling window, commonly equal to `pool_size`;
         !! Defaults to `pool_size` if omitted.
       type(layer) :: res
         !! Resulting layer instance

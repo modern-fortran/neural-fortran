@@ -80,13 +80,20 @@ contains
     integer :: stride_
     type(layer) :: res
 
-    res % name = 'maxpool2d'
+    if (pool_size < 2) &
+      error stop 'pool_size must be >= 2 in a maxpool2d layer'
 
+    ! Stride defaults to pool_size if not provided
     if (present(stride)) then
       stride_ = stride
     else
       stride_ = pool_size
     end if
+
+    if (stride < 1) &
+      error stop 'stride must be >= 1 in a maxpool2d layer'
+
+    res % name = 'maxpool2d'
 
     allocate( &
       res % p, &
