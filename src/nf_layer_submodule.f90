@@ -4,6 +4,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_dense_layer, only: dense_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_maxpool2d_layer, only: maxpool2d_layer
 
   implicit none
 
@@ -109,9 +110,13 @@ contains
       call this_layer % init(input % layer_shape)
     end select
 
-    ! The shape of a conv2d layer is not known until we receive an input layer.
-    select type(this_layer => self % p); type is(conv2d_layer)
-      self % layer_shape = shape(this_layer % output)
+    ! The shape of conv2d or maxpool2d layers is not known
+    ! until we receive an input layer.
+    select type(this_layer => self % p)
+      type is(conv2d_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(maxpool2d_layer)
+        self % layer_shape = shape(this_layer % output)
     end select
 
     self % input_layer_shape = input % layer_shape 

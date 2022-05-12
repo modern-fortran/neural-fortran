@@ -23,6 +23,24 @@ program test_maxpool2d_layer
     write(stderr, '(a)') 'maxpool2d layer should not be marked as initialized yet.. failed'
   end if
 
+  input_layer = input([3, 32, 32])
+  call maxpool_layer % init(input_layer)
+
+  if (.not. maxpool_layer % initialized) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool2d layer should now be marked as initialized.. failed'
+  end if
+
+  if (.not. all(maxpool_layer % input_layer_shape == [3, 32, 32])) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool2d layer input layer shape should be correct.. failed'
+  end if
+
+  if (.not. all(maxpool_layer % layer_shape == [3, 16, 16])) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool2d layer input layer shape should be correct.. failed'
+  end if
+
   if (ok) then
     print '(a)', 'test_maxpool2d_layer: All tests passed.'
   else
