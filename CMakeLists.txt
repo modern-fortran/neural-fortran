@@ -100,7 +100,7 @@ string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 
 # tests
 enable_testing()
-foreach(execid input1d_layer dense_layer conv2d_layer dense_network)
+foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer dense_network)
   add_executable(test_${execid} test/test_${execid}.f90)
   target_link_libraries(test_${execid} neural ${LIBS})
   add_test(test_${execid} bin/test_${execid})
