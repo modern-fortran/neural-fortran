@@ -90,14 +90,14 @@ contains
       stride_ = pool_size
     end if
 
-    if (stride < 1) &
+    if (stride_ < 1) &
       error stop 'stride must be >= 1 in a maxpool2d layer'
 
     res % name = 'maxpool2d'
 
     allocate( &
       res % p, &
-      source=maxpool2d_layer(pool_size, stride) &
+      source=maxpool2d_layer(pool_size, stride_) &
     )
 
   end function maxpool2d
