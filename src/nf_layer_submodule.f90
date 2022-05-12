@@ -91,8 +91,10 @@ contains
         allocate(output, source=this_layer % output)
       type is(conv2d_layer)
         allocate(output, source=this_layer % output)
+      type is(maxpool2d_layer)
+        allocate(output, source=this_layer % output)
       class default
-        error stop '3-d output can only be read from an input3d or conv2d layer.'
+        error stop '3-d output can only be read from an input3d, conv2d, or maxpool2d layer.'
 
     end select
 
