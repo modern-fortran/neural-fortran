@@ -1,7 +1,6 @@
 module nf_conv2d_layer
 
-  !! This is a placeholder module that will later define a concrete conv2d
-  !! layer type.
+  !! This modules provides a 2-d convolutional `conv2d_layer` type.
 
   use nf_base_layer, only: base_layer
   implicit none
@@ -17,9 +16,9 @@ module nf_conv2d_layer
     integer :: window_size
     integer :: filters
 
-    real, allocatable :: biases(:) ! as many as there are filters
-    real, allocatable :: kernel(:,:,:,:)
-    real, allocatable :: output(:,:,:)
+    real, allocatable :: biases(:) ! size(filters)
+    real, allocatable :: kernel(:,:,:,:) ! filters x channels x window x window
+    real, allocatable :: output(:,:,:) ! filters x output_width * output_height
 
   contains
 
@@ -31,6 +30,7 @@ module nf_conv2d_layer
 
   interface conv2d_layer
     pure module function conv2d_layer_cons(window_size, filters, activation) result(res)
+      !! `conv2d_layer` constructor function
       integer, intent(in) :: window_size
       integer, intent(in) :: filters
       character(*), intent(in) :: activation
@@ -59,9 +59,13 @@ module nf_conv2d_layer
     end subroutine forward
 
     module subroutine backward(self, input, gradient)
+      !! Apply a backward pass on the `conv2d` layer.
       class(conv2d_layer), intent(in out) :: self
+        !! A `conv2d_layer` instance
       real, intent(in) :: input(:,:,:)
+        !! Input data (previous layer)
       real, intent(in) :: gradient(:,:,:)
+        !! Gradient (next layer)
     end subroutine backward
 
   end interface
