@@ -10,21 +10,29 @@ module nf_random
 
   interface randn
 
-    module function randn1d(n) result(r)
-      !! Generates n random numbers with a normal distribution,
+    module function randn_1d(i) result(r)
+      !! Generates i random numbers with a normal distribution,
       !! using the Box-Muller method.
       implicit none
-      integer, intent(in) :: n
-      real :: r(n)
-    end function randn1d
+      integer, intent(in) :: i
+      real :: r(i)
+    end function randn_1d
 
-    module function randn2d(m, n) result(r)
-      !! Generates m x n random numbers with a normal distribution,
+    module function randn_2d(i, j) result(r)
+      !! Generates i x j random numbers with a normal distribution,
       !! using the Box-Muller method.
       implicit none
-      integer, intent(in) :: m, n
-      real :: r(m,n)
-    end function randn2d
+      integer, intent(in) :: i, j
+      real :: r(i,j)
+    end function randn_2d
+
+    module function randn_4d(i, j, k, l) result(r)
+      !! Generates i x j x k x l random numbers with a normal distribution,
+      !! using the Box-Muller method.
+      implicit none
+      integer, intent(in) :: i, j, k, l
+      real :: r(i,j,k,l)
+    end function randn_4d
 
   end interface randn
 
