@@ -11,14 +11,22 @@ module nf_network
   public :: network
 
   type :: network
+
     type(layer), allocatable :: layers(:)
+
   contains
+
     procedure :: backward
-    procedure :: forward
     procedure :: output
     procedure :: print_info
     procedure :: train
     procedure :: update
+
+    procedure, private :: forward_1d
+    procedure, private :: forward_3d
+
+    generic :: forward => forward_1d, forward_3d
+
   end type network
 
   interface network
@@ -32,6 +40,38 @@ module nf_network
     end function network_cons
   end interface network
 
+  interface forward
+
+    pure module subroutine forward_1d(self, input)
+      !! Apply a forward pass through the network.
+      !!
+      !! This changes the state of layers on the network.
+      !! Typically used only internally from the `train` method,
+      !! but can be invoked by the user when creating custom optimizers.
+      !!
+      !! This specific subroutine is for 1-d input data.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:)
+        !! 1-d input data
+    end subroutine forward_1d
+
+    pure module subroutine forward_3d(self, input)
+      !! Apply a forward pass through the network.
+      !!
+      !! This changes the state of layers on the network.
+      !! Typically used only internally from the `train` method,
+      !! but can be invoked by the user when creating custom optimizers.
+      !!
+      !! This specific subroutine is for 3-d input data.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:,:)
+        !! 3-d input data
+    end subroutine forward_3d
+
+  end interface forward
+
   interface
 
     pure module subroutine backward(self, output)
@@ -44,17 +84,6 @@ module nf_network
       real, intent(in) :: output(:)
         !! Output data
     end subroutine backward
-
-    pure module subroutine forward(self, input)
-      !! Apply a forward pass through the network.
-      !! This changes the state of layers on the network.
-      !! Typically used only internally from the `train` method,
-      !! but can be invoked by the user when creating custom optimizers.
-      class(network), intent(in out) :: self
-        !! Network instance
-      real, intent(in) :: input(:)
-        !! Input data
-    end subroutine forward
 
     module function output(self, input) result(res)
       !! Return the output of the network given the input array.
