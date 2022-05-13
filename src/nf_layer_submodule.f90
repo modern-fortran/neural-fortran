@@ -52,9 +52,13 @@ contains
 
       type is(conv2d_layer)
 
-        ! Input layers permitted: input3d
+        ! Input layers permitted: input3d, conv2d, maxpool2d
         select type(prev_layer => input % p)
           type is(input3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool2d_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
