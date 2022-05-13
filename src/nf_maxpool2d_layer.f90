@@ -46,7 +46,7 @@ module nf_maxpool2d_layer
       integer, intent(in) :: input_shape(:)
     end subroutine init
 
-    module subroutine forward(self, input)
+    pure module subroutine forward(self, input)
       class(maxpool2d_layer), intent(in out) :: self
       real, intent(in) :: input(:,:,:)
     end subroutine forward

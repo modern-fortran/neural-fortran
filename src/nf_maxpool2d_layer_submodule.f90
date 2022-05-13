@@ -35,7 +35,7 @@ contains
   end subroutine init
 
 
-  module subroutine forward(self, input)
+  pure module subroutine forward(self, input)
     implicit none
     class(maxpool2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
