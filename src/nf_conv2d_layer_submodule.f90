@@ -82,16 +82,16 @@ contains
       jws = j - half_window ! TODO window_height
       jwe = j + half_window ! TODO window_height
 
-      ! This computes the inner tensor product, sum(w_ij * x_ij), for each filter,
-      ! and we add bias b_n to it.
+      ! This computes the inner tensor product, sum(w_ij * x_ij), for each
+      ! filter, and we add bias b_n to it.
       inner_product: do concurrent(n = 1:self % filters)
         self % output(n,iws,jws) = &
           sum(self % kernel(n,:,:,:) * input(:,iws:iwe,jws:jwe)) &
           + self % biases(n)
       end do inner_product
 
-      ! TODO We may need to store self % output before we activate it for the backward
-      ! TODO pass, just like we do for the dense layer.
+      ! TODO We may need to store self % output before we activate it for the
+      ! TODO backward pass, just like we do for the dense layer.
 
       ! Activate
       self % output(:,iws,jws) = self % activation(self % output(:,iws,jws))
