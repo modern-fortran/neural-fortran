@@ -86,6 +86,8 @@ add_library(neural
   src/nf_layer_submodule.f90
   src/nf_loss.f90
   src/nf_loss_submodule.f90
+  src/nf_maxpool2d_layer.f90
+  src/nf_maxpool2d_layer_submodule.f90
   src/nf_network.f90
   src/nf_network_submodule.f90
   src/nf_optimizers.f90
