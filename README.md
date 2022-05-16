@@ -172,6 +172,10 @@ Most Linux OSs have it out of the box.
 The dataset will be downloaded only the first time you run the example in any
 given directory.
 
+If you're using Windows OS or don't have curl for any other reason,
+download [mnist.tar.gz](https://github.com/modern-fortran/neural-fortran/files/8498876/mnist.tar.gz)
+directly and unpack in the directory in which you will run the example program.
+
 ## API documentation
 
 API documentation can be generated with [FORD](https://github.com/Fortran-FOSS-Programmers/ford/).
