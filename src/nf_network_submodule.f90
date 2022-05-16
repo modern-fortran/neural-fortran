@@ -2,6 +2,7 @@ submodule(nf_network) nf_network_submodule
 
   use nf_dense_layer, only: dense_layer
   use nf_input1d_layer, only: input1d_layer
+  use nf_input3d_layer, only: input3d_layer
   use nf_layer, only: layer
   use nf_loss, only: quadratic_derivative
   use nf_optimizers, only: sgd
@@ -80,7 +81,7 @@ contains
   end subroutine backward
 
 
-  pure module subroutine forward(self, input)
+  pure module subroutine forward_1d(self, input)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
     integer :: n
@@ -94,7 +95,24 @@ contains
       call self % layers(n) % forward(self % layers(n - 1))
     end do
 
-  end subroutine forward
+  end subroutine forward_1d
+
+
+  pure module subroutine forward_3d(self, input)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:,:)
+    integer :: n
+
+    ! Set the input array into the input layer
+    select type(input_layer => self % layers(1) % p); type is(input3d_layer)
+      call input_layer % set(input)
+    end select
+
+    do n = 2, size(self % layers)
+      call self % layers(n) % forward(self % layers(n - 1))
+    end do
+
+  end subroutine forward_3d
 
 
   module function output(self, input) result(res)

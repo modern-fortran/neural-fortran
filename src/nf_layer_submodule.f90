@@ -39,7 +39,6 @@ contains
 
     select type(this_layer => self % p)
 
-      ! Only dense layer is supported for now
       type is(dense_layer)
 
         ! Input layers permitted: input1d, dense
@@ -50,12 +49,22 @@ contains
             call this_layer % forward(prev_layer % output)
         end select
 
+      type is(conv2d_layer)
+
+        ! Input layers permitted: input3d, conv2d
+        select type(prev_layer => input % p)
+          type is(input3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv2d_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
     end select
 
   end subroutine forward
 
 
-  pure module subroutine get_output(self, output)
+  pure module subroutine get_output_1d(self, output)
     class(layer), intent(in) :: self
     real, allocatable, intent(out) :: output(:)
 
@@ -65,15 +74,38 @@ contains
         allocate(output, source=this_layer % output)
       type is(dense_layer)
         allocate(output, source=this_layer % output)
+      class default
+        error stop '1-d output can only be read from an input1d or dense layer.'
 
     end select
 
-  end subroutine get_output
+  end subroutine get_output_1d
+
+
+  pure module subroutine get_output_3d(self, output)
+    class(layer), intent(in) :: self
+    real, allocatable, intent(out) :: output(:,:,:)
+
+    select type(this_layer => self % p)
+
+      type is(input3d_layer)
+        allocate(output, source=this_layer % output)
+      type is(conv2d_layer)
+        allocate(output, source=this_layer % output)
+      class default
+        error stop '3-d output can only be read from an input3d or conv2d layer.'
+
+    end select
+
+  end subroutine get_output_3d
 
 
   impure elemental module subroutine init(self, input)
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: input
+
+    if (self % initialized) &
+      error stop self % name // ' layer is already initialized.'
 
     select type(this_layer => self % p); class default
       call this_layer % init(input % layer_shape)

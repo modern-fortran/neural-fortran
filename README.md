@@ -21,6 +21,14 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 * Data-based parallelism
 * Several activation functions
 
+### Available layer types
+
+| Layer type | Constructor name | Rank of output array | Forward pass | Backward pass |
+|------------|------------------|----------------------|--------------|---------------|
+| Input | `input` | 1, 3 | n/a | n/a |
+| Dense (fully-connected) | `dense` | 1 | ✅ | ✅ |
+| Convolutional (2-d) | `conv2d` | 3 | ✅ | ❌ |
+
 ## Getting started
 
 Get the code:
