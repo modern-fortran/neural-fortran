@@ -7,12 +7,12 @@ program test_conv2d_layer
   implicit none
 
   type(layer) :: conv_layer, input_layer
-  integer, parameter :: window_size = 3, filters = 32
+  integer, parameter :: filters = 32, kernel_size=3
   real, allocatable :: sample_input(:,:,:), output(:,:,:)
   real, parameter :: tolerance = 1e-7
   logical :: ok = .true.
 
-  conv_layer = conv2d(window_size, filters)
+  conv_layer = conv2d(filters, kernel_size)
 
   if (.not. conv_layer % name == 'conv2d') then
     ok = .false.
@@ -52,7 +52,7 @@ program test_conv2d_layer
   sample_input = 0
 
   input_layer = input([1, 3, 3])
-  conv_layer = conv2d(window_size, filters)
+  conv_layer = conv2d(filters, kernel_size)
   call conv_layer % init(input_layer)
 
   select type(this_layer => input_layer % p); type is(input3d_layer)

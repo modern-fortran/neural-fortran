@@ -13,7 +13,7 @@ module nf_conv2d_layer
     integer :: width
     integer :: height
     integer :: channels
-    integer :: window_size
+    integer :: kernel_size
     integer :: filters
 
     real, allocatable :: biases(:) ! size(filters)
@@ -29,10 +29,11 @@ module nf_conv2d_layer
   end type conv2d_layer
 
   interface conv2d_layer
-    pure module function conv2d_layer_cons(window_size, filters, activation) result(res)
+    pure module function conv2d_layer_cons(filters, kernel_size, activation) &
+      result(res)
       !! `conv2d_layer` constructor function
-      integer, intent(in) :: window_size
       integer, intent(in) :: filters
+      integer, intent(in) :: kernel_size
       character(*), intent(in) :: activation
       type(conv2d_layer) :: res
     end function conv2d_layer_cons

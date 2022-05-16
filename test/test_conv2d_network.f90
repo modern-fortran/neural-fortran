@@ -12,8 +12,8 @@ program test_conv2d_network
   ! 3-layer convolutional network
   net = network([ &
     input([3, 32, 32]), &
-    conv2d(window_size=3, filters=16), &
-    conv2d(window_size=3, filters=32) &
+    conv2d(filters=16, kernel_size=3), &
+    conv2d(filters=32, kernel_size=3) &
   ])
 
   if (.not. size(net % layers) == 3) then
@@ -33,9 +33,9 @@ program test_conv2d_network
   end if
 
   if (ok) then
-    print '(a)', 'test_dense_network: All tests passed.'
+    print '(a)', 'test_conv2d_network: All tests passed.'
   else
-    write(stderr, '(a)') 'test_dense_network: One or more tests failed.'
+    write(stderr, '(a)') 'test_conv2d_network: One or more tests failed.'
     stop 1
   end if
 

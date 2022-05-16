@@ -84,7 +84,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function dense
 
-    pure module function conv2d(window_size, filters, activation) result(res)
+    pure module function conv2d(filters, kernel_size, activation) result(res)
       !! 2-d convolutional layer constructor.
       !!
       !! This layer is for building 2-d convolutional network.
@@ -98,13 +98,13 @@ module nf_layer_constructors
       !! ```
       !! use nf, only :: conv2d, layer
       !! type(layer) :: conv2d_layer
-      !! conv2d_layer = dense(window_size=3, filters=32)
-      !! conv2d_layer = dense(window_size=3, filters=32, activation='relu')
+      !! conv2d_layer = dense(filters=32, kernel_size=3)
+      !! conv2d_layer = dense(filters=32, kernel_size=3, activation='relu')
       !! ```
-      integer, intent(in) :: window_size
-        !! Width of the convolution window, commonly 3 or 5
       integer, intent(in) :: filters
         !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_size
+        !! Width of the convolution window, commonly 3 or 5
       character(*), intent(in), optional :: activation
         !! Activation function (default 'sigmoid')
       type(layer) :: res
