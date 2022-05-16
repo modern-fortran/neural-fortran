@@ -52,9 +52,9 @@ contains
   end function dense
 
 
-  pure module function conv2d(window_size, filters, activation) result(res)
-    integer, intent(in) :: window_size
+  pure module function conv2d(filters, kernel_size, activation) result(res)
     integer, intent(in) :: filters
+    integer, intent(in) :: kernel_size
     character(*), intent(in), optional :: activation
     type(layer) :: res
 
@@ -68,7 +68,7 @@ contains
 
     allocate( &
       res % p, &
-      source=conv2d_layer(window_size, filters, res % activation) &
+      source=conv2d_layer(filters, kernel_size, res % activation) &
     )
 
   end function conv2d

@@ -21,6 +21,14 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 * Data-based parallelism
 * Several activation functions
 
+### Available layer types
+
+| Layer type | Constructor name | Rank of output array | Forward pass | Backward pass |
+|------------|------------------|----------------------|--------------|---------------|
+| Input | `input` | 1, 3 | n/a | n/a |
+| Dense (fully-connected) | `dense` | 1 | ✅ | ✅ |
+| Convolutional (2-d) | `conv2d` | 3 | ✅ | ❌ |
+
 ## Getting started
 
 Get the code:
@@ -171,6 +179,10 @@ so make sure you have it installed on your system.
 Most Linux OSs have it out of the box.
 The dataset will be downloaded only the first time you run the example in any
 given directory.
+
+If you're using Windows OS or don't have curl for any other reason,
+download [mnist.tar.gz](https://github.com/modern-fortran/neural-fortran/files/8498876/mnist.tar.gz)
+directly and unpack in the directory in which you will run the example program.
 
 ## API documentation
 
