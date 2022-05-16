@@ -16,18 +16,20 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 ## Features
 
-* Dense, fully connected neural networks of arbitrary shape and size
-* Backprop with Mean Square Error cost function
+* Dense, fully connected neural layers
+* Convolutional and max-pooling layers (experimental, forward propagation only)
+* Stochastic and mini-batch gradient descent for back-propagation
 * Data-based parallelism
 * Several activation functions
 
 ### Available layer types
 
-| Layer type | Constructor name | Rank of output array | Forward pass | Backward pass |
-|------------|------------------|----------------------|--------------|---------------|
-| Input | `input` | 1, 3 | n/a | n/a |
-| Dense (fully-connected) | `dense` | 1 | ✅ | ✅ |
-| Convolutional (2-d) | `conv2d` | 3 | ✅ | ❌ |
+| Layer type | Constructor name | Supported input layers | Rank of output array | Forward pass | Backward pass |
+|------------|------------------|------------------------|----------------------|--------------|---------------|
+| Input (1-d and 3-d) | `input` | n/a | 1, 3 | n/a | n/a |
+| Dense (fully-connected) | `input` (1-d) | `dense` | 1 | ✅ | ✅ |
+| Convolutional (2-d) | `input` (3-d), `conv2d`, `maxpool2d` | `conv2d` | 3 | ✅ | ❌ |
+| Max-pooling (2-d) | `input` (3-d), `conv2d`, `maxpool2d` | `maxpool2d` | 3 | ✅ | ❌ |
 
 ## Getting started
 
