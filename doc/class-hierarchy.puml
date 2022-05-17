@@ -1,0 +1,17 @@
+@startuml
+
+hide empty members 
+
+class sgd
+
+abstract class base_layer
+
+network *-left- layer 
+
+base_layer <|-- maxpool2d_layer
+base_layer <|-- input3d_layer
+base_layer <|-- dense_layer
+base_layer <|-- conv2d_layer
+base_layer <|-- input1d_layer
+
+@enduml
