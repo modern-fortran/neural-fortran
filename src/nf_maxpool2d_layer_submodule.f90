@@ -43,12 +43,13 @@ contains
     integer :: i, j, n
     integer :: ii, jj
     integer :: iend, jend
+    integer :: maxloc_xy(2)
 
     input_width = size(input, dim=2)
     input_height = size(input, dim=2)
 
     ! Stride along the width and height of the input image
-    do concurrent( &
+    stride_over_input: do concurrent( &
       i = 1:input_width:self % stride, &
       j = 1:input_height:self % stride &
     )
@@ -60,12 +61,19 @@ contains
       iend = i + self % pool_size - 1
       jend = j + self % pool_size - 1
 
-      do concurrent(n = 1:self % channels)
-        !TODO find and store maxloc
-        self % output(n,ii,jj) = maxval(input(n,i:iend,j:jend))
-      end do
+      maxpool_for_each_channel: do concurrent(n = 1:self % channels)
 
-    end do
+        ! Get and store the location of the maximum value
+        maxloc_xy = maxloc(input(n,i:iend,j:jend))
+        self % maxloc_x(n,ii,jj) = maxloc_xy(1) + i - 1
+        self % maxloc_y(n,ii,jj) = maxloc_xy(2) + j - 1
+
+        self % output(n,ii,jj) = &
+          input(n,self % maxloc_x(n,ii,jj),self % maxloc_y(n,ii,jj))
+
+      end do maxpool_for_each_channel
+
+    end do stride_over_input
 
   end subroutine forward
 
