@@ -8,9 +8,11 @@ program test_maxpool2d_layer
 
   type(layer) :: maxpool_layer, input_layer
   integer, parameter :: pool_size = 2, stride = 2
-  integer, parameter :: input_shape(3) = [3, 32, 32]
-  integer, parameter :: output_shape(3) = [3, 16, 16]
+  integer, parameter :: channels = 3, width = 32
+  integer, parameter :: input_shape(3) = [channels, width, width]
+  integer, parameter :: output_shape(3) = [channels, width / 2, width / 2]
   real, allocatable :: sample_input(:,:,:), output(:,:,:)
+  integer :: i, j
   logical :: ok = .true.
 
   maxpool_layer = maxpool2d(pool_size)
@@ -43,9 +45,11 @@ program test_maxpool2d_layer
     write(stderr, '(a)') 'maxpool2d layer input layer shape should be correct.. failed'
   end if
 
-  allocate(sample_input(3, 32, 32))
-  sample_input = 0
-  sample_input(:,2,2) = 1 ! Set lower-right corner pixel of the upper-left pool
+  allocate(sample_input(channels, width, width))
+
+  do concurrent(i = 1:width, j = 1:width)
+    sample_input(:,i,j) = i * j
+  end do
 
   select type(this_layer => input_layer % p); type is(input3d_layer)
     call this_layer % set(sample_input)
@@ -54,10 +58,15 @@ program test_maxpool2d_layer
   call maxpool_layer % forward(input_layer)
   call maxpool_layer % get_output(output)
 
-  if (.not. all(output(:,1,1) == [1, 1, 1])) then
-    ok = .false.
-    write(stderr, '(a)') 'maxpool2d layer forward pass correctly propagates the max value.. failed'
-  end if
+  do j = 1, width / 2
+    do i = 1, width / 2
+      ! Since input is i*j, maxpool2d output must be stride*i * stride*j
+      if (.not. all(output(:,i,j) == stride**2 * i * j)) then
+        ok = .false.
+        write(stderr, '(a)') 'maxpool2d layer forward pass correctly propagates the max value.. failed'
+      end if
+    end do
+  end do
 
   if (ok) then
     print '(a)', 'test_maxpool2d_layer: All tests passed.'
