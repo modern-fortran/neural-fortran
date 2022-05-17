@@ -27,9 +27,9 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Layer type | Constructor name | Supported input layers | Rank of output array | Forward pass | Backward pass |
 |------------|------------------|------------------------|----------------------|--------------|---------------|
 | Input (1-d and 3-d) | `input` | n/a | 1, 3 | n/a | n/a |
-| Dense (fully-connected) | `input` (1-d) | `dense` | 1 | ✅ | ✅ |
-| Convolutional (2-d) | `input` (3-d), `conv2d`, `maxpool2d` | `conv2d` | 3 | ✅ | ❌ |
-| Max-pooling (2-d) | `input` (3-d), `conv2d`, `maxpool2d` | `maxpool2d` | 3 | ✅ | ❌ |
+| Dense (fully-connected) | `dense` | `input` (1-d) | 1 | ✅ | ✅ |
+| Convolutional (2-d) | `conv2d` | `input` (3-d), `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
+| Max-pooling (2-d) | `maxpool2d` | `input` (3-d), `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
 
 ## Getting started
 
