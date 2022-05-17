@@ -3,4 +3,4 @@
 *.mod
 *.dat
 build
-doc
+html
