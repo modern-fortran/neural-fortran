@@ -1,5 +1,7 @@
 @startuml
 
+title Class Hierarchy
+
 hide empty members 
 
 class sgd
