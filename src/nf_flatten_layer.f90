@@ -15,9 +15,10 @@ module nf_flatten_layer
 
     !! Concrete implementation of a flatten (3-d to 1-d) layer.
 
-    integer :: input_shape
+    integer, allocatable :: input_shape(:)
     integer :: output_size
 
+    real, allocatable :: gradient(:,:,:)
     real, allocatable :: output(:)
 
   contains
@@ -39,11 +40,10 @@ module nf_flatten_layer
   interface
 
     pure module subroutine backward(self, input, gradient)
-      !! Apply the backward gradient descent pass.
-      !! Only weight and bias gradients are updated in this subroutine,
-      !! while the weights and biases themselves are untouched.
+      !! Apply the backward pass to the flatten layer.
+      !! This is a reshape operation from 1-d gradient to 3-d input.
       class(flatten_layer), intent(in out) :: self
-        !! Dense layer instance
+        !! Flatten layer instance
       real, intent(in) :: input(:,:,:)
         !! Input from the previous layer
       real, intent(in) :: gradient(:)

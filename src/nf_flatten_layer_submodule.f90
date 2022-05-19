@@ -19,18 +19,30 @@ contains
     class(flatten_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     real, intent(in) :: gradient(:)
+    self % gradient = reshape(gradient, shape(input))
   end subroutine backward
 
 
   pure module subroutine forward(self, input)
     class(flatten_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
+    self % output = pack(input, .true.)
   end subroutine forward
 
 
   module subroutine init(self, input_shape)
     class(flatten_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
+
+    self % input_shape = input_shape
+    self % output_size = product(input_shape)
+
+    allocate(self % gradient(input_shape(1), input_shape(2), input_shape(3)))
+    self % output = 0
+
+    allocate(self % output(self % output_size))
+    self % output = 0
+
   end subroutine init
 
 end submodule nf_flatten_layer_submodule
