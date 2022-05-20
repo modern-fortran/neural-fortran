@@ -8,7 +8,7 @@ program test_flatten_layer
   implicit none
 
   type(layer) :: test_layer, input_layer
-  real, allocatable :: input_data(:,:,:)
+  real, allocatable :: input_data(:,:,:), gradient(:,:,:)
   real, allocatable :: output(:)
   logical :: ok = .true.
 
@@ -37,6 +37,8 @@ program test_flatten_layer
     write(stderr, '(a)') 'flatten layer has an incorrect output shape.. failed'
   end if
 
+  ! Test forward pass - reshaping from 3-d to 1-d
+
   select type(this_layer => input_layer % p); type is(input3d_layer)
     call this_layer % set(reshape(real([1, 2, 3, 4]), [1, 2, 2]))
   end select
@@ -47,6 +49,21 @@ program test_flatten_layer
   if (.not. all(output == [1, 2, 3, 4])) then
     ok = .false.
     write(stderr, '(a)') 'flatten layer correctly propagates forward.. failed'
+  end if
+
+  ! Test backward pass - reshaping from 1-d to 3-d
+
+  ! Calling backward() will set the values on the gradient component
+  ! input_layer is used only to determine shape
+  call test_layer % backward(input_layer, real([1, 2, 3, 4]))
+
+  select type(this_layer => test_layer % p); type is(flatten_layer)
+    gradient = this_layer % gradient
+  end select
+
+  if (.not. all(gradient == reshape(real([1, 2, 3, 4]), [1, 2, 2]))) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer correctly propagates backward.. failed'
   end if
 
   if (ok) then
