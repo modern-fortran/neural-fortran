@@ -64,37 +64,37 @@ endif()
 
 # library to archive (libneural.a)
 add_library(neural
-  src/nf_activation.f90
-  src/nf_base_layer.f90
-  src/nf_base_layer_submodule.f90
-  src/nf_conv2d_layer.f90
-  src/nf_conv2d_layer_submodule.f90
-  src/nf_datasets_mnist.f90
-  src/nf_datasets_mnist_submodule.f90
-  src/nf_dense_layer.f90
-  src/nf_dense_layer_submodule.f90
   src/nf.f90
-  src/nf_input1d_layer.f90
-  src/nf_input1d_layer_submodule.f90
-  src/nf_input3d_layer.f90
-  src/nf_input3d_layer_submodule.f90
-  src/nf_io.f90
-  src/nf_io_submodule.f90
-  src/nf_layer_constructors.f90
-  src/nf_layer_constructors_submodule.f90
-  src/nf_layer.f90
-  src/nf_layer_submodule.f90
-  src/nf_loss.f90
-  src/nf_loss_submodule.f90
-  src/nf_maxpool2d_layer.f90
-  src/nf_maxpool2d_layer_submodule.f90
-  src/nf_network.f90
-  src/nf_network_submodule.f90
-  src/nf_optimizers.f90
-  src/nf_parallel.f90
-  src/nf_parallel_submodule.f90
-  src/nf_random.f90
-  src/nf_random_submodule.f90
+  src/nf/nf_activation.f90
+  src/nf/nf_base_layer.f90
+  src/nf/nf_base_layer_submodule.f90
+  src/nf/nf_conv2d_layer.f90
+  src/nf/nf_conv2d_layer_submodule.f90
+  src/nf/nf_datasets_mnist.f90
+  src/nf/nf_datasets_mnist_submodule.f90
+  src/nf/nf_dense_layer.f90
+  src/nf/nf_dense_layer_submodule.f90
+  src/nf/nf_input1d_layer.f90
+  src/nf/nf_input1d_layer_submodule.f90
+  src/nf/nf_input3d_layer.f90
+  src/nf/nf_input3d_layer_submodule.f90
+  src/nf/nf_io.f90
+  src/nf/nf_io_submodule.f90
+  src/nf/nf_layer_constructors.f90
+  src/nf/nf_layer_constructors_submodule.f90
+  src/nf/nf_layer.f90
+  src/nf/nf_layer_submodule.f90
+  src/nf/nf_loss.f90
+  src/nf/nf_loss_submodule.f90
+  src/nf/nf_maxpool2d_layer.f90
+  src/nf/nf_maxpool2d_layer_submodule.f90
+  src/nf/nf_network.f90
+  src/nf/nf_network_submodule.f90
+  src/nf/nf_optimizers.f90
+  src/nf/nf_parallel.f90
+  src/nf/nf_parallel_submodule.f90
+  src/nf/nf_random.f90
+  src/nf/nf_random_submodule.f90
 )
 
 # Remove leading or trailing whitespace
