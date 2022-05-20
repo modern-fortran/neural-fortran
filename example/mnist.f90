@@ -1,7 +1,6 @@
 program mnist
-  use nf, only: dense, input, network
-  use nf_datasets_mnist, only: label_digits, load_mnist
-  use nf_optimizers, only: sgd
+
+  use nf, only: dense, input, network, sgd, label_digits, load_mnist
 
   implicit none
 

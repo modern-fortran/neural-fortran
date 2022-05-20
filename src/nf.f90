@@ -4,4 +4,5 @@ module nf
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, input, maxpool2d
   use nf_network, only: network
+  use nf_optimizers, only: sgd
 end module nf
