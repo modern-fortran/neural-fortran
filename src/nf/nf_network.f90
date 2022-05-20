@@ -17,15 +17,17 @@ module nf_network
   contains
 
     procedure :: backward
-    procedure :: output
     procedure :: print_info
     procedure :: train
     procedure :: update
 
     procedure, private :: forward_1d
     procedure, private :: forward_3d
+    procedure, private :: output_1d
+    procedure, private :: output_3d
 
     generic :: forward => forward_1d, forward_3d
+    generic :: output => output_1d, output_3d
 
   end type network
 
@@ -72,6 +74,30 @@ module nf_network
 
   end interface forward
 
+  interface output
+
+    module function output_1d(self, input) result(res)
+      !! Return the output of the network given the input 1-d array.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:)
+        !! Input data
+      real, allocatable :: res(:)
+        !! Output of the network
+    end function output_1d
+
+    module function output_3d(self, input) result(res)
+      !! Return the output of the network given the input 3-d array.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:,:)
+        !! Input data
+      real, allocatable :: res(:)
+        !! Output of the network
+    end function output_3d
+
+  end interface output
+
   interface
 
     pure module subroutine backward(self, output)
@@ -84,16 +110,6 @@ module nf_network
       real, intent(in) :: output(:)
         !! Output data
     end subroutine backward
-
-    module function output(self, input) result(res)
-      !! Return the output of the network given the input array.
-      class(network), intent(in out) :: self
-        !! Network instance
-      real, intent(in) :: input(:)
-        !! Input data
-      real, allocatable :: res(:)
-        !! Output of the network
-    end function output
 
     module subroutine print_info(self)
       !! Prints a brief summary of the network and its layers to the screen.
