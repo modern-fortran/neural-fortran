@@ -110,7 +110,7 @@ foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer maxpool2d_la
   add_test(test_${execid} bin/test_${execid})
 endforeach()
   
-foreach(execid mnist simple sine)
+foreach(execid cnn mnist simple sine)
   add_executable(${execid} example/${execid}.f90)
   target_link_libraries(${execid} neural ${LIBS})
 endforeach()
