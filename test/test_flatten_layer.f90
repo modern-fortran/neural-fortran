@@ -1,12 +1,14 @@
 program test_flatten_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: flatten, layer
+  use nf, only: flatten, input, layer
   use nf_flatten_layer, only: flatten_layer
+  use nf_input3d_layer, only: input3d_layer
 
   implicit none
 
-  type(layer) :: test_layer
+  type(layer) :: test_layer, input_layer
+  real, allocatable :: input_data(:,:,:)
   real, allocatable :: output(:)
   logical :: ok = .true.
 
@@ -20,6 +22,31 @@ program test_flatten_layer
   if (test_layer % initialized) then
     ok = .false.
     write(stderr, '(a)') 'flatten layer is not initialized yet.. failed'
+  end if
+
+  input_layer = input([1, 2, 2])
+  call test_layer % init(input_layer)
+
+  if (.not. test_layer % initialized) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer is now initialized.. failed'
+  end if
+
+  if (.not. all(test_layer % layer_shape == [4])) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer has an incorrect output shape.. failed'
+  end if
+
+  select type(this_layer => input_layer % p); type is(input3d_layer)
+    call this_layer % set(reshape(real([1, 2, 3, 4]), [1, 2, 2]))
+  end select
+
+  call test_layer % forward(input_layer)
+  call test_layer % get_output(output)
+
+  if (.not. all(output == [1, 2, 3, 4])) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer correctly propagates forward.. failed'
   end if
 
   if (ok) then
