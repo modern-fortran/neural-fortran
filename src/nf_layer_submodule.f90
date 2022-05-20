@@ -16,19 +16,32 @@ contains
     real, intent(in) :: gradient(:)
 
     ! Backward pass currently implemented only for dense layers
-    select type(this_layer => self % p); type is(dense_layer)
+    select type(this_layer => self % p)
 
-    ! Previous layer is the input layer to this layer.
-    ! For a backward pass on a dense layer, we must accept either an input layer
-    ! or another dense layer as input.
-    select type(prev_layer => previous % p)
-
-      type is(input1d_layer)
-        call this_layer % backward(prev_layer % output, gradient)
       type is(dense_layer)
-        call this_layer % backward(prev_layer % output, gradient)
 
-    end select
+        ! Upstream layers permitted: input1d, dense, flatten
+        select type(prev_layer => previous % p)
+          type is(input1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(dense_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(flatten_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(flatten_layer)
+
+        ! Downstream layers permitted: input3d, conv2d, maxpool2d
+        select type(prev_layer => previous % p)
+          type is(input3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(conv2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(maxpool2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
     end select
 
   end subroutine backward
@@ -43,17 +56,19 @@ contains
 
       type is(dense_layer)
 
-        ! Input layers permitted: input1d, dense
+        ! Upstream layers permitted: input1d, dense, flatten
         select type(prev_layer => input % p)
           type is(input1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(dense_layer)
             call this_layer % forward(prev_layer % output)
+          type is(flatten_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(conv2d_layer)
 
-        ! Input layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d
         select type(prev_layer => input % p)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
@@ -65,7 +80,7 @@ contains
 
       type is(maxpool2d_layer)
 
-        ! Input layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d
         select type(prev_layer => input % p)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
@@ -77,7 +92,7 @@ contains
 
       type is(flatten_layer)
 
-        ! Input layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d
         select type(prev_layer => input % p)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)

@@ -30,11 +30,10 @@ contains
     !TODO Ensure that the layers are in allowed sequence:
     !TODO   input1d -> dense
     !TODO   dense -> dense
-    !TODO   input3d -> conv2d
-    !TODO   conv2d -> conv2d
-    !TODO   conv2d -> maxpool2d
-    !TODO   maxpool2d -> conv2d
-    !TODO   conv2d -> flatten
+    !TODO   input3d -> conv2d, maxpool2d, flatten
+    !TODO   conv2d -> conv2d, maxpool2d, flatten
+    !TODO   maxpool2d -> conv2d, maxpool2d, flatten
+    !TODO   flatten -> dense
 
     res % layers = layers
 
