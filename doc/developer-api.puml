@@ -11,7 +11,7 @@ abstract class base_layer {
 }
 
 class maxpool2d_layer{
-  maxpool2d_layer(ipool_size: integer, stride : integer) : maxpool2d_layer
+  maxpool2d_layer(pool_size: integer, stride : integer) : maxpool2d_layer
   init(input_shape : integer)
   forward(input : real[][][])
   backward(input : real[][][], gradient : real[][][])
@@ -61,7 +61,7 @@ class layer{
   print_info()
   update(learning_rate : real)
   get_output(output : real[])
-  get_output(output : real[][])
+  get_output(output : real[][][])
 }
 
 network *-left- layer 
