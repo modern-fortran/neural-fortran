@@ -1,13 +1,14 @@
 program test_flatten_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: flatten, input, layer
+  use nf, only: dense, flatten, input, layer, network
   use nf_flatten_layer, only: flatten_layer
   use nf_input3d_layer, only: input3d_layer
 
   implicit none
 
   type(layer) :: test_layer, input_layer
+  type(network) :: net
   real, allocatable :: input_data(:,:,:), gradient(:,:,:)
   real, allocatable :: output(:)
   logical :: ok = .true.
@@ -64,6 +65,18 @@ program test_flatten_layer
   if (.not. all(gradient == reshape(real([1, 2, 3, 4]), [1, 2, 2]))) then
     ok = .false.
     write(stderr, '(a)') 'flatten layer correctly propagates backward.. failed'
+  end if
+
+  net = network([ &
+    input([1, 28, 28]), &
+    flatten(), &
+    dense(10) &
+  ])
+
+  ! Test that the output layer receives 784 elements in the input
+  if (.not. all(net % layers(3) % input_layer_shape == [784])) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer correctly chains input3d to dense.. failed'
   end if
 
   if (ok) then
