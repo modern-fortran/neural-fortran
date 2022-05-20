@@ -38,7 +38,7 @@ contains
     self % output_size = product(input_shape)
 
     allocate(self % gradient(input_shape(1), input_shape(2), input_shape(3)))
-    self % output = 0
+    self % gradient = 0
 
     allocate(self % output(self % output_size))
     self % output = 0
