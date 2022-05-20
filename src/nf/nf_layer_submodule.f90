@@ -15,7 +15,7 @@ contains
     class(layer), intent(in) :: previous
     real, intent(in) :: gradient(:)
 
-    ! Backward pass currently implemented only for dense layers
+    ! Backward pass currently implemented only for dense and flatten layers
     select type(this_layer => self % p)
 
       type is(dense_layer)
