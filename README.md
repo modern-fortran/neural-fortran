@@ -177,6 +177,9 @@ examples, in increasing level of complexity:
 2. [sine](example/sine.f90): Approximating a sine function
 3. [mnist](example/mnist.f90): Hand-written digit recognition using the MNIST dataset
 
+The examples also show you the extent of the public API that's meant to be
+used in applications, i.e. anything from the `nf` module.
+
 The MNIST example uses [curl](https://curl.se/) to download the dataset,
 so make sure you have it installed on your system.
 Most Linux OSs have it out of the box.
