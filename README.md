@@ -30,6 +30,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Dense (fully-connected) | `dense` | `input` (1-d) | 1 | ✅ | ✅ |
 | Convolutional (2-d) | `conv2d` | `input` (3-d), `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
 | Max-pooling (2-d) | `maxpool2d` | `input` (3-d), `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
+| Flatten | `flatten` | `input` (3-d), `conv2d`, `maxpool2d` | 1 | ✅ | ✅ |
 
 ## Getting started
 
@@ -172,9 +173,13 @@ to run the tests.
 The easiest way to get a sense of how to use neural-fortran is to look at
 examples, in increasing level of complexity:
 
-1. [simple](example/simple.f90): Approximating a simple, constant data relationship
+1. [simple](example/simple.f90): Approximating a simple, constant data
+  relationship
 2. [sine](example/sine.f90): Approximating a sine function
-3. [mnist](example/mnist.f90): Hand-written digit recognition using the MNIST dataset
+3. [mnist](example/mnist.f90): Hand-written digit recognition using the MNIST
+  dataset
+4. [cnn](example/cnn.f90): Creating and running forward a simple CNN using
+  `input`, `conv2d`, `maxpool2d`, `flatten`, and `dense` layers.
 
 The examples also show you the extent of the public API that's meant to be
 used in applications, i.e. anything from the `nf` module.
