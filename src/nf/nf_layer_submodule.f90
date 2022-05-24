@@ -2,39 +2,53 @@ submodule(nf_layer) nf_layer_submodule
 
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
+  use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
 
-  implicit none
-
 contains
 
   pure module subroutine backward(self, previous, gradient)
+    implicit none
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: previous
     real, intent(in) :: gradient(:)
 
-    ! Backward pass currently implemented only for dense layers
-    select type(this_layer => self % p); type is(dense_layer)
+    ! Backward pass currently implemented only for dense and flatten layers
+    select type(this_layer => self % p)
 
-    ! Previous layer is the input layer to this layer.
-    ! For a backward pass on a dense layer, we must accept either an input layer
-    ! or another dense layer as input.
-    select type(prev_layer => previous % p)
-
-      type is(input1d_layer)
-        call this_layer % backward(prev_layer % output, gradient)
       type is(dense_layer)
-        call this_layer % backward(prev_layer % output, gradient)
 
-    end select
+        ! Upstream layers permitted: input1d, dense, flatten
+        select type(prev_layer => previous % p)
+          type is(input1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(dense_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(flatten_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(flatten_layer)
+
+        ! Downstream layers permitted: input3d, conv2d, maxpool2d
+        select type(prev_layer => previous % p)
+          type is(input3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(conv2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(maxpool2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
     end select
 
   end subroutine backward
 
 
   pure module subroutine forward(self, input)
+    implicit none
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: input
 
@@ -42,17 +56,19 @@ contains
 
       type is(dense_layer)
 
-        ! Input layers permitted: input1d, dense
+        ! Upstream layers permitted: input1d, dense, flatten
         select type(prev_layer => input % p)
           type is(input1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(dense_layer)
             call this_layer % forward(prev_layer % output)
+          type is(flatten_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(conv2d_layer)
 
-        ! Input layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d
         select type(prev_layer => input % p)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
@@ -64,7 +80,19 @@ contains
 
       type is(maxpool2d_layer)
 
-        ! Input layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d
+        select type(prev_layer => input % p)
+          type is(input3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool2d_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(flatten_layer)
+
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d
         select type(prev_layer => input % p)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
@@ -80,6 +108,7 @@ contains
 
 
   pure module subroutine get_output_1d(self, output)
+    implicit none
     class(layer), intent(in) :: self
     real, allocatable, intent(out) :: output(:)
 
@@ -89,8 +118,10 @@ contains
         allocate(output, source=this_layer % output)
       type is(dense_layer)
         allocate(output, source=this_layer % output)
+      type is(flatten_layer)
+        allocate(output, source=this_layer % output)
       class default
-        error stop '1-d output can only be read from an input1d or dense layer.'
+        error stop '1-d output can only be read from an input1d, dense, or flatten layer.'
 
     end select
 
@@ -98,6 +129,7 @@ contains
 
 
   pure module subroutine get_output_3d(self, output)
+    implicit none
     class(layer), intent(in) :: self
     real, allocatable, intent(out) :: output(:,:,:)
 
@@ -118,6 +150,7 @@ contains
 
 
   impure elemental module subroutine init(self, input)
+    implicit none
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: input
 
@@ -128,12 +161,14 @@ contains
       call this_layer % init(input % layer_shape)
     end select
 
-    ! The shape of conv2d or maxpool2d layers is not known
+    ! The shape of conv2d, maxpool2d, or flatten layers is not known
     ! until we receive an input layer.
     select type(this_layer => self % p)
       type is(conv2d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(maxpool2d_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(flatten_layer)
         self % layer_shape = shape(this_layer % output)
     end select
 
@@ -144,6 +179,7 @@ contains
 
 
   impure elemental module subroutine print_info(self)
+    implicit none
     class(layer), intent(in) :: self
     print '("Layer: ", a)', self % name
     print '(60("-"))'
@@ -157,6 +193,7 @@ contains
 
 
   impure elemental module subroutine update(self, learning_rate)
+    implicit none
     class(layer), intent(in out) :: self
     real, intent(in) :: learning_rate
 

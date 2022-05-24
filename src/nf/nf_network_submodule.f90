@@ -1,6 +1,7 @@
 submodule(nf_network) nf_network_submodule
 
   use nf_dense_layer, only: dense_layer
+  use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
   use nf_layer, only: layer
@@ -30,11 +31,10 @@ contains
     !TODO Ensure that the layers are in allowed sequence:
     !TODO   input1d -> dense
     !TODO   dense -> dense
-    !TODO   input3d -> conv2d
-    !TODO   conv2d -> conv2d
-    !TODO   conv2d -> maxpool2d
-    !TODO   maxpool2d -> conv2d
-    !TODO   conv2d -> flatten
+    !TODO   input3d -> conv2d, maxpool2d, flatten
+    !TODO   conv2d -> conv2d, maxpool2d, flatten
+    !TODO   maxpool2d -> conv2d, maxpool2d, flatten
+    !TODO   flatten -> dense
 
     res % layers = layers
 
@@ -115,7 +115,7 @@ contains
   end subroutine forward_3d
 
 
-  module function output(self, input) result(res)
+  module function output_1d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
     real, allocatable :: res(:)
@@ -125,11 +125,34 @@ contains
 
     call self % forward(input)
 
-    select type(output_layer => self % layers(num_layers) % p); type is(dense_layer)
-      res = output_layer % output
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(dense_layer)
+        res = output_layer % output
+      type is(flatten_layer)
+        res = output_layer % output
     end select
 
-  end function output
+  end function output_1d
+
+
+  module function output_3d(self, input) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:,:)
+    real, allocatable :: res(:)
+    integer :: num_layers
+
+    num_layers = size(self % layers)
+
+    call self % forward(input)
+
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(dense_layer)
+        res = output_layer % output
+      type is(flatten_layer)
+        res = output_layer % output
+    end select
+
+  end function output_3d
 
 
   module subroutine print_info(self)
