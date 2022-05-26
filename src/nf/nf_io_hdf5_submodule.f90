@@ -39,7 +39,7 @@ contains
     ! Close the file 
     call h5fclose_f(fid, hdferr)
     
-    res = string(:index(string, c_null_char))
+    res = string(:index(string, c_null_char) - 1)
 
   end function get_h5_attribute_string
 
