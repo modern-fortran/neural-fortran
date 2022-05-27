@@ -6,10 +6,10 @@ module nf_datasets_mnist
   implicit none
 
   private
-  public :: label_digits, load_mnist, print_image
+  public :: label_digits, load_mnist
 
   interface
-  
+
     pure module function label_digits(labels) result(res)
       !! Converts an array of individual MNIST labels (e.g. 3)
       !! into a form that can be used to evaluate against dense layer output,
@@ -33,14 +33,6 @@ module nf_datasets_mnist
       real, allocatable, intent(in out), optional :: testing_images(:,:)
       real, allocatable, intent(in out), optional :: testing_labels(:)
     end subroutine load_mnist
-  
-    module subroutine print_image(images, labels, n)
-      !! Print a single image and label to the screen.
-      implicit none
-      real, intent(in) :: images(:,:)
-      real, intent(in) :: labels(:)
-      integer, intent(in) :: n
-    end subroutine print_image
   
   end interface
 
