@@ -15,7 +15,7 @@ program test_parse_keras_model
   logical :: found
   integer :: n, num_layers
   logical :: file_exists
-  logical :: ok
+  logical :: ok = .true.
 
   inquire(file=test_data_path, exist=file_exists)
   if (.not. file_exists) call download_and_unpack(keras_model_dense_mnist_url)

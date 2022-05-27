@@ -9,9 +9,7 @@ program test_io_hdf5
   character(:), allocatable :: attr
   character(*), parameter :: test_data_path = 'keras_dense_mnist.h5'
   logical :: file_exists
-  logical :: ok
-
-  print *, keras_model_dense_mnist_url
+  logical :: ok = .true.
 
   inquire(file=test_data_path, exist=file_exists)
   if (.not. file_exists) call download_and_unpack(keras_model_dense_mnist_url)
