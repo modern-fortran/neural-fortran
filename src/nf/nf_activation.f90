@@ -12,6 +12,7 @@ module nf_activation
   public :: gaussian, gaussian_prime
   public :: relu, relu_prime
   public :: sigmoid, sigmoid_prime
+  public :: softmax, softmax_prime
   public :: softplus, softplus_prime
   public :: step, step_prime
   public :: tanhf, tanh_prime
@@ -102,6 +103,21 @@ contains
     real :: res(size(x))
     res = sigmoid(x) * (1 - sigmoid(x))
   end function sigmoid_prime
+
+  pure function softmax(x) result(res)
+    !! Softmax activation function
+    real, intent(in) :: x(:)
+    real :: res(size(x))
+    res = exp(x - maxval(x))
+    res = res / sum(res)
+  end function softmax
+
+  pure function softmax_prime(x) result(res)
+    !! Derivative of the softmax activation function.
+    real, intent(in) :: x(:)
+    real :: res(size(x))
+    res = softmax(x) * (1 - softmax(x))
+  end function softmax_prime
 
   pure function softplus(x) result(res)
     ! Softplus activation function.
