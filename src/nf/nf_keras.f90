@@ -6,7 +6,7 @@ module nf_keras
   implicit none
 
   private
-  public :: get_keras_h5_layers
+  public :: get_keras_h5_layers, keras_layer
 
   type :: keras_layer
     !! Intermediate container to convey the Keras layer information
