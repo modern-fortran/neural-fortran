@@ -1,7 +1,7 @@
 submodule(nf_datasets_mnist) nf_datasets_mnist_submodule
 
   use nf_datasets, only: download_and_unpack, mnist_url
-  use nf_io, only: read_binary_file
+  use nf_io_binary, only: read_binary_file
 
   implicit none
 

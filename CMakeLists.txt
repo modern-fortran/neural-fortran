@@ -80,8 +80,6 @@ add_library(neural
   src/nf/nf_input1d_layer_submodule.f90
   src/nf/nf_input3d_layer.f90
   src/nf/nf_input3d_layer_submodule.f90
-  src/nf/nf_io.f90
-  src/nf/nf_io_submodule.f90
   src/nf/nf_layer_constructors.f90
   src/nf/nf_layer_constructors_submodule.f90
   src/nf/nf_layer.f90
@@ -97,6 +95,10 @@ add_library(neural
   src/nf/nf_parallel_submodule.f90
   src/nf/nf_random.f90
   src/nf/nf_random_submodule.f90
+  src/nf/io/nf_io_binary.f90
+  src/nf/io/nf_io_binary_submodule.f90
+  src/nf/io/nf_io_hdf5.f90
+  src/nf/io/nf_io_hdf5_submodule.f90
 )
 
 # Remove leading or trailing whitespace
