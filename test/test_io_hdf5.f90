@@ -2,7 +2,7 @@ program test_io_hdf5
 
   use iso_fortran_env, only: stderr => error_unit
   use nf_datasets, only: download_and_unpack, keras_model_dense_mnist_url
-  use nf_io_hdf5, only: get_h5_attribute_string
+  use nf_io_hdf5, only: get_hdf5_attribute_string
 
   implicit none
 
@@ -14,7 +14,7 @@ program test_io_hdf5
   inquire(file=test_data_path, exist=file_exists)
   if (.not. file_exists) call download_and_unpack(keras_model_dense_mnist_url)
 
-  attr = get_h5_attribute_string(test_data_path, '.', 'backend')
+  attr = get_hdf5_attribute_string(test_data_path, '.', 'backend')
 
   if (.not. attr == 'tensorflow') then
     ok = .false.

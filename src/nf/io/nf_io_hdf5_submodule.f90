@@ -9,7 +9,7 @@ submodule(nf_io_hdf5) nf_io_hdf5_submodule
 
 contains
 
-  module function get_h5_attribute_string( &
+  module function get_hdf5_attribute_string( &
     filename, object_name, attribute_name) result(res)
 
     character(*), intent(in) :: filename
@@ -41,6 +41,6 @@ contains
     
     res = string(:index(string, c_null_char) - 1)
 
-  end function get_h5_attribute_string
+  end function get_hdf5_attribute_string
 
 end submodule nf_io_hdf5_submodule

@@ -1,4 +1,4 @@
-program test_parse_keras_model
+program test_keras_read_model
 
   use iso_fortran_env, only: stderr => error_unit
   use nf_datasets, only: download_and_unpack, keras_model_dense_mnist_url
@@ -52,10 +52,10 @@ program test_parse_keras_model
   end if
 
   if (ok) then
-    print '(a)', 'test_parse_keras_model: All tests passed.'
+    print '(a)', 'test_keras_read_model: All tests passed.'
   else
-    write(stderr, '(a)') 'test_parse_keras_model: One or more tests failed.'
+    write(stderr, '(a)') 'test_keras_read_model: One or more tests failed.'
     stop 1
   end if
 
-end program test_parse_keras_model
+end program test_keras_read_model
