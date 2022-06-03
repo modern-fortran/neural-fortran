@@ -4,7 +4,9 @@ submodule(nf_network) nf_network_submodule
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
+  use nf_layer_constructors, only: dense, input
   use nf_loss, only: quadratic_derivative
   use nf_optimizers, only: sgd
   use nf_parallel, only: tile_indices
@@ -13,7 +15,7 @@ submodule(nf_network) nf_network_submodule
 
 contains
 
-  module function network_cons(layers) result(res)
+  module function network_from_layers(layers) result(res)
     type(layer), intent(in) :: layers(:)
     type(network) :: res
     integer :: n
@@ -45,7 +47,51 @@ contains
       call res % layers(n) % init(res % layers(n - 1))
     end do
 
-  end function network_cons
+  end function network_from_layers
+
+
+  module function network_from_keras(filename) result(res)
+    character(*), intent(in) :: filename
+    type(network) :: res
+    type(keras_layer), allocatable :: keras_layers(:)
+    type(layer), allocatable :: layers(:)
+    integer :: n
+
+    keras_layers = get_keras_h5_layers(filename)
+
+    allocate(layers(size(keras_layers)))
+
+    do n = 1, size(layers)
+
+      select case(keras_layers(n) % class)
+
+        case('InputLayer')
+          if (size(keras_layers(n) % num_elements) == 1) then
+            ! input1d
+            layers(n) = input(keras_layers(n) % num_elements(1))
+          else
+            ! input3d
+            layers(n) = input(keras_layers(n) % num_elements)
+          end if
+
+        case('Dense')
+          layers(n) = dense( &
+            keras_layers(n) % num_elements(1), &
+            keras_layers(n) % activation &
+          )
+
+        case default
+          error stop 'This Keras layer is not supported'
+
+      end select
+
+    end do
+
+    res = network(layers)
+
+    !TODO read weights and biases from Keras file and set here
+
+  end function network_from_keras
 
 
   pure module subroutine backward(self, output)
