@@ -39,30 +39,31 @@ contains
       call json % get_child(layers_json, n, layer_json)
 
       ! Get type of layer as a string
-      call json % get(layer_json, 'class_name', res(n) % type)
+      call json % get(layer_json, 'class_name', res(n) % class)
 
       ! Get pointer to the layer config
       call json % get(layer_json, 'config', layer_config_json)
 
+      ! Get layer name
+      call json % get(layer_config_json, 'name', res(n) % name)
+
       ! Get size of layer and activation if applicable;
       ! Instantiate neural-fortran layers at this time.
-      if (res(n) % type == 'InputLayer') then
-        
-        call json % get(layer_config_json, 'batch_input_shape', tmp_array)
-        res(n) % num_elements = [tmp_array(2)]
-      
-      else if (res(n) % type == 'Dense') then
-        
-        call json % get(layer_config_json, 'units',  num_elements, found)
-        res(n) % num_elements = [num_elements]
+      select case(res(n) % class)
 
-        call json % get(layer_config_json, 'activation', res(n) % activation)
+        case('InputLayer')
+          call json % get(layer_config_json, 'batch_input_shape', tmp_array)
+          res(n) % num_elements = [tmp_array(2)]
       
-      else
-        
-        error stop 'This layer is not supported'
+        case('Dense')
+          call json % get(layer_config_json, 'units',  num_elements, found)
+          res(n) % num_elements = [num_elements]
+          call json % get(layer_config_json, 'activation', res(n) % activation)
       
-      end if
+        case default
+          error stop 'This Keras layer is not supported'
+
+      end select
 
     end do layers
 

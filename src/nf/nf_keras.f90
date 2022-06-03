@@ -11,7 +11,7 @@ module nf_keras
   type :: keras_layer
     !! Intermediate container to convey the Keras layer information
     !! to neural-fortran layer constructors.
-    character(:), allocatable :: type
+    character(:), allocatable :: class
     character(:), allocatable :: name
     character(:), allocatable :: activation
     integer, allocatable :: num_elements(:)

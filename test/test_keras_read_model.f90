@@ -29,7 +29,7 @@ program test_keras_read_model
     write(stderr, '(a)') 'Keras dense MNIST model has 3 layers.. failed'
   end if
 
-  if (keras_layers(1) % type /= 'InputLayer') then
+  if (keras_layers(1) % class /= 'InputLayer') then
     ok = .false.
     write(stderr, '(a)') 'Keras first layer should be InputLayer.. failed'
   end if
@@ -45,7 +45,7 @@ program test_keras_read_model
       'Keras first layer activation should not be allocated.. failed'
   end if
 
-  if (.not. keras_layers(2) % type == 'Dense') then
+  if (.not. keras_layers(2) % class == 'Dense') then
     ok = .false.
     write(stderr, '(a)') &
       'Keras second and third layers should be dense.. failed'
