@@ -1,17 +1,14 @@
 program test_io_hdf5
 
-  use iso_fortran_env, only: int64, stderr => error_unit
+  use iso_fortran_env, only: stderr => error_unit
   use nf_datasets, only: download_and_unpack, keras_model_dense_mnist_url
-  use nf_io_hdf5, only: get_hdf5_attribute_string
-  use h5fortran, only: hdf5_file
+  use nf_io_hdf5, only: hdf5_attribute_string, get_hdf5_dataset
 
   implicit none
 
   character(:), allocatable :: attr
   character(*), parameter :: test_data_path = 'keras_dense_mnist.h5'
-  type(hdf5_file) :: f
   real, allocatable :: bias(:), weights(:,:)
-  integer(int64), allocatable :: dims(:)
 
   logical :: file_exists
   logical :: ok = .true.
@@ -19,7 +16,7 @@ program test_io_hdf5
   inquire(file=test_data_path, exist=file_exists)
   if (.not. file_exists) call download_and_unpack(keras_model_dense_mnist_url)
 
-  attr = get_hdf5_attribute_string(test_data_path, '.', 'backend')
+  attr = hdf5_attribute_string(test_data_path, '.', 'backend')
 
   if (.not. attr == 'tensorflow') then
     ok = .false.
@@ -27,30 +24,28 @@ program test_io_hdf5
       'HDF5 variable length string attribute was read correctly.. failed'
   end if
 
-  call f % open(test_data_path, 'r')
+  ! Read 1-d real32 dataset
+  call get_hdf5_dataset( &
+    test_data_path, &
+    '/model_weights/dense/dense/bias:0', &
+    bias &
+  )
 
-  call f % shape('/model_weights/dense/dense/bias:0', dims)
-  allocate(bias(dims(1)))
-  bias = 0
-  call f % read('/model_weights/dense/dense/bias:0', bias)
+  ! Read 2-d real32 dataset
+  call get_hdf5_dataset(test_data_path, &
+    '/model_weights/dense/dense/kernel:0', &
+    weights &
+  )
 
-  if (.not. all(dims == [30])) then
+  if (.not. all(shape(bias) == [30])) then
     ok = .false.
     write(stderr, '(a)') 'HDF5 1-d dataset dims inquiry is correct.. failed'
   end if
 
-  call f % shape('/model_weights/dense/dense/kernel:0', dims)
-  allocate(weights(dims(1), dims(2)))
-  weights = 0
-  call f % read('/model_weights/dense/dense/kernel:0', weights)
-
-  if (.not. all(dims == [30, 784])) then
+  if (.not. all(shape(weights) == [30, 784])) then
     ok = .false.
-    print *, dims
     write(stderr, '(a)') 'HDF5 2-d dataset dims inquiry is correct.. failed'
   end if
-
-  call f % close()
 
   if (ok) then
     print '(a)', 'test_io_hdf5: All tests passed.'

@@ -1,7 +1,7 @@
 submodule(nf_keras) nf_keras_submodule
 
   use json_module, only: json_core, json_value
-  use nf_io_hdf5, only: get_hdf5_attribute_string
+  use nf_io_hdf5, only: hdf5_attribute_string
 
   implicit none
 
@@ -21,9 +21,7 @@ contains
     integer :: n, num_layers, num_elements
     logical :: found
 
-    model_config_string = get_hdf5_attribute_string( &
-      filename, '.', 'model_config' &
-    )
+    model_config_string = hdf5_attribute_string(filename, '.', 'model_config')
 
     call json % parse(model_config_json, model_config_string)
     call json % get(model_config_json, 'config.layers', layers_json)

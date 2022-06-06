@@ -1,5 +1,7 @@
 submodule(nf_io_hdf5) nf_io_hdf5_submodule
 
+  use iso_fortran_env, only: int64, real32, stderr => error_unit
+  use h5fortran, only: hdf5_file
   use hdf5, only: H5F_ACC_RDONLY_F, HID_T, &
                   h5aget_type_f, h5aopen_by_name_f, h5aread_f, &
                   h5fclose_f, h5fopen_f
@@ -9,7 +11,7 @@ submodule(nf_io_hdf5) nf_io_hdf5_submodule
 
 contains
 
-  module function get_hdf5_attribute_string( &
+  module function hdf5_attribute_string( &
     filename, object_name, attribute_name) result(res)
 
     character(*), intent(in) :: filename
@@ -41,6 +43,62 @@ contains
     
     res = string(:index(string, c_null_char) - 1)
 
-  end function get_hdf5_attribute_string
+  end function hdf5_attribute_string
+
+
+  module subroutine get_hdf5_dataset_real32_1d(filename, object_name, values)
+
+    character(*), intent(in) :: filename
+    character(*), intent(in) :: object_name
+    real(real32), allocatable, intent(in out) :: values(:)
+
+    type(hdf5_file) :: f
+    integer(int64), allocatable :: dims(:)
+
+    call f % open(filename, 'r')
+    call f % shape(object_name, dims)
+
+    ! If values is already allocated, re-allocate only if incorrect shape
+    if (allocated(values)) then
+      if (.not. all(shape(values) == dims)) then
+        deallocate(values)
+        allocate(values(dims(1)))
+      end if
+    else
+      allocate(values(dims(1)))
+    end if
+
+    call f % read(object_name, values)
+    call f % close()
+
+  end subroutine get_hdf5_dataset_real32_1d
+
+
+  module subroutine get_hdf5_dataset_real32_2d(filename, object_name, values)
+
+    character(*), intent(in) :: filename
+    character(*), intent(in) :: object_name
+    real(real32), allocatable, intent(in out) :: values(:,:)
+
+    type(hdf5_file) :: f
+    integer(int64), allocatable :: dims(:)
+
+    call f % open(filename, 'r')
+    call f % shape(object_name, dims)
+
+    ! If values is already allocated, re-allocate only if incorrect shape
+    if (allocated(values)) then
+      if (.not. all(shape(values) == dims)) then
+        deallocate(values)
+        allocate(values(dims(1), dims(2)))
+      end if
+    else
+      allocate(values(dims(1), dims(2)))
+    end if
+
+    call f % read(object_name, values)
+    call f % close()
+
+  end subroutine get_hdf5_dataset_real32_2d
 
 end submodule nf_io_hdf5_submodule
