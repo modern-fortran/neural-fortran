@@ -180,6 +180,8 @@ examples, in increasing level of complexity:
   dataset
 4. [cnn](example/cnn.f90): Creating and running forward a simple CNN using
   `input`, `conv2d`, `maxpool2d`, `flatten`, and `dense` layers.
+5. [mnist_from_keras](example/mnist_from_keras.f90): Creating a pre-trained
+  model from a Keras HDF5 file.
 
 The examples also show you the extent of the public API that's meant to be
 used in applications, i.e. anything from the `nf` module.
