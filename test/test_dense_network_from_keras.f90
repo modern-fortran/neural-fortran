@@ -8,7 +8,6 @@ program test_dense_network_from_keras
 
   type(network) :: net
   character(*), parameter :: test_data_path = 'keras_dense_mnist.h5'
-
   logical :: file_exists
   logical :: ok = .true.
 
@@ -52,6 +51,29 @@ program test_dense_network_from_keras
     ok = .false.
   end if
 
+  block
+
+    use nf, only: load_mnist, label_digits
+
+    real, allocatable :: training_images(:,:), training_labels(:)
+    real, allocatable :: validation_images(:,:), validation_labels(:)
+    real, allocatable :: testing_images(:,:), testing_labels(:)
+    real :: acc
+
+    call load_mnist(training_images, training_labels, &
+                    validation_images, validation_labels, &
+                    testing_images, testing_labels)
+
+    acc = accuracy(net, testing_images, label_digits(testing_labels))
+
+    if (acc < 0.94) then
+      write(stderr, '(a)') &
+        'Pre-trained network accuracy should be > 0.94.. failed'
+      ok = .false.
+    end if
+
+  end block
+
   if (ok) then
     print '(a)', 'test_dense_network_from_keras: All tests passed.'
   else
@@ -59,5 +81,20 @@ program test_dense_network_from_keras
       'test_dense_network_from_keras: One or more tests failed.'
     stop 1
   end if
+
+contains
+
+  real function accuracy(net, x, y)
+    type(network), intent(in out) :: net
+    real, intent(in) :: x(:,:), y(:,:)
+    integer :: i, good
+    good = 0
+    do i = 1, size(x, dim=2)
+      if (all(maxloc(net % output(x(:,i))) == maxloc(y(:,i)))) then
+        good = good + 1
+      end if
+    end do
+    accuracy = real(good) / size(x, dim=2)
+  end function accuracy
 
 end program test_dense_network_from_keras
