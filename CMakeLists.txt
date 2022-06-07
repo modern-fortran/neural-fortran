@@ -1,5 +1,5 @@
 # cmake version, project name, language
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 project(neural-fortran Fortran)
 
 # set output paths for modules, archives, and executables
@@ -18,6 +18,18 @@ if(SERIAL)
 else()
   message(STATUS "Configuring build for parallel execution")
 endif()
+
+find_package(HDF5 COMPONENTS Fortran HL)
+
+include(FetchContent)
+
+FetchContent_Declare(
+  h5fortran
+  GIT_REPOSITORY https://github.com/geospace-code/h5fortran
+  GIT_TAG 3b1867bb542fae9213aded0015103b8418e53919
+)
+
+FetchContent_MakeAvailable(h5fortran)
 
 # compiler flags for gfortran
 if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
@@ -101,6 +113,8 @@ add_library(neural
   src/nf/io/nf_io_hdf5_submodule.f90
 )
 
+target_include_directories(neural PUBLIC ${h5fortran_BUILD_DIR}/include)
+
 # Remove leading or trailing whitespace
 string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 
@@ -108,11 +122,11 @@ string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 enable_testing()
 foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer maxpool2d_layer flatten_layer dense_network dense_network_from_keras conv2d_network io_hdf5 keras_read_model)
   add_executable(test_${execid} test/test_${execid}.f90)
-  target_link_libraries(test_${execid} neural ${LIBS})
+  target_link_libraries(test_${execid} neural h5fortran ${LIBS})
   add_test(test_${execid} bin/test_${execid})
 endforeach()
   
 foreach(execid cnn mnist mnist_from_keras simple sine)
   add_executable(${execid} example/${execid}.f90)
-  target_link_libraries(${execid} neural ${LIBS})
+  target_link_libraries(${execid} neural h5fortran ${LIBS})
 endforeach()
