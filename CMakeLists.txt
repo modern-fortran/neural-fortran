@@ -34,12 +34,14 @@ FetchContent_Declare(
   h5fortran
   GIT_REPOSITORY https://github.com/geospace-code/h5fortran
   GIT_TAG v4.6.3
+  GIT_SHALLOW true
 )
 
 FetchContent_Declare(
   jsonfortran
   GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran
   GIT_TAG 8.3.0
+  GIT_SHALLOW true
 )
 
 FetchContent_MakeAvailable(h5fortran jsonfortran)
