@@ -23,7 +23,10 @@ ${_src}/json_module.F90
 )
 
 add_library(jsonfortran ${JF_LIB_SRCS})
-target_compile_definitions(jsonfortran PRIVATE ${JSON_REAL_KIND} ${JSON_INT_KIND})
+target_compile_definitions(jsonfortran PRIVATE
+${JSON_REAL_KIND} ${JSON_INT_KIND}
+$<$<BOOL:${HAS_Fortran_UTF8}>:USE_UCS4>
+)
 target_include_directories(jsonfortran PUBLIC
 $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
 $<INSTALL_INTERFACE:include>
