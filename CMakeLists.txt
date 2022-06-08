@@ -30,10 +30,19 @@ FetchContent_Declare(
   GIT_TAG v4.6.3
 )
 
-FetchContent_MakeAvailable(h5fortran)
+FetchContent_Declare(
+  jsonfortran
+  GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran
+  GIT_TAG 8.3.0
+)
+
+FetchContent_MakeAvailable(h5fortran jsonfortran)
 
 file(MAKE_DIRECTORY ${h5fortran_BINARY_DIR}/include)
 include_directories(${h5fortran_BINARY_DIR}/include)
+
+file(MAKE_DIRECTORY ${jsonfortran_BINARY_DIR}/include)
+include_directories(${jsonfortran_BINARY_DIR})
 
 # compiler flags for gfortran
 if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
@@ -128,11 +137,11 @@ string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 enable_testing()
 foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer maxpool2d_layer flatten_layer dense_network dense_network_from_keras conv2d_network io_hdf5 keras_read_model)
   add_executable(test_${execid} test/test_${execid}.f90)
-  target_link_libraries(test_${execid} PRIVATE neural h5fortran::h5fortran ${LIBS})
+  target_link_libraries(test_${execid} PRIVATE neural h5fortran::h5fortran jsonfortran ${LIBS})
   add_test(test_${execid} bin/test_${execid})
 endforeach()
   
 foreach(execid cnn mnist mnist_from_keras simple sine)
   add_executable(${execid} example/${execid}.f90)
-  target_link_libraries(${execid} PRIVATE neural h5fortran::h5fortran ${LIBS})
+  target_link_libraries(${execid} PRIVATE neural h5fortran::h5fortran jsonfortran ${LIBS})
 endforeach()
