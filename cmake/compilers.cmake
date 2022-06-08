@@ -1,12 +1,3 @@
-include(CheckSourceCompiles)
-# Compiler capability test
-check_source_compiles(Fortran
-"program test
-character(kind=selected_char_kind('ISO_10646')) :: c
-end program"
-HAS_Fortran_UTF8
-)
-
 # compiler flags for gfortran
 if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
