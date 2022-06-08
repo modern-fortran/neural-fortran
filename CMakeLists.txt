@@ -12,96 +12,13 @@ LANGUAGES C Fortran
 
 enable_testing()
 
-option(SERIAL "Serial execution")
-
-# Set output paths for modules, archives, and executables
-set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-if(SERIAL)
-  message(STATUS "Configuring build for serial execution")
-else()
-  message(STATUS "Configuring build for parallel execution")
-endif()
-
 include(FetchContent)
 
-set(h5fortran_BUILD_TESTING false)
+include(cmake/options.cmake)
+include(cmake/compilers.cmake)
 
-FetchContent_Declare(
-  h5fortran
-  GIT_REPOSITORY https://github.com/geospace-code/h5fortran
-  GIT_TAG v4.6.3
-  GIT_SHALLOW true
-)
-
-FetchContent_Declare(
-  jsonfortran
-  GIT_REPOSITORY https://github.com/jacobwilliams/json-fortran
-  GIT_TAG 8.3.0
-  GIT_SHALLOW true
-)
-
-FetchContent_MakeAvailable(h5fortran jsonfortran)
-
-file(MAKE_DIRECTORY ${h5fortran_BINARY_DIR}/include)
-include_directories(${h5fortran_BINARY_DIR}/include)
-
-file(MAKE_DIRECTORY ${jsonfortran_BINARY_DIR}/include)
-include_directories(${jsonfortran_BINARY_DIR})
-
-list(APPEND CMAKE_MODULE_PATH ${h5fortran_SOURCE_DIR}/cmake/Modules)
-find_package(HDF5 COMPONENTS Fortran REQUIRED)
-
-# compiler flags for gfortran
-if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-
-  if(SERIAL)
-    message(STATUS "Configuring to build with -fcoarray=single")
-    add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-fcoarray=single>")
-  else()
-    add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-fcoarray=lib>")
-  endif()
-
-  if(BLAS)
-    add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-fexternal-blas;${BLAS}>")
-    list(APPEND LIBS "blas")
-    message(STATUS "Configuring build to use BLAS from ${BLAS}")
-  endif()
-
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-fcheck=bounds;-fbacktrace>")
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-Ofast;-fno-frontend-optimize;-fno-backtrace>")
-
-elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
-  # compiler flags for ifort
-
-  if(SERIAL)
-    message(STATUS "Configuring to build with -coarray=single")
-    if(WIN32)
-      add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:/Qcoarray:single>")
-    else()
-      add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-coarray=single>")
-    endif()
-  else()
-    if(WIN32)
-      add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:/Qcoarray:shared>")
-    else()
-      add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-coarray=shared>")
-    endif()
-  endif()
-
-  string(APPEND CMAKE_Fortran_FLAGS " -assume byterecl")
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-check;-traceback>")
-  # add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-O3>")
-
-elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Cray")
-  # compiler flags for Cray ftn
-  string(APPEND CMAKE_Fortran_FLAGS " -h noomp")
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-O0;-g>")
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-O3>")
-endif()
+include(cmake/h5fortran.cmake)
+include(cmake/json.cmake)
 
 # library to archive (libneural.a)
 add_library(neural
@@ -145,8 +62,9 @@ add_library(neural
   src/nf/io/nf_io_hdf5.f90
   src/nf/io/nf_io_hdf5_submodule.f90
 )
-target_link_libraries(neural PRIVATE h5fortran::h5fortran HDF5::HDF5)
-target_include_directories(neural PRIVATE ${jsonfortran_BINARY_DIR}/include)
+target_link_libraries(neural PRIVATE h5fortran::h5fortran HDF5::HDF5 jsonfortran::jsonfortran)
+
+install(TARGETS neural)
 
 # Remove leading or trailing whitespace
 string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
@@ -155,11 +73,11 @@ string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 
 foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer maxpool2d_layer flatten_layer dense_network dense_network_from_keras conv2d_network io_hdf5 keras_read_model)
   add_executable(test_${execid} test/test_${execid}.f90)
-  target_link_libraries(test_${execid} PRIVATE neural h5fortran::h5fortran jsonfortran ${LIBS})
+  target_link_libraries(test_${execid} PRIVATE neural h5fortran::h5fortran jsonfortran::jsonfortran ${LIBS})
   add_test(test_${execid} bin/test_${execid})
 endforeach()
 
 foreach(execid cnn mnist mnist_from_keras simple sine)
   add_executable(${execid} example/${execid}.f90)
-  target_link_libraries(${execid} PRIVATE neural h5fortran::h5fortran jsonfortran ${LIBS})
+  target_link_libraries(${execid} PRIVATE neural h5fortran::h5fortran jsonfortran::jsonfortran ${LIBS})
 endforeach()
