@@ -1,14 +1,14 @@
-# cmake version, project name, language
-cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
+# CMake version, project name, language
+cmake_minimum_required(VERSION 3.20)
 project(neural-fortran Fortran)
 
-# set output paths for modules, archives, and executables
+# Set output paths for modules, archives, and executables
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# if build type not specified, default to release
+# If build type not specified, default to release
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "release")
 endif()
@@ -20,16 +20,20 @@ else()
 endif()
 
 find_package(HDF5 COMPONENTS Fortran HL)
+include_directories(${HDF5_INCLUDE_DIRS})
 
 include(FetchContent)
 
 FetchContent_Declare(
   h5fortran
   GIT_REPOSITORY https://github.com/geospace-code/h5fortran
-  GIT_TAG 3b1867bb542fae9213aded0015103b8418e53919
+  GIT_TAG v4.6.3
 )
 
 FetchContent_MakeAvailable(h5fortran)
+
+file(MAKE_DIRECTORY ${h5fortran_BINARY_DIR}/include)
+include_directories(${h5fortran_BINARY_DIR}/include)
 
 # compiler flags for gfortran
 if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
@@ -82,6 +86,8 @@ add_library(neural
   src/nf/nf_base_layer_submodule.f90
   src/nf/nf_conv2d_layer.f90
   src/nf/nf_conv2d_layer_submodule.f90
+  src/nf/nf_datasets.f90
+  src/nf/nf_datasets_submodule.f90
   src/nf/nf_datasets_mnist.f90
   src/nf/nf_datasets_mnist_submodule.f90
   src/nf/nf_dense_layer.f90
@@ -92,6 +98,8 @@ add_library(neural
   src/nf/nf_input1d_layer_submodule.f90
   src/nf/nf_input3d_layer.f90
   src/nf/nf_input3d_layer_submodule.f90
+  src/nf/nf_keras.f90
+  src/nf/nf_keras_submodule.f90
   src/nf/nf_layer_constructors.f90
   src/nf/nf_layer_constructors_submodule.f90
   src/nf/nf_layer.f90
@@ -113,8 +121,6 @@ add_library(neural
   src/nf/io/nf_io_hdf5_submodule.f90
 )
 
-target_include_directories(neural PUBLIC ${h5fortran_BUILD_DIR}/include)
-
 # Remove leading or trailing whitespace
 string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 
@@ -122,11 +128,11 @@ string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 enable_testing()
 foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer maxpool2d_layer flatten_layer dense_network dense_network_from_keras conv2d_network io_hdf5 keras_read_model)
   add_executable(test_${execid} test/test_${execid}.f90)
-  target_link_libraries(test_${execid} neural h5fortran ${LIBS})
+  target_link_libraries(test_${execid} PRIVATE neural h5fortran::h5fortran ${LIBS})
   add_test(test_${execid} bin/test_${execid})
 endforeach()
   
 foreach(execid cnn mnist mnist_from_keras simple sine)
   add_executable(${execid} example/${execid}.f90)
-  target_link_libraries(${execid} neural h5fortran ${LIBS})
+  target_link_libraries(${execid} PRIVATE neural h5fortran::h5fortran ${LIBS})
 endforeach()
