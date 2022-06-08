@@ -4,3 +4,7 @@ foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer maxpool2d_la
 
   add_test(NAME test_${execid} COMMAND test_${execid})
 endforeach()
+
+set_tests_properties(test_dense_network_from_keras test_io_hdf5 test_keras_read_model PROPERTIES
+RESOURCE_LOCK download
+)
