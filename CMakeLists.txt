@@ -1,17 +1,20 @@
 # CMake version, project name, language
 cmake_minimum_required(VERSION 3.20)
-project(neural-fortran Fortran)
+
+# If build type not specified, default to release
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build Release")
+endif()
+
+project(neural-fortran LANGUAGES Fortran)
+
+option(SERIAL "Serial execution")
 
 # Set output paths for modules, archives, and executables
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-# If build type not specified, default to release
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "release")
-endif()
 
 if(SERIAL)
   message(STATUS "Configuring build for serial execution")
@@ -57,7 +60,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
     set(LIBS "${LIBS} blas")
     message(STATUS "Configuring build to use BLAS from ${BLAS}")
   endif()
-    
+
   set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -fcheck=bounds -fbacktrace")
   set(CMAKE_Fortran_FLAGS_RELEASE "-Ofast -fno-frontend-optimize")
 endif()
@@ -140,7 +143,7 @@ foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer maxpool2d_la
   target_link_libraries(test_${execid} PRIVATE neural h5fortran::h5fortran jsonfortran ${LIBS})
   add_test(test_${execid} bin/test_${execid})
 endforeach()
-  
+
 foreach(execid cnn mnist mnist_from_keras simple sine)
   add_executable(${execid} example/${execid}.f90)
   target_link_libraries(${execid} PRIVATE neural h5fortran::h5fortran jsonfortran ${LIBS})
