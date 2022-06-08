@@ -143,7 +143,7 @@ add_library(neural
   src/nf/io/nf_io_hdf5.f90
   src/nf/io/nf_io_hdf5_submodule.f90
 )
-target_link_libraries(neural PRIVATE HDF5::HDF5)
+target_link_libraries(neural PRIVATE h5fortran::h5fortran HDF5::HDF5)
 target_include_directories(neural PRIVATE ${jsonfortran_BINARY_DIR}/include)
 
 # Remove leading or trailing whitespace
