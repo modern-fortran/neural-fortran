@@ -6,7 +6,11 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build Release")
 endif()
 
-project(neural-fortran LANGUAGES Fortran)
+project(neural-fortran
+LANGUAGES C Fortran
+)
+
+enable_testing()
 
 option(SERIAL "Serial execution")
 
@@ -22,10 +26,9 @@ else()
   message(STATUS "Configuring build for parallel execution")
 endif()
 
-find_package(HDF5 COMPONENTS Fortran HL)
-include_directories(${HDF5_INCLUDE_DIRS})
-
 include(FetchContent)
+
+set(h5fortran_BUILD_TESTING false)
 
 FetchContent_Declare(
   h5fortran
@@ -47,47 +50,55 @@ include_directories(${h5fortran_BINARY_DIR}/include)
 file(MAKE_DIRECTORY ${jsonfortran_BINARY_DIR}/include)
 include_directories(${jsonfortran_BINARY_DIR})
 
+list(APPEND CMAKE_MODULE_PATH ${h5fortran_SOURCE_DIR}/cmake/Modules)
+find_package(HDF5 COMPONENTS Fortran REQUIRED)
+
 # compiler flags for gfortran
-if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
+if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
   if(SERIAL)
     message(STATUS "Configuring to build with -fcoarray=single")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fcoarray=single")
+    add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-fcoarray=single>")
+  else()
+    add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-fcoarray=lib>")
   endif()
 
   if(BLAS)
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fexternal-blas ${BLAS}")
-    set(LIBS "${LIBS} blas")
+    add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-fexternal-blas;${BLAS}>")
+    list(APPEND LIBS "blas")
     message(STATUS "Configuring build to use BLAS from ${BLAS}")
   endif()
 
-  set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -fcheck=bounds -fbacktrace")
-  set(CMAKE_Fortran_FLAGS_RELEASE "-Ofast -fno-frontend-optimize")
-endif()
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-fcheck=bounds;-fbacktrace>")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-Ofast;-fno-frontend-optimize;-fno-backtrace>")
 
-# compiler flags for ifort
-if(CMAKE_Fortran_COMPILER_ID MATCHES Intel)
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+  # compiler flags for ifort
 
   if(SERIAL)
     message(STATUS "Configuring to build with -coarray=single")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -coarray=single")
+    if(WIN32)
+      add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:/Qcoarray:single>")
+    else()
+      add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-coarray=single>")
+    endif()
+  else()
+    if(WIN32)
+      add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:/Qcoarray:shared>")
+    else()
+      add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:-coarray=shared>")
+    endif()
   endif()
 
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -assume byterecl")
-  set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g -C -traceback")
-  set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
+  string(APPEND CMAKE_Fortran_FLAGS " -assume byterecl")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-check;-traceback>")
+  # add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-O3>")
 
-  if(NOT SERIAL)
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -coarray=shared")
-  endif()
-
-endif()
-
-# compiler flags for Cray ftn
-if(CMAKE_Fortran_COMPILER_ID MATCHES Cray)
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -h noomp")
-  set(CMAKE_Fortran_FLAGS_DEBUG "-O0 -g")
-  set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
+elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Cray")
+  # compiler flags for Cray ftn
+  string(APPEND CMAKE_Fortran_FLAGS " -h noomp")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-O0;-g>")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-O3>")
 endif()
 
 # library to archive (libneural.a)
@@ -132,12 +143,14 @@ add_library(neural
   src/nf/io/nf_io_hdf5.f90
   src/nf/io/nf_io_hdf5_submodule.f90
 )
+target_link_libraries(neural PRIVATE HDF5::HDF5)
+target_include_directories(neural PRIVATE ${jsonfortran_BINARY_DIR}/include)
 
 # Remove leading or trailing whitespace
 string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 
 # tests
-enable_testing()
+
 foreach(execid input1d_layer input3d_layer dense_layer conv2d_layer maxpool2d_layer flatten_layer dense_network dense_network_from_keras conv2d_network io_hdf5 keras_read_model)
   add_executable(test_${execid} test/test_${execid}.f90)
   target_link_libraries(test_${execid} PRIVATE neural h5fortran::h5fortran jsonfortran ${LIBS})
