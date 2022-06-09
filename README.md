@@ -143,11 +143,20 @@ cafrun -n 4 bin/mnist # run MNIST example on 4 cores
 #### Building with a different compiler
 
 If you want to build with a different compiler, such as Intel Fortran,
-specify `FC` when issuing `cmake`:
+set the `HDF5_ROOT` environment variable to the root path of your
+Intel HDF5 build, and specify `FC` when issuing `cmake`:
 
 ```
 FC=ifort cmake ..
 ```
+
+for a parallel build of neural-fortran, or
+
+```
+FC=ifort cmake .. -DSERIAL=1
+```
+
+for a serial build.
 
 #### Building with BLAS or MKL
 
