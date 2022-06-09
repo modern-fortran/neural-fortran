@@ -41,10 +41,22 @@ git clone https://github.com/modern-fortran/neural-fortran
 cd neural-fortran
 ```
 
-Dependencies:
+### Dependencies
 
-* Fortran 2018-compatible compiler
-* OpenCoarrays (optional, for parallel execution, GFortran only)
+Required dependencies are:
+
+* A Fortran compiler
+* [HDF5](https://www.hdfgroup.org/downloads/hdf5/)
+  (must be provided by the OS package manager or your own build from source)
+* [h5fortran](https://github.com/geospace-code/h5fortran),
+  [json-fortran](https://github.com/jacobwilliams/json-fortran)
+  (both handled by neural-fortran's build systems, no need for a manual install)
+* [fpm](https://github.com/fortran-lang/fpm) or
+  [CMake](https://cmake.org) for building the code
+
+Optional dependencies are:
+
+* OpenCoarrays (for parallel execution with GFortran)
 * BLAS, MKL (optional)
 
 Compilers tested include:
