@@ -32,14 +32,25 @@ module nf_network
   end type network
 
   interface network
-    module function network_cons(layers) result(res)
-      !! Create a new `network` instance.
+
+    module function network_from_layers(layers) result(res)
+      !! Create a new `network` instance from an array of `layer` instances.
       type(layer), intent(in) :: layers(:)
-        !! Input array of layer instances;
+        !! Input array of `layer` instances;
         !! the first element must be an input layer.
       type(network) :: res
         !! An instance of the `network` type
-    end function network_cons
+    end function network_from_layers
+
+    module function network_from_keras(filename) result(res)
+      !! Create a new `network` instance
+      !! from a Keras model saved in an h5 file.
+      character(*), intent(in) :: filename
+        !! Path to the Keras model h5 file
+      type(network) :: res
+        !! An instance of the `network` type
+    end function network_from_keras
+
   end interface network
 
   interface forward

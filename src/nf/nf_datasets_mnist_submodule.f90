@@ -1,44 +1,13 @@
 submodule(nf_datasets_mnist) nf_datasets_mnist_submodule
 
-  use nf_io, only: read_binary_file
+  use nf_datasets, only: download_and_unpack, mnist_url
+  use nf_io_binary, only: read_binary_file
 
   implicit none
 
   integer, parameter :: message_len = 128
 
 contains
-
-  subroutine download_and_uncompress()
-    character(*), parameter :: download_mechanism = 'curl -LO '
-    character(*), parameter :: base_url='https://github.com/modern-fortran/neural-fortran/files/8498876/'
-    character(*), parameter :: download_filename = 'mnist.tar.gz'
-    character(*), parameter :: download_command = download_mechanism // base_url // download_filename
-    character(*), parameter :: uncompress_file = 'tar xvzf ' // download_filename
-    character(message_len) :: command_message
-    character(:), allocatable :: error_message
-    integer :: exit_status, command_status
-
-    exit_status=0
-    call execute_command_line(command=download_command, wait=.true., &
-      exitstat=exit_status, cmdstat=command_status, cmdmsg=command_message)
-
-    if (any([exit_status, command_status] /= 0)) then
-      error_message = 'command "' // download_command // '" failed'
-      if (command_status /= 0) error_message = error_message // " with message " // trim(command_message)
-      error stop error_message
-    end if
-
-    call execute_command_line(command=uncompress_file, wait=.true., &
-      exitstat=exit_status, cmdstat=command_status, cmdmsg=command_message)
-
-    if (any([exit_status, command_status] /= 0)) then
-      error_message = 'command "' // uncompress_file // '" failed'
-      if (command_status /= 0) error_message = error_message // " with message " // trim(command_message)
-      error stop  error_message
-    end if
-
-  end subroutine download_and_uncompress
-
 
   pure module function label_digits(labels) result(res)
     real, intent(in) :: labels(:)
@@ -88,7 +57,7 @@ contains
 
     ! Check if MNIST data is present and download it if not.
     inquire(file='mnist_training_images.dat', exist=file_exists)
-    if (.not. file_exists) call download_and_uncompress()
+    if (.not. file_exists) call download_and_unpack(mnist_url)
 
     ! Load the training dataset (50000 samples)
     call read_binary_file('mnist_training_images.dat', &
@@ -111,22 +80,5 @@ contains
     end if
 
   end subroutine load_mnist
-
-
-  module subroutine print_image(images, labels, n)
-    real, intent(in) :: images(:,:)
-    real, intent(in) :: labels(:)
-    integer, intent(in) :: n
-    real :: image(28, 28)
-    character :: char_image(28, 28)
-    integer i, j
-    image = reshape(images(:,n), [28, 28])
-    char_image = '.'
-    where (image > 0) char_image = '#'
-    print *, labels(n)
-    do j = 1, 28
-      print *, char_image(:,j)
-    end do
-  end subroutine print_image
 
 end submodule nf_datasets_mnist_submodule

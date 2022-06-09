@@ -2,5 +2,6 @@
 *.o
 *.mod
 *.dat
+*.h5
 build
 doc

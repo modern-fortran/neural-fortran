@@ -1,4 +1,4 @@
-submodule(nf_io) nf_io_submodule
+submodule(nf_io_binary) nf_io_binary_submodule
 
   implicit none
 
@@ -40,4 +40,4 @@ contains
     close(fileunit)
   end subroutine read_binary_file_2d
 
-end submodule nf_io_submodule
+end submodule nf_io_binary_submodule

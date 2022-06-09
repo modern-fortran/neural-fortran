@@ -6,6 +6,7 @@ submodule(nf_base_layer) nf_base_layer_submodule
                            gaussian, gaussian_prime, &
                            relu, relu_prime, &
                            sigmoid, sigmoid_prime, &
+                           softmax, softmax_prime, &
                            softplus, softplus_prime, &
                            step, step_prime, &
                            tanhf, tanh_prime
@@ -46,6 +47,11 @@ contains
         self % activation_prime => sigmoid_prime
         self % activation_name = 'sigmoid'
 
+      case('softmax')
+        self % activation => softmax
+        self % activation_prime => softmax_prime
+        self % activation_name = 'softmax'
+
       case('softplus')
         self % activation => softplus
         self % activation_prime => softplus_prime
@@ -64,7 +70,8 @@ contains
       case default
         error stop 'Activation must be one of: ' // &
           '"elu", "exponential", "gaussian", "relu", ' // &
-          '"sigmoid", "softplus", "step", or "tanh".'
+          '"sigmoid", "softmax", "softplus", "step", ' // &
+          'or "tanh".'
 
     end select
 

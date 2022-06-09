@@ -41,10 +41,22 @@ git clone https://github.com/modern-fortran/neural-fortran
 cd neural-fortran
 ```
 
-Dependencies:
+### Dependencies
 
-* Fortran 2018-compatible compiler
-* OpenCoarrays (optional, for parallel execution, GFortran only)
+Required dependencies are:
+
+* A Fortran compiler
+* [HDF5](https://www.hdfgroup.org/downloads/hdf5/)
+  (must be provided by the OS package manager or your own build from source)
+* [h5fortran](https://github.com/geospace-code/h5fortran),
+  [json-fortran](https://github.com/jacobwilliams/json-fortran)
+  (both handled by neural-fortran's build systems, no need for a manual install)
+* [fpm](https://github.com/fortran-lang/fpm) or
+  [CMake](https://cmake.org) for building the code
+
+Optional dependencies are:
+
+* OpenCoarrays (for parallel execution with GFortran)
 * BLAS, MKL (optional)
 
 Compilers tested include:
@@ -131,11 +143,20 @@ cafrun -n 4 bin/mnist # run MNIST example on 4 cores
 #### Building with a different compiler
 
 If you want to build with a different compiler, such as Intel Fortran,
-specify `FC` when issuing `cmake`:
+set the `HDF5_ROOT` environment variable to the root path of your
+Intel HDF5 build, and specify `FC` when issuing `cmake`:
 
 ```
 FC=ifort cmake ..
 ```
+
+for a parallel build of neural-fortran, or
+
+```
+FC=ifort cmake .. -DSERIAL=1
+```
+
+for a serial build.
 
 #### Building with BLAS or MKL
 
@@ -180,6 +201,8 @@ examples, in increasing level of complexity:
   dataset
 4. [cnn](example/cnn.f90): Creating and running forward a simple CNN using
   `input`, `conv2d`, `maxpool2d`, `flatten`, and `dense` layers.
+5. [mnist_from_keras](example/mnist_from_keras.f90): Creating a pre-trained
+  model from a Keras HDF5 file.
 
 The examples also show you the extent of the public API that's meant to be
 used in applications, i.e. anything from the `nf` module.
