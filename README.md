@@ -69,24 +69,18 @@ Compilers tested include:
 
 #### Building in serial mode
 
-```
-fpm build
-```
-
-By default, without specifying the build profile, fpm will build neural-fortran
-using the debug compiler flags, and without optimization.
-To build optimized code, build with the release profile:
+With gfortran, the following will create an optimized build of neural-fortran:
 
 ```
-fpm build --profile release
+fpm build \
+  --profile release \
+  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
 ```
 
-If you're using GFortran, make sure to also pass an additional flag:
-
-```
-fpm build --profile release --flag "-fno-frontend-optimize"
-```
-
+HDF5 is now a required dependency, so you have to provide it to fpm.
+The above command assumes that the `HDF5INC` and `HDF5LIB` environment
+variables are set to the include and library paths, respectively, of your
+HDF5 install.
 The `-fno-frontend-optimize` disables some optimizations that may be harmful
 when building neural-fortran.
 
@@ -98,13 +92,18 @@ Once installed, use the compiler wrappers `caf` and `cafrun` to build and execut
 in parallel, respectively:
 
 ```
-fpm build --compiler caf --profile release --flag "-fno-frontend-optimize"
+fpm build \
+  --compiler caf \
+  --profile release \
+  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
 ```
 
 #### Testing with fpm
 
 ```
-fpm test
+fpm test \
+  --profile release \
+  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
 ```
 
 For the time being, you need to specify the same compiler flags to `fpm test`
