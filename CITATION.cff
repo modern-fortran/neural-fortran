@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use neural-fortran, please cite it as below."
+authors:
+- family-names: "Curcic"
+  given-names: "Milan"
+  orcid: "https://orcid.org/0000-0002-8822-7749"
+title: "neural-fortran"
+version: 0.5.0
+date-released: 2022-06-10
+url: "https://github.com/modern-fortran/neural-fortran"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Curcic"
+    given-names: "Milan"
+    orcid: "https://orcid.org/0000-0002-8822-7749"
+  doi: "10.1145/3323057.3323059"
+  journal: "ACM SIGPLAN Fortran Forum"
+  month: 3
+  start: 4 # First page number
+  end: 21 # Last page number
+  title: "A parallel Fortran framework for neural networks and deep learning"
+  issue: 1
+  volume: 38
+  year: 2019
