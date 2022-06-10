@@ -65,6 +65,9 @@ contains
 
     end do layers
 
+    ! free the memory:
+    call json % destroy(model_config_json)
+
   end function get_keras_h5_layers
 
 end submodule nf_keras_submodule
