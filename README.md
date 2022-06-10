@@ -234,6 +234,7 @@ Thanks to all open-source contributors to neural-fortran:
 
 * [@awvwgk](https://github.com/awvwgk)
 * [@ivan-pi](https://github.com/ivan-pi)
+* [@jacobwilliams](https://github.com/jacobwilliams),
 * [@jvdp1](https://github.com/jvdp1)
 * [@milancurcic](https://github.com/milancurcic)
 * [@pirpyn](https://github.com/pirpyn)
