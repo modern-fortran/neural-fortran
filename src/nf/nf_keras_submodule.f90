@@ -51,13 +51,21 @@ contains
 
         case('InputLayer')
           call json % get(layer_config_json, 'batch_input_shape', tmp_array)
-          res(n) % num_elements = [tmp_array(2)]
+          res(n) % num_elements = tmp_array(2:) ! skip the 1st (batch) dim
       
         case('Dense')
           call json % get(layer_config_json, 'units',  num_elements, found)
           res(n) % num_elements = [num_elements]
           call json % get(layer_config_json, 'activation', res(n) % activation)
       
+        case('Conv2D')
+          call json % get(layer_config_json, &
+            'filters', res(n) % filters, found)
+          call json % get(layer_config_json, &
+            'kernel_size',  res(n) % kernel_size, found)
+          call json % get(layer_config_json, &
+            'activation', res(n) % activation)
+
         case default
           error stop 'This Keras layer is not supported'
 
