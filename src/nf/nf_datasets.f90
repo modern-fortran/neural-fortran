@@ -8,13 +8,19 @@ module nf_datasets
 
   private
 
-  public :: download_and_unpack, keras_model_dense_mnist_url, mnist_url
+  public :: &
+    download_and_unpack, &
+    keras_cnn_mnist_url, &
+    keras_dense_mnist_url, &
+    mnist_url
 
   character(*), parameter :: keras_snippets_baseurl = &
     'https://github.com/neural-fortran/keras-snippets/files'
   character(*), parameter :: neural_fortran_baseurl = &
     'https://github.com/modern-fortran/neural-fortran/files'
-  character(*), parameter :: keras_model_dense_mnist_url = &
+  character(*), parameter :: keras_cnn_mnist_url = &
+    keras_snippets_baseurl // '/8892585/keras_cnn_mnist.tar.gz'
+  character(*), parameter :: keras_dense_mnist_url = &
     keras_snippets_baseurl // '/8788739/keras_dense_mnist.tar.gz'
   character(*), parameter :: mnist_url = &
     neural_fortran_baseurl // '/8498876/mnist.tar.gz'

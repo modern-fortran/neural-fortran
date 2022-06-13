@@ -4,7 +4,7 @@ program mnist_from_keras
   ! from an HDF5 file and running an inferrence on the testing dataset.
 
   use nf, only: network, label_digits, load_mnist
-  use nf_datasets, only: download_and_unpack, keras_model_dense_mnist_url
+  use nf_datasets, only: download_and_unpack, keras_dense_mnist_url
 
   implicit none
 
@@ -12,11 +12,11 @@ program mnist_from_keras
   real, allocatable :: training_images(:,:), training_labels(:)
   real, allocatable :: validation_images(:,:), validation_labels(:)
   real, allocatable :: testing_images(:,:), testing_labels(:)
-  character(*), parameter :: test_data_path = 'keras_dense_mnist.h5'
+  character(*), parameter :: keras_dense_path = 'keras_dense_mnist.h5'
   logical :: file_exists
 
-  inquire(file=test_data_path, exist=file_exists)
-  if (.not. file_exists) call download_and_unpack(keras_model_dense_mnist_url)
+  inquire(file=keras_dense_path, exist=file_exists)
+  if (.not. file_exists) call download_and_unpack(keras_dense_mnist_url)
 
   call load_mnist(training_images, training_labels, &
                   validation_images, validation_labels, &
@@ -25,7 +25,7 @@ program mnist_from_keras
   print '("Loading a pre-trained MNIST model from Keras")'
   print '(60("="))'
 
-  net = network(test_data_path)
+  net = network(keras_dense_path)
 
   call net % print_info()
 
