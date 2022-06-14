@@ -9,14 +9,26 @@ module nf_keras
   public :: get_keras_h5_layers, keras_layer
 
   type :: keras_layer
-    !! Intermediate container to convey the Keras layer information
-    !! to neural-fortran layer constructors.
+
+    !! Intermediate container to convey the Keras layer
+    !! information to neural-fortran layer constructors.
+
+    ! General metadata that applies to any (or most) layers
     character(:), allocatable :: class
     character(:), allocatable :: name
     character(:), allocatable :: activation
+
+    ! Dense
     integer, allocatable :: units(:)
-    integer :: filters ! Conv2D
-    integer, allocatable :: kernel_size(:) ! Conv2D
+
+    ! Conv2D
+    integer :: filters
+    integer, allocatable :: kernel_size(:)
+
+    ! MaxPooling2D
+    integer, allocatable :: pool_size(:)
+    integer, allocatable :: strides(:)
+
   end type keras_layer
 
   interface

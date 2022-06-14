@@ -57,14 +57,24 @@ contains
           call json % get(layer_config_json, 'units', units, found)
           res(n) % units = [units]
           call json % get(layer_config_json, 'activation', res(n) % activation)
-      
+
+        case('Flatten')
+          ! Nothing to read here; merely a placeholder.
+          continue
+
         case('Conv2D')
           call json % get(layer_config_json, &
             'filters', res(n) % filters, found)
           call json % get(layer_config_json, &
-            'kernel_size',  res(n) % kernel_size, found)
+            'kernel_size', res(n) % kernel_size, found)
           call json % get(layer_config_json, &
             'activation', res(n) % activation)
+
+        case('MaxPooling2D')
+          call json % get(layer_config_json, &
+            'pool_size',  res(n) % pool_size, found)
+          call json % get(layer_config_json, &
+            'strides',  res(n) % strides, found)
 
         case default
           error stop 'This Keras layer is not supported'

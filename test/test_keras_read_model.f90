@@ -4,20 +4,14 @@ program test_keras_read_model
   use nf_datasets, only: download_and_unpack, keras_dense_mnist_url, &
     keras_cnn_mnist_url
   use nf_keras, only: get_keras_h5_layers, keras_layer
-  use nf, only: layer, network, dense, input
 
   implicit none
 
-  character(:), allocatable :: model_config_string
   character(*), parameter :: keras_dense_path = 'keras_dense_mnist.h5'
   character(*), parameter :: keras_cnn_path = 'keras_cnn_mnist.h5'
 
   type(keras_layer), allocatable :: keras_layers(:)
 
-  type(layer), allocatable :: layers(:)
-  type(network) :: net
-
-  integer :: n
   logical :: file_exists
   logical :: ok = .true.
 
@@ -61,6 +55,48 @@ program test_keras_read_model
   if (.not. file_exists) call download_and_unpack(keras_cnn_mnist_url)
 
   keras_layers = get_keras_h5_layers(keras_cnn_path)
+
+  if (.not. all(keras_layers(1) % units == [28, 28, 1])) then
+    ok = .false.
+    write(stderr, '(a)') &
+      'Keras CNN input layer shape is expected.. failed'
+  end if
+
+  if (.not. keras_layers(2) % class == 'Conv2D') then
+    ok = .false.
+    write(stderr, '(a)') &
+      'Keras CNN second layer is Conv2D.. failed'
+  end if
+
+  if (.not. keras_layers(2) % filters == 8) then
+    ok = .false.
+    write(stderr, '(a)') &
+      'Keras CNN second layer number of filters is expected.. failed'
+  end if
+
+  if (.not. all(keras_layers(2) % kernel_size == [3, 3])) then
+    ok = .false.
+    write(stderr, '(a)') &
+      'Keras CNN second layer kernel_size is expected.. failed'
+  end if
+
+  if (.not. keras_layers(3) % class == 'MaxPooling2D') then
+    ok = .false.
+    write(stderr, '(a)') &
+      'Keras CNN third layer is MaxPooling2D.. failed'
+  end if
+
+  if (.not. all(keras_layers(3) % pool_size == [2, 2])) then
+    ok = .false.
+    write(stderr, '(a)') &
+      'Keras CNN second layer pool_size is expected.. failed'
+  end if
+
+  if (.not. all(keras_layers(3) % strides == [2, 2])) then
+    ok = .false.
+    write(stderr, '(a)') &
+      'Keras CNN second layer strides are expected.. failed'
+  end if
 
   if (ok) then
     print '(a)', 'test_keras_read_model: All tests passed.'
