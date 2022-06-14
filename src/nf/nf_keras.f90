@@ -14,7 +14,7 @@ module nf_keras
     character(:), allocatable :: class
     character(:), allocatable :: name
     character(:), allocatable :: activation
-    integer, allocatable :: num_elements(:)
+    integer, allocatable :: units(:)
     integer :: filters ! Conv2D
     integer, allocatable :: kernel_size(:) ! Conv2D
   end type keras_layer

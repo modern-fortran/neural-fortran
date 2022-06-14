@@ -38,7 +38,7 @@ program test_keras_read_model
     write(stderr, '(a)') 'Keras first layer should be InputLayer.. failed'
   end if
 
-  if (.not. all(keras_layers(1) % num_elements == [784])) then
+  if (.not. all(keras_layers(1) % units == [784])) then
     ok = .false.
     write(stderr, '(a)') 'Keras first layer should have 784 elements.. failed'
   end if

@@ -18,7 +18,7 @@ contains
       model_config_json, layers_json, layer_json, layer_config_json
 
     real, allocatable :: tmp_array(:)
-    integer :: n, num_layers, num_elements
+    integer :: n, num_layers, units
     logical :: found
 
     model_config_string = hdf5_attribute_string(filename, '.', 'model_config')
@@ -51,11 +51,11 @@ contains
 
         case('InputLayer')
           call json % get(layer_config_json, 'batch_input_shape', tmp_array)
-          res(n) % num_elements = tmp_array(2:) ! skip the 1st (batch) dim
+          res(n) % units = tmp_array(2:) ! skip the 1st (batch) dim
       
         case('Dense')
-          call json % get(layer_config_json, 'units',  num_elements, found)
-          res(n) % num_elements = [num_elements]
+          call json % get(layer_config_json, 'units', units, found)
+          res(n) % units = [units]
           call json % get(layer_config_json, 'activation', res(n) % activation)
       
         case('Conv2D')

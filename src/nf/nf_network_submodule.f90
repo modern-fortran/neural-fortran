@@ -69,17 +69,17 @@ contains
       select case(keras_layers(n) % class)
 
         case('InputLayer')
-          if (size(keras_layers(n) % num_elements) == 1) then
+          if (size(keras_layers(n) % units) == 1) then
             ! input1d
-            layers(n) = input(keras_layers(n) % num_elements(1))
+            layers(n) = input(keras_layers(n) % units(1))
           else
             ! input3d
-            layers(n) = input(keras_layers(n) % num_elements)
+            layers(n) = input(keras_layers(n) % units)
           end if
 
         case('Dense')
           layers(n) = dense( &
-            keras_layers(n) % num_elements(1), &
+            keras_layers(n) % units(1), &
             keras_layers(n) % activation &
           )
 
