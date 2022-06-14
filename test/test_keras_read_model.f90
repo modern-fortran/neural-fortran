@@ -56,7 +56,7 @@ program test_keras_read_model
 
   keras_layers = get_keras_h5_layers(keras_cnn_path)
 
-  if (.not. all(keras_layers(1) % units == [28, 28, 1])) then
+  if (.not. all(keras_layers(1) % units == [1, 28, 28])) then
     ok = .false.
     write(stderr, '(a)') &
       'Keras CNN input layer shape is expected.. failed'
