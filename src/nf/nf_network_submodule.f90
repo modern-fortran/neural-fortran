@@ -129,36 +129,33 @@ contains
 
       layer_name = keras_layers(n) % name
 
-      if (keras_layers(n) % class == 'Dense') then
-        select type(this_layer => res % layers(n) % p)
+      select type(this_layer => res % layers(n) % p)
 
-          type is(dense_layer)
+        type is(dense_layer)
 
-            ! Read biases from file
-            object_name = '/model_weights/' // layer_name // '/' &
-              // layer_name // '/bias:0'
-            call get_hdf5_dataset(filename, object_name, this_layer % biases)
+          ! Read biases from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/bias:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % biases)
 
-            ! Read weights from file
-            object_name = '/model_weights/' // layer_name // '/' &
-              // layer_name // '/kernel:0'
-            call get_hdf5_dataset(filename, object_name, this_layer % weights)
+          ! Read weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % weights)
 
-            ! TODO Multidimensional arrays are stored in HDF5 in C-order.
-            ! TODO Here we transpose the array to get to the Fortran order.
-            ! TODO There may be a way to do this without re-allocating.
-            ! TODO It probably doesn't matter much since we do this once.
-            ! TODO Figure it out later.
-            this_layer % weights = transpose(this_layer % weights)
+          ! TODO Multidimensional arrays are stored in HDF5 in C-order.
+          ! TODO Here we transpose the array to get to the Fortran order.
+          ! TODO There may be a way to do this without re-allocating.
+          ! TODO It probably doesn't matter much since we do this once.
+          ! TODO Figure it out later.
+          this_layer % weights = transpose(this_layer % weights)
 
-          class default
-            error stop 'Internal error in network_from_keras(); ' &
-              // 'mismatch in layer types between the Keras and ' &
-              // 'neural-fortran model layers.'
+        class default
+          error stop 'Internal error in network_from_keras(); ' &
+            // 'mismatch in layer types between the Keras and ' &
+            // 'neural-fortran model layers.'
 
-        end select
-
-    end if
+      end select
 
   end do
 
