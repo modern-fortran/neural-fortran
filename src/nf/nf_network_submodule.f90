@@ -7,7 +7,7 @@ submodule(nf_network) nf_network_submodule
   use nf_io_hdf5, only: get_hdf5_dataset
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: dense, input
+  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d
   use nf_loss, only: quadratic_derivative
   use nf_optimizers, only: sgd
   use nf_parallel, only: tile_indices
@@ -68,6 +68,27 @@ contains
 
       select case(keras_layers(n) % class)
 
+        case('Conv2D')
+
+          if (keras_layers(n) % kernel_size(1) &
+            /= keras_layers(n) % kernel_size(2)) &
+            error stop 'Non-square kernel in conv2d layer not supported.'
+
+          layers(n) = conv2d( &
+            keras_layers(n) % filters, &
+            !FIXME add support for non-square kernel
+            keras_layers(n) % kernel_size(1) &
+          )
+
+        case('Dense')
+          layers(n) = dense( &
+            keras_layers(n) % units(1), &
+            keras_layers(n) % activation &
+          )
+
+        case('Flatten')
+          layers(n) = flatten()
+
         case('InputLayer')
           if (size(keras_layers(n) % units) == 1) then
             ! input1d
@@ -77,10 +98,20 @@ contains
             layers(n) = input(keras_layers(n) % units)
           end if
 
-        case('Dense')
-          layers(n) = dense( &
-            keras_layers(n) % units(1), &
-            keras_layers(n) % activation &
+        case('MaxPooling2D')
+
+          if (keras_layers(n) % pool_size(1) &
+            /= keras_layers(n) % pool_size(2)) &
+            error stop 'Non-square pool in maxpool2d layer not supported.'
+
+          if (keras_layers(n) % strides(1) &
+            /= keras_layers(n) % strides(2)) &
+            error stop 'Unequal strides in maxpool2d layer are not supported.'
+
+          layers(n) = maxpool2d( &
+            !FIXME add support for non-square pool and stride
+            keras_layers(n) % pool_size(1), &
+            keras_layers(n) % strides(1) &
           )
 
         case default
