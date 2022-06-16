@@ -1,9 +1,11 @@
 submodule(nf_network) nf_network_submodule
 
+  use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_io_hdf5, only: get_hdf5_dataset
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
@@ -131,6 +133,17 @@ contains
 
       select type(this_layer => res % layers(n) % p)
 
+        type is(conv2d_layer)
+          ! Read biases from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/bias:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % biases)
+
+          ! Read weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % kernel)
+
         type is(dense_layer)
 
           ! Read biases from file
@@ -143,12 +156,13 @@ contains
             // layer_name // '/kernel:0'
           call get_hdf5_dataset(filename, object_name, this_layer % weights)
 
-          ! TODO Multidimensional arrays are stored in HDF5 in C-order.
-          ! TODO Here we transpose the array to get to the Fortran order.
-          ! TODO There may be a way to do this without re-allocating.
-          ! TODO It probably doesn't matter much since we do this once.
-          ! TODO Figure it out later.
-          this_layer % weights = transpose(this_layer % weights)
+        type is(flatten_layer)
+          ! Nothing to do
+          continue
+
+        type is(maxpool2d_layer)
+          ! Nothing to do
+           continue
 
         class default
           error stop 'Internal error in network_from_keras(); ' &
