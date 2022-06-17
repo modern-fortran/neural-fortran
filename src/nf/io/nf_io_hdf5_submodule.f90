@@ -59,15 +59,7 @@ contains
     call f % open(filename, 'r')
     call f % shape(object_name, dims)
 
-    ! If values is already allocated, re-allocate only if incorrect shape
-    if (allocated(values)) then
-      if (.not. all(shape(values) == dims)) then
-        deallocate(values)
-        allocate(values(dims(1)))
-      end if
-    else
-      allocate(values(dims(1)))
-    end if
+    allocate(values(dims(1)))
 
     call f % read(object_name, values)
     call f % close()
@@ -92,7 +84,7 @@ contains
     call f % read(object_name, values)
     call f % close()
 
-    ! Transpose the array to get from C to Fortran order
+    ! Transpose the array to respect Keras's storage order
     values = transpose(values)
 
   end subroutine get_hdf5_dataset_real32_2d
@@ -114,13 +106,6 @@ contains
 
     call f % read(object_name, values)
     call f % close()
-
-    ! Transpose the array to get from C to Fortran order
-    values = reshape( &
-      values, &
-      shape=[dims(4), dims(3), dims(2), dims(1)], &
-      order=[4, 3, 2, 1] &
-    )
 
   end subroutine get_hdf5_dataset_real32_4d
 

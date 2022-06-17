@@ -42,7 +42,7 @@ program test_io_hdf5
     write(stderr, '(a)') 'HDF5 1-d dataset dims inquiry is correct.. failed'
   end if
 
-  if (.not. all(shape(weights) == [30, 784])) then
+  if (.not. all(shape(weights) == [784, 30])) then
     ok = .false.
     write(stderr, '(a)') 'HDF5 2-d dataset dims inquiry is correct.. failed'
   end if
