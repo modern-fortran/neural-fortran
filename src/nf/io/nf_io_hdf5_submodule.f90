@@ -1,6 +1,7 @@
 submodule(nf_io_hdf5) nf_io_hdf5_submodule
 
   use iso_fortran_env, only: int64, real32, stderr => error_unit
+  use functional, only: reverse
   use h5fortran, only: hdf5_file
   use hdf5, only: H5F_ACC_RDONLY_F, HID_T, &
                   h5aget_type_f, h5aopen_by_name_f, h5aread_f, &
@@ -50,7 +51,7 @@ contains
 
     character(*), intent(in) :: filename
     character(*), intent(in) :: object_name
-    real(real32), allocatable, intent(in out) :: values(:)
+    real(real32), allocatable, intent(out) :: values(:)
 
     type(hdf5_file) :: f
     integer(int64), allocatable :: dims(:)
@@ -78,7 +79,7 @@ contains
 
     character(*), intent(in) :: filename
     character(*), intent(in) :: object_name
-    real(real32), allocatable, intent(in out) :: values(:,:)
+    real(real32), allocatable, intent(out) :: values(:,:)
 
     type(hdf5_file) :: f
     integer(int64), allocatable :: dims(:)
@@ -86,15 +87,7 @@ contains
     call f % open(filename, 'r')
     call f % shape(object_name, dims)
 
-    ! If values is already allocated, re-allocate only if incorrect shape
-    if (allocated(values)) then
-      if (.not. all(shape(values) == dims)) then
-        deallocate(values)
-        allocate(values(dims(1), dims(2)))
-      end if
-    else
-      allocate(values(dims(1), dims(2)))
-    end if
+    allocate(values(dims(1), dims(2)))
 
     call f % read(object_name, values)
     call f % close()
@@ -109,7 +102,7 @@ contains
 
     character(*), intent(in) :: filename
     character(*), intent(in) :: object_name
-    real(real32), allocatable, intent(in out) :: values(:,:,:,:)
+    real(real32), allocatable, intent(out) :: values(:,:,:,:)
 
     type(hdf5_file) :: f
     integer(int64), allocatable :: dims(:)
@@ -117,35 +110,18 @@ contains
     call f % open(filename, 'r')
     call f % shape(object_name, dims)
 
-    ! If values is already allocated, re-allocate only if incorrect shape
-    if (allocated(values)) then
-      if (.not. all(shape(values) == dims)) then
-        deallocate(values)
-        allocate(values(dims(1), dims(2), dims(3), dims(4)))
-      end if
-    else
-      allocate(values(dims(1), dims(2), dims(3), dims(4)))
-    end if
+    allocate(values(dims(1), dims(2), dims(3), dims(4)))
 
     call f % read(object_name, values)
     call f % close()
 
     ! Transpose the array to get from C to Fortran order
-    values = reverse_dim_order(values)
+    values = reshape( &
+      values, &
+      shape=[dims(4), dims(3), dims(2), dims(1)], &
+      order=[4, 3, 2, 1] &
+    )
 
   end subroutine get_hdf5_dataset_real32_4d
-
-
-  pure function reverse_dim_order(x) result(res)
-    real, intent(in) :: x(:,:,:,:)
-    real, allocatable :: res(:,:,:,:)
-    integer :: dims(4)
-    integer :: i, j, k, l
-    dims = shape(x)
-    allocate(res(dims(4), dims(3), dims(2), dims(1)))
-    do concurrent(i = 1:dims(1), j = 1:dims(2), k = 1:dims(3), l = 1:dims(4))
-      res(l,k,j,i) = x(i,j,k,l)
-    end do
-  end function reverse_dim_order
 
 end submodule nf_io_hdf5_submodule
