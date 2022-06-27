@@ -79,7 +79,8 @@ contains
           layers(n) = conv2d( &
             keras_layers(n) % filters, &
             !FIXME add support for non-square kernel
-            keras_layers(n) % kernel_size(1) &
+            keras_layers(n) % kernel_size(1), &
+            keras_layers(n) % activation &
           )
 
         case('Dense')
@@ -162,7 +163,7 @@ contains
 
         type is(maxpool2d_layer)
           ! Nothing to do
-           continue
+          continue
 
         class default
           error stop 'Internal error in network_from_keras(); ' &
@@ -258,6 +259,8 @@ contains
         res = output_layer % output
       type is(flatten_layer)
         res = output_layer % output
+      class default
+        error stop 'network % output not implemented for this output layer'
     end select
 
   end function output_1d
@@ -274,10 +277,15 @@ contains
     call self % forward(input)
 
     select type(output_layer => self % layers(num_layers) % p)
+      type is(conv2d_layer)
+        !FIXME flatten the result for now; find a better solution
+        res = pack(output_layer % output, .true.)
       type is(dense_layer)
         res = output_layer % output
       type is(flatten_layer)
         res = output_layer % output
+      class default
+        error stop 'network % output not implemented for this output layer'
     end select
 
   end function output_3d
