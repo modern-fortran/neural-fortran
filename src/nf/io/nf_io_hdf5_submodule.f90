@@ -1,7 +1,6 @@
 submodule(nf_io_hdf5) nf_io_hdf5_submodule
 
   use iso_fortran_env, only: int64, real32, stderr => error_unit
-  use functional, only: reverse
   use h5fortran, only: hdf5_file
   use hdf5, only: H5F_ACC_RDONLY_F, HID_T, &
                   h5aget_type_f, h5aopen_by_name_f, h5aread_f, &
