@@ -23,18 +23,21 @@ program test_cnn_from_keras
     real, allocatable :: training_images(:,:), training_labels(:)
     real, allocatable :: validation_images(:,:), validation_labels(:)
     real, allocatable :: testing_images(:,:), testing_labels(:)
+    real, allocatable :: input_reshaped(:,:,:,:)
     real :: acc
 
     call load_mnist(training_images, training_labels, &
                     validation_images, validation_labels, &
                     testing_images, testing_labels)
 
-    acc = accuracy(net, reshape(testing_images, shape=[1,28,28,10000]), label_digits(testing_labels))
-    print *, acc
+    ! Use only the first 1000 images to make the test short
+    input_reshaped = reshape(testing_images(:,:1000), shape=[1,28,28,1000])
 
-    if (acc < 0.94) then
+    acc = accuracy(net, input_reshaped, label_digits(testing_labels(:1000)))
+
+    if (acc < 0.97) then
       write(stderr, '(a)') &
-        'Pre-trained network accuracy should be > 0.94.. failed'
+        'Pre-trained network accuracy should be > 0.97.. failed'
       ok = .false.
     end if
 
@@ -55,12 +58,12 @@ contains
     real, intent(in) :: x(:,:,:,:), y(:,:)
     integer :: i, good
     good = 0
-    do i = 1, size(x, dim=2)
+    do i = 1, size(x, dim=4)
       if (all(maxloc(net % output(x(:,:,:,i))) == maxloc(y(:,i)))) then
         good = good + 1
       end if
     end do
-    accuracy = real(good) / size(x, dim=2)
+    accuracy = real(good) / size(x, dim=4)
   end function accuracy
 
 end program test_cnn_from_keras
