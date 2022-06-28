@@ -1,7 +1,8 @@
-program mnist_from_keras
+program dense_from_keras
 
-  ! This example demonstrates loading a pre-trained MNIST model from Keras
-  ! from an HDF5 file and running an inferrence on the testing dataset.
+  ! This example demonstrates loading a dense model
+  ! pre-trained on the MNIST dataset from a Keras HDF5
+  ! file and running an inferrence on the testing dataset.
 
   use nf, only: network, label_digits, load_mnist
   use nf_datasets, only: download_and_unpack, keras_dense_mnist_url
@@ -22,7 +23,7 @@ program mnist_from_keras
                   validation_images, validation_labels, &
                   testing_images, testing_labels)
 
-  print '("Loading a pre-trained MNIST model from Keras")'
+  print '("Loading a pre-trained dense model from Keras")'
   print '(60("="))'
 
   net = network(keras_dense_path)
@@ -48,4 +49,4 @@ contains
     accuracy = real(good) / size(x, dim=2)
   end function accuracy
 
-end program mnist_from_keras
+end program dense_from_keras
