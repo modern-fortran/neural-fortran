@@ -2,7 +2,7 @@
 
 [![GitHub issues](https://img.shields.io/github/issues/modern-fortran/neural-fortran.svg)](https://github.com/modern-fortran/neural-fortran/issues)
 
-A parallel neural net microframework. 
+A parallel framework for deep learning.
 Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 * [Features](https://github.com/modern-fortran/neural-fortran#features)
