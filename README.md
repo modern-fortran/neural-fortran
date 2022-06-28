@@ -50,9 +50,10 @@ Required dependencies are:
 * A Fortran compiler
 * [HDF5](https://www.hdfgroup.org/downloads/hdf5/)
   (must be provided by the OS package manager or your own build from source)
-* [h5fortran](https://github.com/geospace-code/h5fortran),
+* [functional-fortran](https://github.com/wavebitscientific/functional-fortran),
+  [h5fortran](https://github.com/geospace-code/h5fortran),
   [json-fortran](https://github.com/jacobwilliams/json-fortran)
-  (both handled by neural-fortran's build systems, no need for a manual install)
+  (all handled by neural-fortran's build systems, no need for a manual install)
 * [fpm](https://github.com/fortran-lang/fpm) or
   [CMake](https://cmake.org) for building the code
 
