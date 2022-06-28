@@ -18,9 +18,11 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 * Dense, fully connected neural layers
 * Convolutional and max-pooling layers (experimental, forward propagation only)
+* Flatten layers (forward and backward pass)
+* Loading dense and convolutional models from Keras h5 files
 * Stochastic and mini-batch gradient descent for back-propagation
 * Data-based parallelism
-* Several activation functions
+* Several activation functions and their derivatives
 
 ### Available layer types
 
@@ -57,7 +59,8 @@ Required dependencies are:
 Optional dependencies are:
 
 * OpenCoarrays (for parallel execution with GFortran)
-* BLAS, MKL (optional)
+* BLAS, MKL, or similar (for offloading `matmul` and `dot_product` calls)
+* curl (for downloading testing and example datasets)
 
 Compilers tested include:
 
@@ -200,13 +203,15 @@ examples, in increasing level of complexity:
   dataset
 4. [cnn](example/cnn.f90): Creating and running forward a simple CNN using
   `input`, `conv2d`, `maxpool2d`, `flatten`, and `dense` layers.
-5. [mnist_from_keras](example/mnist_from_keras.f90): Creating a pre-trained
-  model from a Keras HDF5 file.
+5. [dense_from_keras](example/dense_from_keras.f90): Creating a pre-trained
+  dense model from a Keras HDF5 file and running the inference.
+6. [cnn_from_keras](example/cnn_from_keras.f90): Creating a pre-trained
+  convolutional model from a Keras HDF5 file and running the inference.
 
 The examples also show you the extent of the public API that's meant to be
 used in applications, i.e. anything from the `nf` module.
 
-The MNIST example uses [curl](https://curl.se/) to download the dataset,
+Examples 3-6 rely on [curl](https://curl.se/) to download the needed datasets,
 so make sure you have it installed on your system.
 Most Linux OSs have it out of the box.
 The dataset will be downloaded only the first time you run the example in any
