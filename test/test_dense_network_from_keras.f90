@@ -2,7 +2,7 @@ program test_dense_network_from_keras
 
   use iso_fortran_env, only: stderr => error_unit
   use nf, only: network
-  use nf_datasets, only: download_and_unpack, keras_model_dense_mnist_url
+  use nf_datasets, only: download_and_unpack, keras_dense_mnist_url
 
   implicit none
 
@@ -12,7 +12,7 @@ program test_dense_network_from_keras
   logical :: ok = .true.
 
   inquire(file=test_data_path, exist=file_exists)
-  if (.not. file_exists) call download_and_unpack(keras_model_dense_mnist_url)
+  if (.not. file_exists) call download_and_unpack(keras_dense_mnist_url)
 
   net = network(test_data_path)
 

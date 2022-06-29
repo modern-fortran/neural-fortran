@@ -31,7 +31,7 @@ module nf_io_hdf5
         !! HDF5 file name
       character(*), intent(in) :: object_name
         !! Object (dataset) name
-      real(real32), allocatable, intent(in out) :: values(:)
+      real(real32), allocatable, intent(out) :: values(:)
         !! Array to store the dataset values into
     end subroutine get_hdf5_dataset_real32_1d
 
@@ -41,10 +41,20 @@ module nf_io_hdf5
         !! HDF5 file name
       character(*), intent(in) :: object_name
         !! Object (dataset) name
-      real(real32), allocatable, intent(in out) :: values(:,:)
+      real(real32), allocatable, intent(out) :: values(:,:)
         !! Array to store the dataset values into
     end subroutine get_hdf5_dataset_real32_2d
   
+    module subroutine get_hdf5_dataset_real32_4d(filename, object_name, values)
+      !! Read a 4-d real32 array from an HDF5 dataset.
+      character(*), intent(in) :: filename
+        !! HDF5 file name
+      character(*), intent(in) :: object_name
+        !! Object (dataset) name
+      real(real32), allocatable, intent(out) :: values(:,:,:,:)
+        !! Array to store the dataset values into
+    end subroutine get_hdf5_dataset_real32_4d
+
   end interface get_hdf5_dataset
 
 end module nf_io_hdf5

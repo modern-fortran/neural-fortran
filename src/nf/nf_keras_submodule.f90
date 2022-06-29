@@ -1,5 +1,6 @@
 submodule(nf_keras) nf_keras_submodule
 
+  use functional, only: reverse
   use json_module, only: json_core, json_value
   use nf_io_hdf5, only: hdf5_attribute_string
 
@@ -18,7 +19,7 @@ contains
       model_config_json, layers_json, layer_json, layer_config_json
 
     real, allocatable :: tmp_array(:)
-    integer :: n, num_layers, num_elements
+    integer :: n, num_layers, units
     logical :: found
 
     model_config_string = hdf5_attribute_string(filename, '.', 'model_config')
@@ -51,13 +52,36 @@ contains
 
         case('InputLayer')
           call json % get(layer_config_json, 'batch_input_shape', tmp_array)
-          res(n) % num_elements = [tmp_array(2)]
+          res(n) % units = reverse(tmp_array(2:)) ! skip the 1st (batch) dim
       
         case('Dense')
-          call json % get(layer_config_json, 'units',  num_elements, found)
-          res(n) % num_elements = [num_elements]
+          call json % get(layer_config_json, 'units', units, found)
+          res(n) % units = [units]
           call json % get(layer_config_json, 'activation', res(n) % activation)
-      
+
+        case('Flatten')
+          ! Nothing to read here; merely a placeholder.
+          continue
+
+        case('Conv2D')
+          call json % get(layer_config_json, &
+            'filters', res(n) % filters, found)
+          call json % get(layer_config_json, &
+            'kernel_size', res(n) % kernel_size, found)
+          call json % get(layer_config_json, &
+            'activation', res(n) % activation)
+          ! Reverse to account for C -> Fortran order
+          res(n) % kernel_size = reverse(res(n) % kernel_size)
+
+        case('MaxPooling2D')
+          call json % get(layer_config_json, &
+            'pool_size',  res(n) % pool_size, found)
+          call json % get(layer_config_json, &
+            'strides',  res(n) % strides, found)
+          ! Reverse to account for C -> Fortran order
+          res(n) % pool_size = reverse(res(n) % pool_size)
+          res(n) % strides = reverse(res(n) % strides)
+
         case default
           error stop 'This Keras layer is not supported'
 

@@ -1,13 +1,15 @@
 submodule(nf_network) nf_network_submodule
 
+  use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_io_hdf5, only: get_hdf5_dataset
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: dense, input
+  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d
   use nf_loss, only: quadratic_derivative
   use nf_optimizers, only: sgd
   use nf_parallel, only: tile_indices
@@ -68,19 +70,51 @@ contains
 
       select case(keras_layers(n) % class)
 
-        case('InputLayer')
-          if (size(keras_layers(n) % num_elements) == 1) then
-            ! input1d
-            layers(n) = input(keras_layers(n) % num_elements(1))
-          else
-            ! input3d
-            layers(n) = input(keras_layers(n) % num_elements)
-          end if
+        case('Conv2D')
+
+          if (keras_layers(n) % kernel_size(1) &
+            /= keras_layers(n) % kernel_size(2)) &
+            error stop 'Non-square kernel in conv2d layer not supported.'
+
+          layers(n) = conv2d( &
+            keras_layers(n) % filters, &
+            !FIXME add support for non-square kernel
+            keras_layers(n) % kernel_size(1), &
+            keras_layers(n) % activation &
+          )
 
         case('Dense')
           layers(n) = dense( &
-            keras_layers(n) % num_elements(1), &
+            keras_layers(n) % units(1), &
             keras_layers(n) % activation &
+          )
+
+        case('Flatten')
+          layers(n) = flatten()
+
+        case('InputLayer')
+          if (size(keras_layers(n) % units) == 1) then
+            ! input1d
+            layers(n) = input(keras_layers(n) % units(1))
+          else
+            ! input3d
+            layers(n) = input(keras_layers(n) % units)
+          end if
+
+        case('MaxPooling2D')
+
+          if (keras_layers(n) % pool_size(1) &
+            /= keras_layers(n) % pool_size(2)) &
+            error stop 'Non-square pool in maxpool2d layer not supported.'
+
+          if (keras_layers(n) % strides(1) &
+            /= keras_layers(n) % strides(2)) &
+            error stop 'Unequal strides in maxpool2d layer are not supported.'
+
+          layers(n) = maxpool2d( &
+            !FIXME add support for non-square pool and stride
+            keras_layers(n) % pool_size(1), &
+            keras_layers(n) % strides(1) &
           )
 
         case default
@@ -98,36 +132,45 @@ contains
 
       layer_name = keras_layers(n) % name
 
-      if (keras_layers(n) % class == 'Dense') then
-        select type(this_layer => res % layers(n) % p)
+      select type(this_layer => res % layers(n) % p)
 
-          type is(dense_layer)
+        type is(conv2d_layer)
+          ! Read biases from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/bias:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % biases)
 
-            ! Read biases from file
-            object_name = '/model_weights/' // layer_name // '/' &
-              // layer_name // '/bias:0'
-            call get_hdf5_dataset(filename, object_name, this_layer % biases)
+          ! Read weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % kernel)
 
-            ! Read weights from file
-            object_name = '/model_weights/' // layer_name // '/' &
-              // layer_name // '/kernel:0'
-            call get_hdf5_dataset(filename, object_name, this_layer % weights)
+        type is(dense_layer)
 
-            ! TODO Multidimensional arrays are stored in HDF5 in C-order.
-            ! TODO Here we transpose the array to get to the Fortran order.
-            ! TODO There may be a way to do this without re-allocating.
-            ! TODO It probably doesn't matter much since we do this once.
-            ! TODO Figure it out later.
-            this_layer % weights = transpose(this_layer % weights)
+          ! Read biases from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/bias:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % biases)
 
-          class default
-            error stop 'Internal error in network_from_keras(); ' &
-              // 'mismatch in layer types between the Keras and ' &
-              // 'neural-fortran model layers.'
+          ! Read weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % weights)
 
-        end select
+        type is(flatten_layer)
+          ! Nothing to do
+          continue
 
-    end if
+        type is(maxpool2d_layer)
+          ! Nothing to do
+          continue
+
+        class default
+          error stop 'Internal error in network_from_keras(); ' &
+            // 'mismatch in layer types between the Keras and ' &
+            // 'neural-fortran model layers.'
+
+      end select
 
   end do
 
@@ -216,6 +259,8 @@ contains
         res = output_layer % output
       type is(flatten_layer)
         res = output_layer % output
+      class default
+        error stop 'network % output not implemented for this output layer'
     end select
 
   end function output_1d
@@ -232,10 +277,15 @@ contains
     call self % forward(input)
 
     select type(output_layer => self % layers(num_layers) % p)
+      type is(conv2d_layer)
+        !FIXME flatten the result for now; find a better solution
+        res = pack(output_layer % output, .true.)
       type is(dense_layer)
         res = output_layer % output
       type is(flatten_layer)
         res = output_layer % output
+      class default
+        error stop 'network % output not implemented for this output layer'
     end select
 
   end function output_3d

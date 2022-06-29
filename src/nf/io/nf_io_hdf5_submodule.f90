@@ -50,7 +50,7 @@ contains
 
     character(*), intent(in) :: filename
     character(*), intent(in) :: object_name
-    real(real32), allocatable, intent(in out) :: values(:)
+    real(real32), allocatable, intent(out) :: values(:)
 
     type(hdf5_file) :: f
     integer(int64), allocatable :: dims(:)
@@ -58,15 +58,7 @@ contains
     call f % open(filename, 'r')
     call f % shape(object_name, dims)
 
-    ! If values is already allocated, re-allocate only if incorrect shape
-    if (allocated(values)) then
-      if (.not. all(shape(values) == dims)) then
-        deallocate(values)
-        allocate(values(dims(1)))
-      end if
-    else
-      allocate(values(dims(1)))
-    end if
+    allocate(values(dims(1)))
 
     call f % read(object_name, values)
     call f % close()
@@ -78,7 +70,7 @@ contains
 
     character(*), intent(in) :: filename
     character(*), intent(in) :: object_name
-    real(real32), allocatable, intent(in out) :: values(:,:)
+    real(real32), allocatable, intent(out) :: values(:,:)
 
     type(hdf5_file) :: f
     integer(int64), allocatable :: dims(:)
@@ -86,19 +78,34 @@ contains
     call f % open(filename, 'r')
     call f % shape(object_name, dims)
 
-    ! If values is already allocated, re-allocate only if incorrect shape
-    if (allocated(values)) then
-      if (.not. all(shape(values) == dims)) then
-        deallocate(values)
-        allocate(values(dims(1), dims(2)))
-      end if
-    else
-      allocate(values(dims(1), dims(2)))
-    end if
+    allocate(values(dims(1), dims(2)))
 
     call f % read(object_name, values)
     call f % close()
 
+    ! Transpose the array to respect Keras's storage order
+    values = transpose(values)
+
   end subroutine get_hdf5_dataset_real32_2d
+
+
+  module subroutine get_hdf5_dataset_real32_4d(filename, object_name, values)
+
+    character(*), intent(in) :: filename
+    character(*), intent(in) :: object_name
+    real(real32), allocatable, intent(out) :: values(:,:,:,:)
+
+    type(hdf5_file) :: f
+    integer(int64), allocatable :: dims(:)
+
+    call f % open(filename, 'r')
+    call f % shape(object_name, dims)
+
+    allocate(values(dims(1), dims(2), dims(3), dims(4)))
+
+    call f % read(object_name, values)
+    call f % close()
+
+  end subroutine get_hdf5_dataset_real32_4d
 
 end submodule nf_io_hdf5_submodule

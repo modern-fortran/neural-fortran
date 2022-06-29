@@ -1,7 +1,7 @@
 program test_io_hdf5
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf_datasets, only: download_and_unpack, keras_model_dense_mnist_url
+  use nf_datasets, only: download_and_unpack, keras_dense_mnist_url
   use nf_io_hdf5, only: hdf5_attribute_string, get_hdf5_dataset
 
   implicit none
@@ -14,7 +14,7 @@ program test_io_hdf5
   logical :: ok = .true.
 
   inquire(file=test_data_path, exist=file_exists)
-  if (.not. file_exists) call download_and_unpack(keras_model_dense_mnist_url)
+  if (.not. file_exists) call download_and_unpack(keras_dense_mnist_url)
 
   attr = hdf5_attribute_string(test_data_path, '.', 'backend')
 
@@ -42,7 +42,7 @@ program test_io_hdf5
     write(stderr, '(a)') 'HDF5 1-d dataset dims inquiry is correct.. failed'
   end if
 
-  if (.not. all(shape(weights) == [30, 784])) then
+  if (.not. all(shape(weights) == [784, 30])) then
     ok = .false.
     write(stderr, '(a)') 'HDF5 2-d dataset dims inquiry is correct.. failed'
   end if
