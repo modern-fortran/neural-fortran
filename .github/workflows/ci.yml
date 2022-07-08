@@ -37,7 +37,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Compile
-      run: fpm build
+      run: fpm build --profile release
 
-    - name: Run tests
-      run: fpm test
+    - name: Test
+      run: fpm test --profile release
