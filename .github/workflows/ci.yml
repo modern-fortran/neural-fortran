@@ -21,7 +21,7 @@ env:
 jobs:
 
   build_and_test_debug_profile:
-    name: Build and test on Ubuntu using fpm under the debug profile
+    name: Build and test in debug mode
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +43,7 @@ jobs:
       run: fpm test --profile debug
 
   build_and_test_release_profile:
-    name: Build and test on Ubuntu using fpm under the release profile
+    name: Build and test in release mode
     runs-on: ubuntu-latest
 
     steps:
