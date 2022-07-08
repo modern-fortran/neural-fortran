@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  
+  push:
+    paths:
+      - ".github/workflows/ci.yml"
+      - "fpm.toml"
+      - "**.f90"
+
+  pull_request:
+    paths:
+      - ".github/workflows/ci.yml"
+      - "fpm.toml"
+      - "**.f90"
+
+jobs:
+
+  build:
+    name: Build and test on Ubuntu using fpm
+    runs-on: ubuntu-latest
+
+    env:
+      FPM_FFLAGS: -I/usr/include/hdf5/serial
+      FPM_LDFLAGS: -L/usr/lib/x86_64-linux-gnu/hdf5/serial
+
+    steps:
+
+    - uses: fortran-lang/setup-fpm@v4
+      with:
+        fpm-version: "v0.6.0"
+
+    - name: Install HDF5
+      run: |
+        sudo apt update
+        sudo apt install --no-install-recommends libhdf5-dev
+    - uses: actions/checkout@v2
+
+    - name: Compile
+      run: fpm build
+
+    - name: Run tests
+      run: fpm test
