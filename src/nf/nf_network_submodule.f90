@@ -244,23 +244,6 @@ contains
   end subroutine forward_3d
 
 
-  pure module subroutine forward_batch_3d(self, input)
-    class(network), intent(in out) :: self
-    real, intent(in) :: input(:,:,:,:)
-    integer :: n
-
-    ! Set the input array into the input layer
-    select type(input_layer => self % layers(1) % p); type is(input3d_layer)
-      call input_layer % set(input)
-    end select
-
-    do n = 2, size(self % layers)
-      call self % layers(n) % forward(self % layers(n - 1))
-    end do
-
-  end subroutine forward_batch_3d
-
-
   module function output_1d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
@@ -308,27 +291,65 @@ contains
   end function output_3d
 
 
+  module function output_batch_1d(self, input) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:)
+    real, allocatable :: res(:,:)
+    integer :: i, batch_size, num_layers, output_size
+
+    num_layers = size(self % layers)
+    batch_size = size(input, dim=rank(input))
+    output_size = product(self % layers(num_layers) % layer_shape)
+
+    allocate(res(output_size, batch_size))
+
+    batch: do concurrent(i = 1:size(res, dim=2))
+
+      call self % forward(input(:,i))
+
+      select type(output_layer => self % layers(num_layers) % p)
+        type is(dense_layer)
+          res(:,i) = output_layer % output
+        type is(flatten_layer)
+          res(:,i) = output_layer % output
+        class default
+          error stop 'network % output not implemented for this output layer'
+      end select
+
+    end do batch
+
+  end function output_batch_1d
+
+
   module function output_batch_3d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:,:,:)
     real, allocatable :: res(:,:)
-    integer :: num_layers
+    integer :: i, batch_size, num_layers, output_size
 
     num_layers = size(self % layers)
+    batch_size = size(input, dim=rank(input))
+    output_size = product(self % layers(num_layers) % layer_shape)
 
-    call self % forward(input)
+    allocate(res(output_size, batch_size))
+
+    batch: do concurrent(i = 1:batch_size)
+
+    call self % forward(input(:,:,:,i))
 
     select type(output_layer => self % layers(num_layers) % p)
       type is(conv2d_layer)
         !FIXME flatten the result for now; find a better solution
-        res = pack(output_layer % output, .true.)
+        res(:,i) = pack(output_layer % output, .true.)
       type is(dense_layer)
-        res = output_layer % output
+        res(:,i) = output_layer % output
       type is(flatten_layer)
-        res = output_layer % output
+        res(:,i) = output_layer % output
       class default
         error stop 'network % output not implemented for this output layer'
     end select
+
+    end do batch
 
   end function output_batch_3d
 
