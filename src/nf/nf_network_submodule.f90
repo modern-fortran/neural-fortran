@@ -291,6 +291,69 @@ contains
   end function output_3d
 
 
+  module function output_batch_1d(self, input) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:)
+    real, allocatable :: res(:,:)
+    integer :: i, batch_size, num_layers, output_size
+
+    num_layers = size(self % layers)
+    batch_size = size(input, dim=rank(input))
+    output_size = product(self % layers(num_layers) % layer_shape)
+
+    allocate(res(output_size, batch_size))
+
+    batch: do concurrent(i = 1:size(res, dim=2))
+
+      call self % forward(input(:,i))
+
+      select type(output_layer => self % layers(num_layers) % p)
+        type is(dense_layer)
+          res(:,i) = output_layer % output
+        type is(flatten_layer)
+          res(:,i) = output_layer % output
+        class default
+          error stop 'network % output not implemented for this output layer'
+      end select
+
+    end do batch
+
+  end function output_batch_1d
+
+
+  module function output_batch_3d(self, input) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:,:,:)
+    real, allocatable :: res(:,:)
+    integer :: i, batch_size, num_layers, output_size
+
+    num_layers = size(self % layers)
+    batch_size = size(input, dim=rank(input))
+    output_size = product(self % layers(num_layers) % layer_shape)
+
+    allocate(res(output_size, batch_size))
+
+    batch: do concurrent(i = 1:batch_size)
+
+    call self % forward(input(:,:,:,i))
+
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(conv2d_layer)
+        !FIXME flatten the result for now; find a better solution
+        res(:,i) = pack(output_layer % output, .true.)
+      type is(dense_layer)
+        res(:,i) = output_layer % output
+      type is(flatten_layer)
+        res(:,i) = output_layer % output
+      class default
+        error stop 'network % output not implemented for this output layer'
+    end select
+
+    end do batch
+
+  end function output_batch_3d
+
+
   module subroutine print_info(self)
     class(network), intent(in) :: self
     call self % layers % print_info()
