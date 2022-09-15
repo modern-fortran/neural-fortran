@@ -27,6 +27,6 @@ program cnn
   allocate(x(3,32,32))
   call random_number(x)
 
-  print *, 'Output:', net % output(x)
+  print *, 'Output:', net % predict(x)
 
 end program cnn

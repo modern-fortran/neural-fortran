@@ -34,7 +34,7 @@ program sine
     call net % update(1.)
 
     if (mod(n, 10000) == 0) then
-      ypred = [(net % output([xtest(i)]), i = 1, test_size)]
+      ypred = [(net % predict([xtest(i)]), i = 1, test_size)]
       print '(i0,1x,f9.6)', n, sum((ypred - ytest)**2) / size(ypred)
     end if
 
