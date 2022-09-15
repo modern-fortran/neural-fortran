@@ -23,13 +23,13 @@ module nf_network
 
     procedure, private :: forward_1d
     procedure, private :: forward_3d
-    procedure, private :: output_1d
-    procedure, private :: output_3d
-    procedure, private :: output_batch_1d
-    procedure, private :: output_batch_3d
+    procedure, private :: predict_1d
+    procedure, private :: predict_3d
+    procedure, private :: predict_batch_1d
+    procedure, private :: predict_batch_3d
 
     generic :: forward => forward_1d, forward_3d
-    generic :: output => output_1d, output_3d, output_batch_1d, output_batch_3d
+    generic :: predict => predict_1d, predict_3d, predict_batch_1d, predict_batch_3d
 
   end type network
 
@@ -89,7 +89,7 @@ module nf_network
 
   interface output
 
-    module function output_1d(self, input) result(res)
+    module function predict_1d(self, input) result(res)
       !! Return the output of the network given the input 1-d array.
       class(network), intent(in out) :: self
         !! Network instance
@@ -97,9 +97,9 @@ module nf_network
         !! Input data
       real, allocatable :: res(:)
         !! Output of the network
-    end function output_1d
+    end function predict_1d
 
-    module function output_3d(self, input) result(res)
+    module function predict_3d(self, input) result(res)
       !! Return the output of the network given the input 3-d array.
       class(network), intent(in out) :: self
         !! Network instance
@@ -107,9 +107,9 @@ module nf_network
         !! Input data
       real, allocatable :: res(:)
         !! Output of the network
-    end function output_3d
+    end function predict_3d
 
-    module function output_batch_1d(self, input) result(res)
+    module function predict_batch_1d(self, input) result(res)
       !! Return the output of the network given an input batch of 3-d data.
       class(network), intent(in out) :: self
         !! Network instance
@@ -117,9 +117,9 @@ module nf_network
         !! Input data; the last dimension is the batch
       real, allocatable :: res(:,:)
         !! Output of the network; the last dimension is the batch
-    end function output_batch_1d
+    end function predict_batch_1d
 
-    module function output_batch_3d(self, input) result(res)
+    module function predict_batch_3d(self, input) result(res)
       !! Return the output of the network given an input batch of 3-d data.
       class(network), intent(in out) :: self
         !! Network instance
@@ -127,7 +127,7 @@ module nf_network
         !! Input data; the last dimension is the batch
       real, allocatable :: res(:,:)
         !! Output of the network; the last dimension is the batch
-    end function output_batch_3d
+    end function predict_batch_3d
 
   end interface output
 

@@ -16,7 +16,7 @@ program test_dense_network
     ok = .false.
   end if
 
-  if (.not. all(net % output([0.]) == 0.5)) then
+  if (.not. all(net % predict([0.]) == 0.5)) then
     write(stderr, '(a)') &
       'dense network should output exactly 0.5 for input 0.. failed'
     ok = .false.
@@ -35,7 +35,7 @@ program test_dense_network
       call net % forward(x)
       call net % backward(y)
       call net % update(1.)
-      if (all(abs(net % output(x) - y) < tolerance)) exit
+      if (all(abs(net % predict(x) - y) < tolerance)) exit
     end do
 
     if (.not. n <= num_iterations) then

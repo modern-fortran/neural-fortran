@@ -27,7 +27,7 @@ program simple
     call net % update(1.)
 
     if (mod(n, 50) == 0) &
-      print '(i4,2(3x,f8.6))', n, net % output(x)
+      print '(i4,2(3x,f8.6))', n, net % predict(x)
 
   end do
 

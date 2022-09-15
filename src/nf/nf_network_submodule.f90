@@ -244,7 +244,7 @@ contains
   end subroutine forward_3d
 
 
-  module function output_1d(self, input) result(res)
+  module function predict_1d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
     real, allocatable :: res(:)
@@ -263,10 +263,10 @@ contains
         error stop 'network % output not implemented for this output layer'
     end select
 
-  end function output_1d
+  end function predict_1d
 
 
-  module function output_3d(self, input) result(res)
+  module function predict_3d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     real, allocatable :: res(:)
@@ -288,10 +288,10 @@ contains
         error stop 'network % output not implemented for this output layer'
     end select
 
-  end function output_3d
+  end function predict_3d
 
 
-  module function output_batch_1d(self, input) result(res)
+  module function predict_batch_1d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:)
     real, allocatable :: res(:,:)
@@ -318,10 +318,10 @@ contains
 
     end do batch
 
-  end function output_batch_1d
+  end function predict_batch_1d
 
 
-  module function output_batch_3d(self, input) result(res)
+  module function predict_batch_3d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:,:,:)
     real, allocatable :: res(:,:)
@@ -335,23 +335,23 @@ contains
 
     batch: do concurrent(i = 1:batch_size)
 
-    call self % forward(input(:,:,:,i))
+      call self % forward(input(:,:,:,i))
 
-    select type(output_layer => self % layers(num_layers) % p)
-      type is(conv2d_layer)
-        !FIXME flatten the result for now; find a better solution
-        res(:,i) = pack(output_layer % output, .true.)
-      type is(dense_layer)
-        res(:,i) = output_layer % output
-      type is(flatten_layer)
-        res(:,i) = output_layer % output
-      class default
-        error stop 'network % output not implemented for this output layer'
-    end select
+      select type(output_layer => self % layers(num_layers) % p)
+        type is(conv2d_layer)
+          !FIXME flatten the result for now; find a better solution
+          res(:,i) = pack(output_layer % output, .true.)
+        type is(dense_layer)
+          res(:,i) = output_layer % output
+        type is(flatten_layer)
+          res(:,i) = output_layer % output
+        class default
+          error stop 'network % output not implemented for this output layer'
+      end select
 
     end do batch
 
-  end function output_batch_3d
+  end function predict_batch_3d
 
 
   module subroutine print_info(self)
