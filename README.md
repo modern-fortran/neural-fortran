@@ -234,18 +234,20 @@ ford ford.md
 from the neural-fortran top-level directory to generate the API documentation in doc/html.
 Point your browser to doc/html/index.html to read it.
 
-## Contributors
+## Acknowledgement
 
 Thanks to all open-source contributors to neural-fortran:
+[@awvwgk](https://github.com/awvwgk),
+[@ivan-pi](https://github.com/ivan-pi),
+[@jacobwilliams](https://github.com/jacobwilliams),
+[@jvdp1](https://github.com/jvdp1),
+[@milancurcic](https://github.com/milancurcic),
+[@pirpyn](https://github.com/pirpyn),
+[@rouson](https://github.com/rouson),
+and [@scivision](https://github.com/scivision).
 
-* [@awvwgk](https://github.com/awvwgk)
-* [@ivan-pi](https://github.com/ivan-pi)
-* [@jacobwilliams](https://github.com/jacobwilliams),
-* [@jvdp1](https://github.com/jvdp1)
-* [@milancurcic](https://github.com/milancurcic)
-* [@pirpyn](https://github.com/pirpyn)
-* [@rouson](https://github.com/rouson)
-* [@scivision](https://github.com/scivision)
+Development of convolutional networks in neural-fortran was funded by a
+contract from NASA Goddard Space Flight Center to the University of Miami. 
 
 ## Related projects
 
