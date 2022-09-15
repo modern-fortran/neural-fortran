@@ -11,8 +11,8 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   - [Building with CMake](https://github.com/modern-fortran/neural-fortran#building-with-cmake)
 * [Examples](https://github.com/modern-fortran/neural-fortran#examples)
 * [API documentation](https://github.com/modern-fortran/neural-fortran#api-documentation)
-* [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
 * [Acknowledgement](https://github.com/modern-fortran/neural-fortran#acknowledgement)
+* [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
 
 ## Features
 
