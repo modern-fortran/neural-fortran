@@ -7,7 +7,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d
+  public :: conv2d, dense, flatten, input, maxpool2d, reshape3d
 
   interface input
 
@@ -153,6 +153,17 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function maxpool2d
+
+    pure module function reshape3d(output_shape) result(res)
+      !! Rank-1 to rank-3 reshape layer constructor.
+      !!
+      !! This layer is for connecting rank-1 inputs to conv2d or similar
+      !! layers.
+      integer, intent(in), optional :: output_shape(:)
+        !! Shape of the output
+      type(layer) :: res
+        !! Resulting layer instance
+    end function reshape3d
 
   end interface
 
