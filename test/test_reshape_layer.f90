@@ -1,7 +1,7 @@
 program test_reshape_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: input, network, reshape3d
+  use nf, only: input, network, reshape
 
   implicit none
 
@@ -13,11 +13,11 @@ program test_reshape_layer
 
   net = network([ &
     input(input_size), &
-    reshape3d(output_shape) &
+    reshape(output_shape) &
   ])
 
-  if (.not. size(net % layers) == 3) then
-    write(stderr, '(a)') 'the network should have 3 layers.. failed'
+  if (.not. size(net % layers) == 2) then
+    write(stderr, '(a)') 'the network should have 2 layers.. failed'
     ok = .false.
   end if
 
