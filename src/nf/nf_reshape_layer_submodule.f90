@@ -17,14 +17,16 @@ contains
     class(reshape3d_layer), intent(in out) :: self
     real, intent(in) :: input(:)
     real, intent(in) :: gradient(:,:,:)
-    error stop 'Not implemented'
+    ! The `input` dummy argument is not used but nevertheless declared
+    ! because the abstract type requires it.
+    self % gradient = pack(gradient, .true.)
   end subroutine backward
 
 
   pure module subroutine forward(self, input)
     class(reshape3d_layer), intent(in out) :: self
     real, intent(in) :: input(:)
-    error stop 'Not implemented'
+    self % output = reshape(input, self % output_shape)
   end subroutine forward
 
 
@@ -33,6 +35,9 @@ contains
     integer, intent(in) :: input_shape(:)
 
     self % input_shape = input_shape
+
+    allocate(self % gradient(input_shape(1)))
+    self % gradient = 0
 
     allocate(self % output( &
       self % output_shape(1), &

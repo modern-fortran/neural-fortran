@@ -16,7 +16,9 @@ module nf_reshape_layer
     !! Concrete implementation of a reshape layer type
     !! It implements only rank-1 to rank-3 reshaping.
 
-    integer, allocatable :: input_shape(:), output_shape(:)
+    integer :: input_shape(1)
+    integer :: output_shape(3)
+    real, allocatable :: gradient(:)
     real, allocatable :: output(:,:,:)
 
   contains
@@ -40,9 +42,8 @@ module nf_reshape_layer
   interface
 
     pure module subroutine backward(self, input, gradient)
-      !! Apply the backward gradient descent pass.
-      !! Only weight and bias gradients are updated in this subroutine,
-      !! while the weights and biases themselves are untouched.
+      !! Apply the backward pass for the reshape3d layer.
+      !! This is just flattening to a rank-1 array.
       class(reshape3d_layer), intent(in out) :: self
         !! Dense layer instance
       real, intent(in) :: input(:)
@@ -52,9 +53,8 @@ module nf_reshape_layer
     end subroutine backward
 
     pure module subroutine forward(self, input)
-      !! Propagate forward the layer.
-      !! Calling this subroutine updates the values of a few data components
-      !! of `reshape_layer` that are needed for the backward pass.
+      !! Apply the forward pass for the reshape3d layer.
+      !! This is just a reshape from rank-1 to rank-3 array.
       class(reshape3d_layer), intent(in out) :: self
         !! Dense layer instance
       real, intent(in) :: input(:)
