@@ -16,7 +16,7 @@ module nf_reshape_layer
     !! Concrete implementation of a reshape layer type
     !! It implements only rank-1 to rank-3 reshaping.
 
-    integer, allocatable :: input_shape(:)
+    integer, allocatable :: input_shape(:), output_shape(:)
     real, allocatable :: output(:,:,:)
 
   contains
@@ -30,7 +30,7 @@ module nf_reshape_layer
   interface reshape3d_layer
     pure module function reshape3d_layer_cons(output_shape) result(res)
       !! This function returns the `reshape_layer` instance.
-      integer, intent(in) :: output_shape(:)
+      integer, intent(in) :: output_shape(3)
         !! The shape of the output
       type(reshape3d_layer) :: res
         !! reshape_layer instance
