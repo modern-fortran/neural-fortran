@@ -1,7 +1,7 @@
 program test_reshape_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: input, network, reshape
+  use nf, only: input, network, reshape_layer => reshape
 
   implicit none
 
@@ -11,13 +11,32 @@ program test_reshape_layer
   integer, parameter :: input_size = product(output_shape)
   logical :: ok = .true.
 
+  ! Create the network
   net = network([ &
     input(input_size), &
-    reshape(output_shape) &
+    reshape_layer(output_shape) &
   ])
 
   if (.not. size(net % layers) == 2) then
     write(stderr, '(a)') 'the network should have 2 layers.. failed'
+    ok = .false.
+  end if
+
+  ! Initialize test data
+  allocate(sample_input(input_size))
+  call random_number(sample_input)
+
+  ! Propagate forward and get the output
+  call net % forward(sample_input)
+  call net % layers(2) % get_output(output)
+
+  if (.not. all(shape(output) == output_shape)) then
+    write(stderr, '(a)') 'the reshape layer produces expected output shape.. failed'
+    ok = .false.
+  end if
+
+  if (.not. all(reshape(sample_input, output_shape) == output)) then
+    write(stderr, '(a)') 'the reshape layer produces expected output values.. failed'
     ok = .false.
   end if
 
