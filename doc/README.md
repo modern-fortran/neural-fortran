@@ -17,13 +17,14 @@ For a depiction of the derived type components (but without the richness of info
 ### User API
 This diagram depicts the functionality intended to be accessed directly by neural-fortran users:
 
-**To Do**
+#### To Do
+
 Document the following types and/or procedures from the `nf` module:
-- [] label_digits, load_mnist
-- [] layer
-- [] conv2d, dense, flatten, input, maxpool2d
-- [] network
-- [] sgd
+- [ ] label_digits, load_mnist
+- [ ] layer
+- [ ] conv2d, dense, flatten, input, maxpool2d
+- [ ] network
+- [ ] sgd
 
 HTML Pages
 ----------
