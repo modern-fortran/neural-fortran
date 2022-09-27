@@ -224,7 +224,7 @@ directly and unpack in the directory in which you will run the example program.
 
 ## API documentation
 
-API documentation can be generated with [FORD](https://github.com/Fortran-FOSS-Programmers/ford/).
+See the neural-fortran GitHub Pages [site](https://modern-fortran.github.io/neural-fortran/) for the API documentation or generate the documentation locally with [FORD](https://github.com/Fortran-FOSS-Programmers/ford/).
 Assuming you have FORD installed on your system, run
 
 ```
