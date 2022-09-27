@@ -4,4 +4,4 @@
 *.dat
 *.h5
 build
-doc
+doc/html
