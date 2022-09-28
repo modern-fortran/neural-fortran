@@ -6,10 +6,11 @@ submodule(nf_network) nf_network_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_reshape_layer, only: reshape3d_layer
   use nf_io_hdf5, only: get_hdf5_dataset
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d
+  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
   use nf_loss, only: quadratic_derivative
   use nf_optimizers, only: sgd
   use nf_parallel, only: tile_indices
@@ -117,6 +118,9 @@ contains
             keras_layers(n) % strides(1) &
           )
 
+        case('Reshape')
+          layers(n) = reshape(keras_layers(n) % target_shape)
+
         case default
           error stop 'This Keras layer is not supported'
 
@@ -162,6 +166,10 @@ contains
           continue
 
         type is(maxpool2d_layer)
+          ! Nothing to do
+          continue
+
+        type is(reshape3d_layer)
           ! Nothing to do
           continue
 

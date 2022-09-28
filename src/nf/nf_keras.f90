@@ -29,6 +29,9 @@ module nf_keras
     integer, allocatable :: pool_size(:)
     integer, allocatable :: strides(:)
 
+    ! Reshape
+    integer, allocatable :: target_shape(:)
+
   end type keras_layer
 
   interface

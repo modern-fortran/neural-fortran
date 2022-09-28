@@ -82,6 +82,13 @@ contains
           res(n) % pool_size = reverse(res(n) % pool_size)
           res(n) % strides = reverse(res(n) % strides)
 
+        case('Reshape')
+          ! Only read target shape
+          call json % get(layer_config_json, &
+            'target_shape',  res(n) % target_shape, found)
+          ! Reverse to account for C -> Fortran order
+          res(n) % target_shape = reverse(res(n) % target_shape)
+
         case default
           error stop 'This Keras layer is not supported'
 

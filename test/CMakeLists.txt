@@ -5,6 +5,7 @@ foreach(execid
   conv2d_layer
   maxpool2d_layer
   flatten_layer
+  reshape_layer
   dense_network
   io_hdf5
   keras_read_model

@@ -6,16 +6,18 @@ submodule(nf_layer) nf_layer_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_reshape_layer, only: reshape3d_layer
 
 contains
 
-  pure module subroutine backward(self, previous, gradient)
+  pure module subroutine backward_1d(self, previous, gradient)
     implicit none
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: previous
     real, intent(in) :: gradient(:)
 
-    ! Backward pass currently implemented only for dense and flatten layers
+    ! Backward pass from a 1-d layer downstream currently implemented
+    ! only for dense and flatten layers
     select type(this_layer => self % p)
 
       type is(dense_layer)
@@ -32,7 +34,7 @@ contains
 
       type is(flatten_layer)
 
-        ! Downstream layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d
         select type(prev_layer => previous % p)
           type is(input3d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -44,7 +46,34 @@ contains
 
     end select
 
-  end subroutine backward
+  end subroutine backward_1d
+
+
+  pure module subroutine backward_3d(self, previous, gradient)
+    implicit none
+    class(layer), intent(in out) :: self
+    class(layer), intent(in) :: previous
+    real, intent(in) :: gradient(:,:,:)
+
+    ! Backward pass from a 3-d layer downstream currently implemented
+    ! only for reshape3d layer
+    select type(this_layer => self % p)
+
+      type is(reshape3d_layer)
+
+        ! Upstream layers permitted: input1d, dense, flatten
+        select type(prev_layer => previous % p)
+          type is(input1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(dense_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(flatten_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+    end select
+
+  end subroutine backward_3d
 
 
   pure module subroutine forward(self, input)
@@ -68,37 +97,55 @@ contains
 
       type is(conv2d_layer)
 
-        ! Upstream layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d, reshape3d
         select type(prev_layer => input % p)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
           type is(conv2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(maxpool2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape3d_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
       type is(maxpool2d_layer)
 
-        ! Upstream layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d, reshape3d
         select type(prev_layer => input % p)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
           type is(conv2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(maxpool2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape3d_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input3d, conv2d, maxpool2d, reshape3d
         select type(prev_layer => input % p)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
           type is(conv2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(maxpool2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape3d_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(reshape3d_layer)
+
+        ! Upstream layers permitted: input1d, dense, flatten
+        select type(prev_layer => input % p)
+          type is(input1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(dense_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(flatten_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
@@ -141,8 +188,10 @@ contains
         allocate(output, source=this_layer % output)
       type is(maxpool2d_layer)
         allocate(output, source=this_layer % output)
+      type is(reshape3d_layer)
+        allocate(output, source=this_layer % output)
       class default
-        error stop '3-d output can only be read from an input3d, conv2d, or maxpool2d layer.'
+        error stop '3-d output can only be read from a conv2d, input3d, maxpool2d, or reshape3d layer.'
 
     end select
 

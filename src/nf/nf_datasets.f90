@@ -12,6 +12,7 @@ module nf_datasets
     download_and_unpack, &
     keras_cnn_mnist_url, &
     keras_dense_mnist_url, &
+    keras_reshape_url, &
     mnist_url
 
   character(*), parameter :: keras_snippets_baseurl = &
@@ -22,6 +23,8 @@ module nf_datasets
     keras_snippets_baseurl // '/8892585/keras_cnn_mnist.tar.gz'
   character(*), parameter :: keras_dense_mnist_url = &
     keras_snippets_baseurl // '/8788739/keras_dense_mnist.tar.gz'
+  character(*), parameter :: keras_reshape_url = &
+    keras_snippets_baseurl // '/9667603/keras_reshape.tar.gz'
   character(*), parameter :: mnist_url = &
     neural_fortran_baseurl // '/8498876/mnist.tar.gz'
 
