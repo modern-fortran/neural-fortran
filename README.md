@@ -2,7 +2,7 @@
 
 [![GitHub issues](https://img.shields.io/github/issues/modern-fortran/neural-fortran.svg)](https://github.com/modern-fortran/neural-fortran/issues)
 
-A parallel neural net microframework. 
+A parallel framework for deep learning.
 Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 * [Features](https://github.com/modern-fortran/neural-fortran#features)
@@ -11,25 +11,29 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   - [Building with CMake](https://github.com/modern-fortran/neural-fortran#building-with-cmake)
 * [Examples](https://github.com/modern-fortran/neural-fortran#examples)
 * [API documentation](https://github.com/modern-fortran/neural-fortran#api-documentation)
-* [Contributors](https://github.com/modern-fortran/neural-fortran#contributors)
+* [Acknowledgement](https://github.com/modern-fortran/neural-fortran#acknowledgement)
 * [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
 
 ## Features
 
 * Dense, fully connected neural layers
 * Convolutional and max-pooling layers (experimental, forward propagation only)
+* Flatten and reshape layers (forward and backward passes)
+* Loading dense and convolutional models from Keras h5 files
 * Stochastic and mini-batch gradient descent for back-propagation
 * Data-based parallelism
-* Several activation functions
+* Several activation functions and their derivatives
 
 ### Available layer types
 
 | Layer type | Constructor name | Supported input layers | Rank of output array | Forward pass | Backward pass |
 |------------|------------------|------------------------|----------------------|--------------|---------------|
 | Input (1-d and 3-d) | `input` | n/a | 1, 3 | n/a | n/a |
-| Dense (fully-connected) | `dense` | `input` (1-d) | 1 | ✅ | ✅ |
-| Convolutional (2-d) | `conv2d` | `input` (3-d), `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
-| Max-pooling (2-d) | `maxpool2d` | `input` (3-d), `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
+| Dense (fully-connected) | `dense` | `input1d` | 1 | ✅ | ✅ |
+| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
+| Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
+| Flatten | `flatten` | `input3d`, `conv2d`, `maxpool2d` | 1 | ✅ | ✅ |
+| Reshape (1-d to 3-d) | `reshape` | `input1d`, `dense`, `flatten` | 3 | ✅ | ✅ |
 
 ## Getting started
 
@@ -40,11 +44,25 @@ git clone https://github.com/modern-fortran/neural-fortran
 cd neural-fortran
 ```
 
-Dependencies:
+### Dependencies
 
-* Fortran 2018-compatible compiler
-* OpenCoarrays (optional, for parallel execution, GFortran only)
-* BLAS, MKL (optional)
+Required dependencies are:
+
+* A Fortran compiler
+* [HDF5](https://www.hdfgroup.org/downloads/hdf5/)
+  (must be provided by the OS package manager or your own build from source)
+* [functional-fortran](https://github.com/wavebitscientific/functional-fortran),
+  [h5fortran](https://github.com/geospace-code/h5fortran),
+  [json-fortran](https://github.com/jacobwilliams/json-fortran)
+  (all handled by neural-fortran's build systems, no need for a manual install)
+* [fpm](https://github.com/fortran-lang/fpm) or
+  [CMake](https://cmake.org) for building the code
+
+Optional dependencies are:
+
+* OpenCoarrays (for parallel execution with GFortran)
+* BLAS, MKL, or similar (for offloading `matmul` and `dot_product` calls)
+* curl (for downloading testing and example datasets)
 
 Compilers tested include:
 
@@ -56,24 +74,18 @@ Compilers tested include:
 
 #### Building in serial mode
 
-```
-fpm build
-```
-
-By default, without specifying the build profile, fpm will build neural-fortran
-using the debug compiler flags, and without optimization.
-To build optimized code, build with the release profile:
+With gfortran, the following will create an optimized build of neural-fortran:
 
 ```
-fpm build --profile release
+fpm build \
+  --profile release \
+  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
 ```
 
-If you're using GFortran, make sure to also pass an additional flag:
-
-```
-fpm build --profile release --flag "-fno-frontend-optimize"
-```
-
+HDF5 is now a required dependency, so you have to provide it to fpm.
+The above command assumes that the `HDF5INC` and `HDF5LIB` environment
+variables are set to the include and library paths, respectively, of your
+HDF5 install.
 The `-fno-frontend-optimize` disables some optimizations that may be harmful
 when building neural-fortran.
 
@@ -85,13 +97,18 @@ Once installed, use the compiler wrappers `caf` and `cafrun` to build and execut
 in parallel, respectively:
 
 ```
-fpm build --compiler caf --profile release --flag "-fno-frontend-optimize"
+fpm build \
+  --compiler caf \
+  --profile release \
+  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
 ```
 
 #### Testing with fpm
 
 ```
-fpm test
+fpm test \
+  --profile release \
+  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
 ```
 
 For the time being, you need to specify the same compiler flags to `fpm test`
@@ -130,11 +147,20 @@ cafrun -n 4 bin/mnist # run MNIST example on 4 cores
 #### Building with a different compiler
 
 If you want to build with a different compiler, such as Intel Fortran,
-specify `FC` when issuing `cmake`:
+set the `HDF5_ROOT` environment variable to the root path of your
+Intel HDF5 build, and specify `FC` when issuing `cmake`:
 
 ```
 FC=ifort cmake ..
 ```
+
+for a parallel build of neural-fortran, or
+
+```
+FC=ifort cmake .. -DSERIAL=1
+```
+
+for a serial build.
 
 #### Building with BLAS or MKL
 
@@ -172,11 +198,22 @@ to run the tests.
 The easiest way to get a sense of how to use neural-fortran is to look at
 examples, in increasing level of complexity:
 
-1. [simple](example/simple.f90): Approximating a simple, constant data relationship
+1. [simple](example/simple.f90): Approximating a simple, constant data
+  relationship
 2. [sine](example/sine.f90): Approximating a sine function
-3. [mnist](example/mnist.f90): Hand-written digit recognition using the MNIST dataset
+3. [mnist](example/mnist.f90): Hand-written digit recognition using the MNIST
+  dataset
+4. [cnn](example/cnn.f90): Creating and running forward a simple CNN using
+  `input`, `conv2d`, `maxpool2d`, `flatten`, and `dense` layers.
+5. [dense_from_keras](example/dense_from_keras.f90): Creating a pre-trained
+  dense model from a Keras HDF5 file and running the inference.
+6. [cnn_from_keras](example/cnn_from_keras.f90): Creating a pre-trained
+  convolutional model from a Keras HDF5 file and running the inference.
 
-The MNIST example uses [curl](https://curl.se/) to download the dataset,
+The examples also show you the extent of the public API that's meant to be
+used in applications, i.e. anything from the `nf` module.
+
+Examples 3-6 rely on [curl](https://curl.se/) to download the needed datasets,
 so make sure you have it installed on your system.
 Most Linux OSs have it out of the box.
 The dataset will be downloaded only the first time you run the example in any
@@ -198,17 +235,20 @@ ford ford.md
 from the neural-fortran top-level directory to generate the API documentation in doc/html.
 Point your browser to doc/html/index.html to read it.
 
-## Contributors
+## Acknowledgement
 
 Thanks to all open-source contributors to neural-fortran:
+[@awvwgk](https://github.com/awvwgk),
+[@ivan-pi](https://github.com/ivan-pi),
+[@jacobwilliams](https://github.com/jacobwilliams),
+[@jvdp1](https://github.com/jvdp1),
+[@milancurcic](https://github.com/milancurcic),
+[@pirpyn](https://github.com/pirpyn),
+[@rouson](https://github.com/rouson),
+and [@scivision](https://github.com/scivision).
 
-* [@awvwgk](https://github.com/awvwgk)
-* [@ivan-pi](https://github.com/ivan-pi)
-* [@jvdp1](https://github.com/jvdp1)
-* [@milancurcic](https://github.com/milancurcic)
-* [@pirpyn](https://github.com/pirpyn)
-* [@rouson](https://github.com/rouson)
-* [@scivision](https://github.com/scivision)
+Development of convolutional networks in neural-fortran was funded by a
+contract from NASA Goddard Space Flight Center to the University of Miami. 
 
 ## Related projects
 

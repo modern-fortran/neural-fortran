@@ -7,7 +7,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, input, maxpool2d
+  public :: conv2d, dense, flatten, input, maxpool2d, reshape
 
   interface input
 
@@ -84,6 +84,27 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function dense
 
+    pure module function flatten() result(res)
+      !! Flatten (3-d -> 1-d) layer constructor.
+      !!
+      !! Use this layer to chain layers with 3-d outputs to layers with 1-d
+      !! inputs. For example, to chain a `conv2d` or a `maxpool2d` layer
+      !! with a `dense` layer for a CNN for classification, place a `flatten`
+      !! layer between them.
+      !!
+      !! A flatten layer must not be the first layer in the network.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: flatten, layer
+      !! type(layer) :: flatten_layer
+      !! flatten_layer = flatten()
+      !! ```
+      type(layer) :: res
+        !! Resulting layer instance
+    end function flatten
+
     pure module function conv2d(filters, kernel_size, activation) result(res)
       !! 2-d convolutional layer constructor.
       !!
@@ -132,6 +153,17 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function maxpool2d
+
+    pure module function reshape(output_shape) result(res)
+      !! Rank-1 to rank-any reshape layer constructor.
+      !! Currently implemented is only rank-3 for the output of the reshape.
+      !!
+      !! This layer is for connecting 1-d inputs to conv2d or similar layers.
+      integer, intent(in) :: output_shape(:)
+        !! Shape of the output
+      type(layer) :: res
+        !! Resulting layer instance
+    end function reshape
 
   end interface
 

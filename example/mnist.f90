@@ -1,7 +1,6 @@
 program mnist
-  use nf, only: dense, input, network
-  use nf_datasets_mnist, only: label_digits, load_mnist
-  use nf_optimizers, only: sgd
+
+  use nf, only: dense, input, network, sgd, label_digits, load_mnist
 
   implicit none
 
@@ -53,7 +52,7 @@ contains
     integer :: i, good
     good = 0
     do i = 1, size(x, dim=2)
-      if (all(maxloc(net % output(x(:,i))) == maxloc(y(:,i)))) then
+      if (all(maxloc(net % predict(x(:,i))) == maxloc(y(:,i)))) then
         good = good + 1
       end if
     end do

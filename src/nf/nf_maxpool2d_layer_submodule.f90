@@ -43,15 +43,19 @@ contains
     integer :: i, j, n
     integer :: ii, jj
     integer :: iend, jend
+    integer :: iextent, jextent
     integer :: maxloc_xy(2)
 
     input_width = size(input, dim=2)
-    input_height = size(input, dim=2)
+    input_height = size(input, dim=3)
+
+    iextent = input_width - mod(input_width, self % stride)
+    jextent = input_height - mod(input_height, self % stride)
 
     ! Stride along the width and height of the input image
     stride_over_input: do concurrent( &
-      i = 1:input_width:self % stride, &
-      j = 1:input_height:self % stride &
+      i = 1:iextent:self % stride, &
+      j = 1:jextent:self % stride &
     )
 
       ! Indices of the pooling layer

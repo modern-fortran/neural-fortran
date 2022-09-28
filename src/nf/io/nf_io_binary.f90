@@ -1,4 +1,4 @@
-module nf_io
+module nf_io_binary
 
   !! This module provides subroutines to read binary files using direct access.
 
@@ -39,4 +39,4 @@ module nf_io
 
   end interface read_binary_file
 
-end module nf_io
+end module nf_io_binary

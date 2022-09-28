@@ -24,24 +24,25 @@ module nf_layer
 
   contains
 
-    procedure :: backward
     procedure :: forward
     procedure :: init
     procedure :: print_info
     procedure :: update
 
-    ! Specific output subroutines for different array ranks,
-    ! available via generic `get_output`.
+    ! Specific subroutines for different array ranks
+    procedure, private :: backward_1d
+    procedure, private :: backward_3d
     procedure, private :: get_output_1d
     procedure, private :: get_output_3d
 
+    generic :: backward => backward_1d, backward_3d
     generic :: get_output => get_output_1d, get_output_3d
 
   end type layer
 
-  interface
+  interface backward
 
-    pure module subroutine backward(self, previous, gradient)
+    pure module subroutine backward_1d(self, previous, gradient)
       !! Apply a backward pass on the layer.
       !! This changes the internal state of the layer.
       !! This is normally called internally by the `network % backward`
@@ -52,7 +53,24 @@ module nf_layer
         !! Previous layer instance
       real, intent(in) :: gradient(:)
         !! Array of gradient values from the next layer
-    end subroutine backward
+    end subroutine backward_1d
+
+    pure module subroutine backward_3d(self, previous, gradient)
+      !! Apply a backward pass on the layer.
+      !! This changes the internal state of the layer.
+      !! This is normally called internally by the `network % backward`
+      !! method.
+      class(layer), intent(in out) :: self
+        !! Layer instance
+      class(layer), intent(in) :: previous
+        !! Previous layer instance
+      real, intent(in) :: gradient(:,:,:)
+        !! Array of gradient values from the next layer
+    end subroutine backward_3d
+
+  end interface backward
+
+  interface
 
     pure module subroutine forward(self, input)
       !! Apply a forward pass on the layer.

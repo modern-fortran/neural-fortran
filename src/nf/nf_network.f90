@@ -17,27 +17,42 @@ module nf_network
   contains
 
     procedure :: backward
-    procedure :: output
     procedure :: print_info
     procedure :: train
     procedure :: update
 
     procedure, private :: forward_1d
     procedure, private :: forward_3d
+    procedure, private :: predict_1d
+    procedure, private :: predict_3d
+    procedure, private :: predict_batch_1d
+    procedure, private :: predict_batch_3d
 
     generic :: forward => forward_1d, forward_3d
+    generic :: predict => predict_1d, predict_3d, predict_batch_1d, predict_batch_3d
 
   end type network
 
   interface network
-    module function network_cons(layers) result(res)
-      !! Create a new `network` instance.
+
+    module function network_from_layers(layers) result(res)
+      !! Create a new `network` instance from an array of `layer` instances.
       type(layer), intent(in) :: layers(:)
-        !! Input array of layer instances;
+        !! Input array of `layer` instances;
         !! the first element must be an input layer.
       type(network) :: res
         !! An instance of the `network` type
-    end function network_cons
+    end function network_from_layers
+
+    module function network_from_keras(filename) result(res)
+      !! Create a new `network` instance
+      !! from a Keras model saved in an h5 file.
+      character(*), intent(in) :: filename
+        !! Path to the Keras model h5 file
+      type(network) :: res
+        !! An instance of the `network` type
+    end function network_from_keras
+
   end interface network
 
   interface forward
@@ -72,6 +87,50 @@ module nf_network
 
   end interface forward
 
+  interface output
+
+    module function predict_1d(self, input) result(res)
+      !! Return the output of the network given the input 1-d array.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:)
+        !! Input data
+      real, allocatable :: res(:)
+        !! Output of the network
+    end function predict_1d
+
+    module function predict_3d(self, input) result(res)
+      !! Return the output of the network given the input 3-d array.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:,:)
+        !! Input data
+      real, allocatable :: res(:)
+        !! Output of the network
+    end function predict_3d
+
+    module function predict_batch_1d(self, input) result(res)
+      !! Return the output of the network given an input batch of 3-d data.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:)
+        !! Input data; the last dimension is the batch
+      real, allocatable :: res(:,:)
+        !! Output of the network; the last dimension is the batch
+    end function predict_batch_1d
+
+    module function predict_batch_3d(self, input) result(res)
+      !! Return the output of the network given an input batch of 3-d data.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:,:,:)
+        !! Input data; the last dimension is the batch
+      real, allocatable :: res(:,:)
+        !! Output of the network; the last dimension is the batch
+    end function predict_batch_3d
+
+  end interface output
+
   interface
 
     pure module subroutine backward(self, output)
@@ -84,16 +143,6 @@ module nf_network
       real, intent(in) :: output(:)
         !! Output data
     end subroutine backward
-
-    module function output(self, input) result(res)
-      !! Return the output of the network given the input array.
-      class(network), intent(in out) :: self
-        !! Network instance
-      real, intent(in) :: input(:)
-        !! Input data
-      real, allocatable :: res(:)
-        !! Output of the network
-    end function output
 
     module subroutine print_info(self)
       !! Prints a brief summary of the network and its layers to the screen.
