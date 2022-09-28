@@ -7,6 +7,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_reshape_layer, only: reshape3d_layer
 
   implicit none
 
@@ -108,5 +109,19 @@ contains
     )
 
   end function maxpool2d
+
+  pure module function reshape(output_shape) result(res)
+    integer, intent(in) :: output_shape(:)
+    type(layer) :: res
+
+    res % name = 'reshape'
+
+    if (size(output_shape) == 3) then
+      allocate(res % p, source=reshape3d_layer(output_shape))
+    else
+      error stop 'size(output_shape) of the reshape layer must == 3'
+    end if
+
+  end function reshape
 
 end submodule nf_layer_constructors_submodule

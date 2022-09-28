@@ -1,6 +1,7 @@
 *.gz
 *.o
 *.mod
+*.smod
 *.dat
 *.h5
 build
