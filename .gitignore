@@ -1,7 +1,8 @@
 *.gz
 *.o
 *.mod
+*.smod
 *.dat
 *.h5
-build
-doc
+/build
+/doc
