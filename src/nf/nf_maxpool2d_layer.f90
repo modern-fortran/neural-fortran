@@ -21,6 +21,7 @@ module nf_maxpool2d_layer
     integer, allocatable :: maxloc_x(:,:,:)
     integer, allocatable :: maxloc_y(:,:,:)
 
+    real, allocatable :: gradient(:,:,:)
     real, allocatable :: output(:,:,:)
 
   contains
