@@ -19,6 +19,10 @@ module nf_conv2d_layer
     real, allocatable :: biases(:) ! size(filters)
     real, allocatable :: kernel(:,:,:,:) ! filters x channels x window x window
     real, allocatable :: output(:,:,:) ! filters x output_width * output_height
+    real, allocatable :: z(:,:,:) ! kernel .dot. input + bias
+
+    real, allocatable :: dw(:,:,:,:) ! weight (kernel) gradients
+    real, allocatable :: db(:) ! bias gradients
 
   contains
 

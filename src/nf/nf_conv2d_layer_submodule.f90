@@ -43,6 +43,15 @@ contains
     allocate(self % biases(self % filters))
     self % biases = 0
 
+    allocate(self % z, mold=self % output)
+    self % z = 0
+
+    allocate(self % dw, mold=self % kernel)
+    self % dw = 0
+
+    allocate(self % db, mold=self % biases)
+    self % db = 0
+
   end subroutine init
 
 
@@ -81,19 +90,16 @@ contains
       jws = j - half_window ! TODO kernel_height
       jwe = j + half_window ! TODO kernel_height
 
-      ! This computes the inner tensor product, sum(w_ij * x_ij), for each
-      ! filter, and we add bias b_n to it.
-      inner_product: do concurrent(n = 1:self % filters)
-        self % output(n,iws,jws) = &
-          sum(self % kernel(n,:,:,:) * input(:,iws:iwe,jws:jwe)) &
-          + self % biases(n)
-      end do inner_product
+      ! Compute the inner tensor product, sum(w_ij * x_ij), for each filter.
+      do concurrent(n = 1:self % filters)
+        self % z(n,iws,jws) = sum(self % kernel(n,:,:,:) * input(:,iws:iwe,jws:jwe))
+      end do
 
-      ! TODO We may need to store self % output before we activate it for the
-      ! TODO backward pass, just like we do for the dense layer.
+      ! Add bias to the inner product.
+      self % z(:,iws,jws) = self % z(:,iws,jws) + self % biases
 
       ! Activate
-      self % output(:,iws,jws) = self % activation(self % output(:,iws,jws))
+      self % output(:,iws,jws) = self % activation(self % z(:,iws,jws))
 
     end do convolution
 
@@ -105,7 +111,52 @@ contains
     class(conv2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     real, intent(in) :: gradient(:,:,:)
-    print *, 'Warning: conv2d backward pass not implemented'
+    real :: db(self % filters)
+    real :: dw(self % filters, self % channels, self % kernel_size, self % kernel_size)
+    integer :: i, j, k, n
+    integer :: input_channels, input_width, input_height
+    integer :: istart, iend
+    integer :: jstart, jend
+    integer :: iws, iwe, jws, jwe
+    integer :: half_window
+
+    ! Input dimensions are channels x width x height
+    input_channels = size(input, dim=1)
+    input_width = size(input, dim=2)
+    input_height = size(input, dim=3)
+
+    ! Half-window is 1 for window size 3; 2 for window size 5; etc.
+    half_window = self % kernel_size / 2
+
+    ! Determine the start and end indices for the width and height dimensions
+    ! of the input that correspond to the center of each window.
+    istart = half_window + 1 ! TODO kernel_width
+    jstart = half_window + 1 ! TODO kernel_height
+    iend = input_width - istart + 1
+    jend = input_height - jstart + 1
+
+    do concurrent (n = 1:self % filters)
+      db(n) = sum(gradient(n,:,:) * self % activation_prime(self % z(n,:,:)))
+    end do
+
+    dw = 0
+    convolution: do concurrent(i = istart:iend, j = jstart:jend)
+      do k = 1, self % channels
+        do n = 1, self % filters
+          ! Start and end indices of the input data on the filter window
+          ! iws and jws are also coincidentally the indices of the output matrix
+          iws = i - half_window ! TODO kernel_width
+          iwe = i + half_window ! TODO kernel_width
+          jws = j - half_window ! TODO kernel_height
+          jwe = j + half_window ! TODO kernel_height
+          dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * self % activation_prime(self % z(n,iws,iwe))
+        end do
+      end do
+    end do convolution
+
+    self % dw = self % dw + dw
+    self % db = self % db + db
+
   end subroutine backward
 
 end submodule nf_conv2d_layer_submodule
