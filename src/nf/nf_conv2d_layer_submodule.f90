@@ -149,7 +149,10 @@ contains
           iwe = i + half_window ! TODO kernel_width
           jws = j - half_window ! TODO kernel_height
           jwe = j + half_window ! TODO kernel_height
-          dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * self % activation_prime(self % z(n,iws,iwe))
+          dw(n,k,:,:) = dw(n,k,:,:) &
+            + input(k,iws:iwe,jws:jwe) &
+            * gradient(n,iws,jws) &
+            * self % activation_prime(self % z(n,iws,jws))
         end do
       end do
     end do convolution
