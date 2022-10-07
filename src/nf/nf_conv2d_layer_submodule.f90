@@ -1,5 +1,15 @@
 submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
+  use nf_activation_3d, only: activation_function, &
+                              elu, elu_prime, &
+                              exponential, &
+                              gaussian, gaussian_prime, &
+                              relu, relu_prime, &
+                              sigmoid, sigmoid_prime, &
+                              softmax, softmax_prime, &
+                              softplus, softplus_prime, &
+                              step, step_prime, &
+                              tanhf, tanh_prime
   use nf_random, only: randn
 
   implicit none
@@ -98,10 +108,10 @@ contains
       ! Add bias to the inner product.
       self % z(:,iws,jws) = self % z(:,iws,jws) + self % biases
 
-      ! Activate
-      self % output(:,iws,jws) = self % activation(self % z(:,iws,jws))
-
     end do convolution
+
+    ! Activate
+    self % output = self % activation(self % z)
 
   end subroutine forward
 
@@ -135,31 +145,94 @@ contains
     iend = input_width - istart + 1
     jend = input_height - jstart + 1
 
-    do concurrent (n = 1:self % filters)
-      db(n) = sum(gradient(n,:,:) * self % activation_prime(self % z(n,:,:)))
-    end do
+    !do concurrent (n = 1:self % filters)
+    !  db(n) = sum(gradient(n,:,:) * self % activation_prime(self % z(n,:,:)))
+    !end do
 
+    db = 0
     dw = 0
-    convolution: do concurrent(i = istart:iend, j = jstart:jend)
-      do k = 1, self % channels
-        do n = 1, self % filters
-          ! Start and end indices of the input data on the filter window
-          ! iws and jws are also coincidentally the indices of the output matrix
-          iws = i - half_window ! TODO kernel_width
-          iwe = i + half_window ! TODO kernel_width
-          jws = j - half_window ! TODO kernel_height
-          jwe = j + half_window ! TODO kernel_height
-          dw(n,k,:,:) = dw(n,k,:,:) &
-            + input(k,iws:iwe,jws:jwe) &
-            * gradient(n,iws,jws) &
-            * self % activation_prime(self % z(n,iws,jws))
-        end do
-      end do
-    end do convolution
+    !convolution: do concurrent(i = istart:iend, j = jstart:jend)
+    !  do k = 1, self % channels
+    !    do n = 1, self % filters
+    !      ! Start and end indices of the input data on the filter window
+    !      ! iws and jws are also coincidentally the indices of the output matrix
+    !      iws = i - half_window ! TODO kernel_width
+    !      iwe = i + half_window ! TODO kernel_width
+    !      jws = j - half_window ! TODO kernel_height
+    !      jwe = j + half_window ! TODO kernel_height
+    !      dw(n,k,:,:) = dw(n,k,:,:) &
+    !        + input(k,iws:iwe,jws:jwe) &
+    !        * gradient(n,iws,jws) &
+    !        * self % activation_prime(self % z(n,iws,jws))
+    !    end do
+    !  end do
+    !end do convolution
 
     self % dw = self % dw + dw
     self % db = self % db + db
 
   end subroutine backward
+
+  elemental module subroutine set_activation(self, activation)
+    class(conv2d_layer), intent(in out) :: self
+    character(*), intent(in) :: activation
+
+    select case(trim(activation))
+
+      ! TODO need to figure out how to handle the alpha param
+      !case('elu')
+      !  self % activation => elu
+      !  self % activation_prime => elu_prime
+      !  self % activation_name = 'elu'
+
+      case('exponential')
+        self % activation => exponential
+        self % activation_prime => exponential
+        self % activation_name = 'exponential'
+
+      case('gaussian')
+        self % activation => gaussian
+        self % activation_prime => gaussian_prime
+        self % activation_name = 'gaussian'
+
+      case('relu')
+        self % activation => relu
+        self % activation_prime => relu_prime
+        self % activation_name = 'relu'
+
+      case('sigmoid')
+        self % activation => sigmoid
+        self % activation_prime => sigmoid_prime
+        self % activation_name = 'sigmoid'
+
+      case('softmax')
+        self % activation => softmax
+        self % activation_prime => softmax_prime
+        self % activation_name = 'softmax'
+
+      case('softplus')
+        self % activation => softplus
+        self % activation_prime => softplus_prime
+        self % activation_name = 'softplus'
+
+      case('step')
+        self % activation => step
+        self % activation_prime => step_prime
+        self % activation_name = 'step'
+
+      case('tanh')
+        self % activation => tanhf
+        self % activation_prime => tanh_prime
+        self % activation_name = 'tanh'
+
+      case default
+        error stop 'Activation must be one of: ' // &
+          '"elu", "exponential", "gaussian", "relu", ' // &
+          '"sigmoid", "softmax", "softplus", "step", ' // &
+          'or "tanh".'
+
+    end select
+
+  end subroutine set_activation
 
 end submodule nf_conv2d_layer_submodule

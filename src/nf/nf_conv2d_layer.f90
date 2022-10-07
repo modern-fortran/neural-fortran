@@ -2,6 +2,7 @@ module nf_conv2d_layer
 
   !! This modules provides a 2-d convolutional `conv2d_layer` type.
 
+  use nf_activation_3d, only: activation_function
   use nf_base_layer, only: base_layer
   implicit none
 
@@ -24,11 +25,17 @@ module nf_conv2d_layer
     real, allocatable :: dw(:,:,:,:) ! weight (kernel) gradients
     real, allocatable :: db(:) ! bias gradients
 
+    procedure(activation_function), pointer, nopass :: &
+      activation => null()
+    procedure(activation_function), pointer, nopass :: &
+      activation_prime => null()
+
   contains
 
     procedure :: init
     procedure :: forward
     procedure :: backward
+    procedure :: set_activation
 
   end type conv2d_layer
 
@@ -72,6 +79,14 @@ module nf_conv2d_layer
       real, intent(in) :: gradient(:,:,:)
         !! Gradient (next layer)
     end subroutine backward
+
+    elemental module subroutine set_activation(self, activation)
+    !! Set the activation functions.
+    class(conv2d_layer), intent(in out) :: self
+      !! Layer instance
+    character(*), intent(in) :: activation
+      !! String with the activation function name
+    end subroutine set_activation
 
   end interface
 
