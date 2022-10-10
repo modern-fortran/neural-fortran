@@ -24,6 +24,7 @@ module nf_conv2d_layer
 
     real, allocatable :: dw(:,:,:,:) ! weight (kernel) gradients
     real, allocatable :: db(:) ! bias gradients
+    real, allocatable :: gradient(:,:,:)
 
     procedure(activation_function), pointer, nopass :: &
       activation => null()

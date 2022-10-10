@@ -56,6 +56,9 @@ contains
     allocate(self % z, mold=self % output)
     self % z = 0
 
+    allocate(self % gradient(input_shape(1), input_shape(2), input_shape(3)))
+    self % gradient = 0
+
     allocate(self % dw, mold=self % kernel)
     self % dw = 0
 
@@ -123,6 +126,7 @@ contains
     real, intent(in) :: gradient(:,:,:)
     real :: db(self % filters)
     real :: dw(self % filters, self % channels, self % kernel_size, self % kernel_size)
+    real :: gdz(self % filters, size(input, 2), size(input, 3))
     integer :: i, j, k, n
     integer :: input_channels, input_width, input_height
     integer :: istart, iend
@@ -130,7 +134,8 @@ contains
     integer :: iws, iwe, jws, jwe
     integer :: half_window
 
-    ! Input dimensions are channels x width x height
+    ! Input dimensions are channels x width x height.
+    ! Input frame goes from 1 to input_width and from 1 to input_height.
     input_channels = size(input, dim=1)
     input_width = size(input, dim=2)
     input_height = size(input, dim=3)
@@ -145,28 +150,37 @@ contains
     iend = input_width - istart + 1
     jend = input_height - jstart + 1
 
-    !do concurrent (n = 1:self % filters)
-    !  db(n) = sum(gradient(n,:,:) * self % activation_prime(self % z(n,:,:)))
-    !end do
+    ! z = w .dot. x + b (.dot. here is the Frobenius inner product)
+    ! gdz = dL/dy * sigma'(z)
+    gdz = 0
+    gdz(:,istart:iend,jstart:jend) = gradient * self % activation_prime(self % z)
 
-    db = 0
+    ! dL/db = sum(dL/dy * sigma'(z))
+    do concurrent (n = 1:self % filters)
+      db(n) = sum(gdz(n,:,:))
+    end do
+
     dw = 0
-    !convolution: do concurrent(i = istart:iend, j = jstart:jend)
-    !  do k = 1, self % channels
-    !    do n = 1, self % filters
-    !      ! Start and end indices of the input data on the filter window
-    !      ! iws and jws are also coincidentally the indices of the output matrix
-    !      iws = i - half_window ! TODO kernel_width
-    !      iwe = i + half_window ! TODO kernel_width
-    !      jws = j - half_window ! TODO kernel_height
-    !      jwe = j + half_window ! TODO kernel_height
-    !      dw(n,k,:,:) = dw(n,k,:,:) &
-    !        + input(k,iws:iwe,jws:jwe) &
-    !        * gradient(n,iws,jws) &
-    !        * self % activation_prime(self % z(n,iws,jws))
-    !    end do
-    !  end do
-    !end do convolution
+    do concurrent( &
+      n = 1:self % filters, &
+      k = 1:self % channels, &
+      i = istart:iend, &
+      j = jstart:jend &
+    )
+      ! Start and end indices of the input data on the filter window
+      iws = i - half_window ! TODO kernel_width
+      iwe = i + half_window ! TODO kernel_width
+      jws = j - half_window ! TODO kernel_height
+      jwe = j + half_window ! TODO kernel_height
+
+      ! dL/dw = sum(dL/dy * sigma'(z) * x)
+      dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * gdz(n,iws:iwe,jws:jwe)
+
+      ! dL/dx = dL/dy * sigma'(z) .inner. w
+      self % gradient(k,i,j) = self % gradient(k,i,j) &
+        + sum(gdz(n,iws:iwe,jws:jwe) * self % kernel(n,k,:,:))
+
+    end do
 
     self % dw = self % dw + dw
     self % db = self % db + db
