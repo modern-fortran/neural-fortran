@@ -150,7 +150,7 @@ contains
     iend = input_width - istart + 1
     jend = input_height - jstart + 1
 
-    ! z = w .dot. x + b (.dot. here is the Frobenius inner product)
+    ! z = w .inner. x + b
     ! gdz = dL/dy * sigma'(z)
     gdz = 0
     gdz(:,istart:iend,jstart:jend) = gradient * self % activation_prime(self % z)
