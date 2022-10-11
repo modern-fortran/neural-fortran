@@ -85,7 +85,7 @@ contains
   end subroutine forward
 
 
-  module subroutine backward(self, input, gradient)
+  pure module subroutine backward(self, input, gradient)
     implicit none
     class(maxpool2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
