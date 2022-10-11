@@ -119,7 +119,7 @@ contains
   end subroutine forward
 
 
-  module subroutine backward(self, input, gradient)
+  pure module subroutine backward(self, input, gradient)
     implicit none
     class(conv2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
@@ -161,6 +161,7 @@ contains
     end do
 
     dw = 0
+    self % gradient = 0
     do concurrent( &
       n = 1:self % filters, &
       k = 1:self % channels, &
@@ -248,5 +249,20 @@ contains
     end select
 
   end subroutine set_activation
+
+  module subroutine update(self, learning_rate)
+    class(conv2d_layer), intent(in out) :: self
+    real, intent(in) :: learning_rate
+
+    ! Sum weight and bias gradients across images, if any
+    call co_sum(self % dw)
+    call co_sum(self % db)
+
+    self % kernel = self % kernel - learning_rate * self % dw
+    self % biases = self % biases - learning_rate * self % db
+    self % dw = 0
+    self % db = 0
+
+  end subroutine update
 
 end submodule nf_conv2d_layer_submodule

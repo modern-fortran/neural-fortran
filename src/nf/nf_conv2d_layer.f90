@@ -37,6 +37,7 @@ module nf_conv2d_layer
     procedure :: forward
     procedure :: backward
     procedure :: set_activation
+    procedure :: update
 
   end type conv2d_layer
 
@@ -71,7 +72,7 @@ module nf_conv2d_layer
         !! Input data
     end subroutine forward
 
-    module subroutine backward(self, input, gradient)
+    pure module subroutine backward(self, input, gradient)
       !! Apply a backward pass on the `conv2d` layer.
       class(conv2d_layer), intent(in out) :: self
         !! A `conv2d_layer` instance
@@ -88,6 +89,14 @@ module nf_conv2d_layer
     character(*), intent(in) :: activation
       !! String with the activation function name
     end subroutine set_activation
+
+    module subroutine update(self, learning_rate)
+      !! Update the weights and biases.
+      class(conv2d_layer), intent(in out) :: self
+        !! Dense layer instance
+      real, intent(in) :: learning_rate
+        !! Learning rate (must be > 0)
+    end subroutine update
 
   end interface
 

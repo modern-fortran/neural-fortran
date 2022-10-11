@@ -56,8 +56,22 @@ contains
     real, intent(in) :: gradient(:,:,:)
 
     ! Backward pass from a 3-d layer downstream currently implemented
-    ! only for reshape3d layer
+    ! only for conv2d and reshape3d layers
     select type(this_layer => self % p)
+
+      type is(conv2d_layer)
+
+        ! Upstream layers permitted: conv2d, input3d, maxpool2d, reshape3d
+        select type(prev_layer => previous % p)
+          type is(maxpool2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(input3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(conv2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(reshape3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
 
       type is(reshape3d_layer)
 
