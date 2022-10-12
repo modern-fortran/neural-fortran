@@ -16,22 +16,21 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 ## Features
 
-* Dense, fully connected neural layers
-* Convolutional and max-pooling layers (experimental, forward propagation only)
-* Flatten and reshape layers (forward and backward passes)
-* Loading dense and convolutional models from Keras h5 files
+* Training and inference of dense (fully connected) and convolutional neural
+  networks
+* Loading dense and convolutional models from Keras HDF5 (.h5) files
 * Stochastic and mini-batch gradient descent for back-propagation
 * Data-based parallelism
 * Several activation functions and their derivatives
 
-### Available layer types
+### Available layers
 
 | Layer type | Constructor name | Supported input layers | Rank of output array | Forward pass | Backward pass |
 |------------|------------------|------------------------|----------------------|--------------|---------------|
 | Input (1-d and 3-d) | `input` | n/a | 1, 3 | n/a | n/a |
 | Dense (fully-connected) | `dense` | `input1d` | 1 | ✅ | ✅ |
-| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
-| Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d` | 3 | ✅ | ❌ |
+| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d` | 3 | ✅ | ✅ |
+| Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d` | 3 | ✅ | ✅ |
 | Flatten | `flatten` | `input3d`, `conv2d`, `maxpool2d` | 1 | ✅ | ✅ |
 | Reshape (1-d to 3-d) | `reshape` | `input1d`, `dense`, `flatten` | 3 | ✅ | ✅ |
 
@@ -201,10 +200,9 @@ examples, in increasing level of complexity:
 1. [simple](example/simple.f90): Approximating a simple, constant data
   relationship
 2. [sine](example/sine.f90): Approximating a sine function
-3. [mnist](example/mnist.f90): Hand-written digit recognition using the MNIST
-  dataset
-4. [cnn](example/cnn.f90): Creating and running forward a simple CNN using
-  `input`, `conv2d`, `maxpool2d`, `flatten`, and `dense` layers.
+3. [dense_mnist](example/dense_mnist.f90): Hand-written digit recognition
+  (MNIST dataset) using a dense (fully-connected) network
+4. [cnn_mnist](example/cnn_mnist.f90): Training a CNN on the MNIST dataset
 5. [dense_from_keras](example/dense_from_keras.f90): Creating a pre-trained
   dense model from a Keras HDF5 file and running the inference.
 6. [cnn_from_keras](example/cnn_from_keras.f90): Creating a pre-trained
