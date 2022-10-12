@@ -41,6 +41,7 @@ contains
     !TODO   conv2d -> conv2d, maxpool2d, flatten
     !TODO   maxpool2d -> conv2d, maxpool2d, flatten
     !TODO   flatten -> dense
+    !TODO   reshape -> conv2d, maxpool2d
 
     res % layers = layers
 
