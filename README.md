@@ -27,11 +27,11 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 | Layer type | Constructor name | Supported input layers | Rank of output array | Forward pass | Backward pass |
 |------------|------------------|------------------------|----------------------|--------------|---------------|
-| Input (1-d and 3-d) | `input` | n/a | 1, 3 | n/a | n/a |
-| Dense (fully-connected) | `dense` | `input1d` | 1 | ✅ | ✅ |
-| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d` | 3 | ✅ | ✅ |
-| Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d` | 3 | ✅ | ✅ |
-| Flatten | `flatten` | `input3d`, `conv2d`, `maxpool2d` | 1 | ✅ | ✅ |
+| Input | `input` | n/a | 1, 3 | n/a | n/a |
+| Dense (fully-connected) | `dense` | `input1d`, `flatten` | 1 | ✅ | ✅ |
+| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
+| Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
+| Flatten | `flatten` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
 | Reshape (1-d to 3-d) | `reshape` | `input1d`, `dense`, `flatten` | 3 | ✅ | ✅ |
 
 ## Getting started
@@ -245,10 +245,18 @@ Thanks to all open-source contributors to neural-fortran:
 [@rouson](https://github.com/rouson),
 and [@scivision](https://github.com/scivision).
 
-Development of convolutional networks in neural-fortran was funded by a
-contract from NASA Goddard Space Flight Center to the University of Miami. 
+Development of convolutional networks and Keras HDF5 adapters in
+neural-fortran was funded by a contract from NASA Goddard Space Flight Center
+to the University of Miami.
 
 ## Related projects
 
 * [Fortran Keras Bridge (FKB)](https://github.com/scientific-computing/FKB)
-* [rte-rrtmgp](https://github.com/peterukk/rte-rrtmgp)
+by Jordan Ott provides a Python bridge between old (v0.1.0) neural-fortran
+style save files and Keras's HDF5 models. As of v0.9.0, neural-fortran
+implements the full feature set of FKB in pure Fortran, and in addition
+supports training and inference of convolutional networks.
+* [rte-rrtmgp-nn](https://github.com/peterukk/rte-rrtmgp-nn) by Peter Ukkonen
+is an implementation based on old (v0.1.0) neural-fortran which optimizes for
+speed and running on GPUs the memory layout and forward and backward passes of
+dense layers.
