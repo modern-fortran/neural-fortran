@@ -1,4 +1,4 @@
-program mnist
+program dense_mnist
 
   use nf, only: dense, input, network, sgd, label_digits, load_mnist
 
@@ -59,4 +59,4 @@ contains
     accuracy = real(good) / size(x, dim=2)
   end function accuracy
 
-end program mnist
+end program dense_mnist
