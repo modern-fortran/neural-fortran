@@ -1,6 +1,5 @@
-program test_cnn_training
+program cnn_mnist
 
-  use iso_fortran_env, only: stderr => error_unit
   use nf, only: network, sgd, &
     input, conv2d, maxpool2d, flatten, dense, reshape, &
     load_mnist, label_digits
@@ -22,10 +21,8 @@ program test_cnn_training
                   validation_images, validation_labels, &
                   testing_images, testing_labels)
 
-  !training_data = reshape(training_images(:,:), shape=[1,28,28,50000])
-  
   net = network([ &
-    input(768), &
+    input(784), &
     reshape([1,28,28]), &
     conv2d(filters=8, kernel_size=3, activation='relu'), &
     maxpool2d(pool_size=2), &
@@ -35,12 +32,14 @@ program test_cnn_training
     dense(10, activation='softmax') &
   ])
 
+  call net % print_info()
+
   epochs: do n = 1, num_epochs
 
     call net % train( &
       training_images, &
       label_digits(training_labels), &
-      batch_size=100, &
+      batch_size=128, &
       epochs=1, &
       optimizer=sgd(learning_rate=3.) &
     )
@@ -51,21 +50,8 @@ program test_cnn_training
 
   end do epochs
 
-  !acc = accuracy(net, input_reshaped, label_digits(testing_labels(:1000)))
-
-  !if (acc < 0.97) then
-  !  write(stderr, '(a)') &
-  !    'Pre-trained network accuracy should be > 0.97.. failed'
-  !  ok = .false.
-  !end if
-
-  if (ok) then
-    print '(a)', 'test_cnn_from_keras: All tests passed.'
-  else
-    write(stderr, '(a)') &
-      'test_cnn_from_keras: One or more tests failed.'
-    stop 1
-  end if
+  print '(a,f5.2,a)', 'Testing accuracy: ', &
+    accuracy(net, testing_images, label_digits(testing_labels)) * 100, '%'
 
 contains
 
@@ -82,4 +68,4 @@ contains
     accuracy = real(good) / size(x, dim=2)
   end function accuracy
 
-end program test_cnn_training
+end program cnn_mnist
