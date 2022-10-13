@@ -73,6 +73,20 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
+      type is(maxpool2d_layer)
+
+        ! Upstream layers permitted: conv2d, input3d, maxpool2d, reshape3d
+        select type(prev_layer => previous % p)
+          type is(conv2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(maxpool2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(input3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(reshape3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
       type is(reshape3d_layer)
 
         ! Upstream layers permitted: input1d, dense, flatten
