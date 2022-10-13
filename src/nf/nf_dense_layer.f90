@@ -4,7 +4,7 @@ module nf_dense_layer
   !! It is used internally by the layer type.
   !! It is not intended to be used directly by the user.
 
-  use nf_activation, only: activation_function
+  use nf_activation_1d, only: activation_function
   use nf_base_layer, only: base_layer
 
   implicit none
@@ -27,11 +27,17 @@ module nf_dense_layer
     real, allocatable :: dw(:,:) ! weight gradients
     real, allocatable :: db(:) ! bias gradients
 
+    procedure(activation_function), pointer, nopass :: &
+      activation => null()
+    procedure(activation_function), pointer, nopass :: &
+      activation_prime => null()
+
   contains
 
     procedure :: backward
     procedure :: forward
     procedure :: init
+    procedure :: set_activation
     procedure :: update
 
   end type dense_layer
@@ -83,6 +89,14 @@ module nf_dense_layer
       integer, intent(in) :: input_shape(:)
         !! Shape of the input layer
     end subroutine init
+
+    elemental module subroutine set_activation(self, activation)
+      !! Set the activation functions.
+      class(dense_layer), intent(in out) :: self
+        !! Layer instance
+      character(*), intent(in) :: activation
+        !! String with the activation function name
+    end subroutine set_activation
 
     module subroutine update(self, learning_rate)
       !! Update the weights and biases.

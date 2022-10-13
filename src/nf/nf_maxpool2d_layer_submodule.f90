@@ -29,6 +29,9 @@ contains
     allocate(self % maxloc_y(self % channels, self % width, self % height))
     self % maxloc_y = 0
 
+    allocate(self % gradient(input_shape(1),input_shape(2),input_shape(3)))
+    self % gradient = 0
+
     allocate(self % output(self % channels, self % width, self % height))
     self % output = 0
 
@@ -82,12 +85,29 @@ contains
   end subroutine forward
 
 
-  module subroutine backward(self, input, gradient)
+  pure module subroutine backward(self, input, gradient)
     implicit none
     class(maxpool2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     real, intent(in) :: gradient(:,:,:)
-    print *, 'Warning: maxpool2d backward pass not implemented'
+    integer :: gradient_shape(3)
+    integer :: channels, width, height
+    integer :: i, j, n
+
+    gradient_shape = shape(gradient)
+    channels = gradient_shape(1)
+    width = gradient_shape(2)
+    height = gradient_shape(3)
+
+    ! The gradient of a max-pooling layer is just a value of the downstream
+    ! gradient at the location of the maximum value, stored during the
+    ! forward pass.
+    do concurrent(n = 1:channels, i = 1:width, j = 1:height)
+      associate(ii => self % maxloc_x(n,i,j), jj => self % maxloc_y(n,i,j))
+        self % gradient(n,ii,jj) = gradient(n,i,j)
+      end associate
+    end do
+
   end subroutine backward
 
 end submodule nf_maxpool2d_layer_submodule

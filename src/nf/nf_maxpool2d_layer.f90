@@ -21,6 +21,7 @@ module nf_maxpool2d_layer
     integer, allocatable :: maxloc_x(:,:,:)
     integer, allocatable :: maxloc_y(:,:,:)
 
+    real, allocatable :: gradient(:,:,:)
     real, allocatable :: output(:,:,:)
 
   contains
@@ -60,7 +61,7 @@ module nf_maxpool2d_layer
         !! Input data (output of the previous layer)
     end subroutine forward
 
-    module subroutine backward(self, input, gradient)
+    pure module subroutine backward(self, input, gradient)
       !! Run a backward pass of the `maxpool2d` layer.
       class(maxpool2d_layer), intent(in out) :: self
         !! `maxpool2d_layer` instance

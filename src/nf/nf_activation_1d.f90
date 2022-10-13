@@ -1,4 +1,4 @@
-module nf_activation
+module nf_activation_1d
 
   ! A collection of activation functions and their derivatives.
 
@@ -168,4 +168,4 @@ contains
     res = 1 - tanh(x)**2
   end function tanh_prime
 
-end module nf_activation
+end module nf_activation_1d

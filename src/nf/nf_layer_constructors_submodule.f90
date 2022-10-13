@@ -115,6 +115,7 @@ contains
     type(layer) :: res
 
     res % name = 'reshape'
+    res % layer_shape = output_shape
 
     if (size(output_shape) == 3) then
       allocate(res % p, source=reshape3d_layer(output_shape))
