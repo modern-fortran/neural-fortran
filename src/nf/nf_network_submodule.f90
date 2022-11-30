@@ -370,11 +370,16 @@ contains
 
    pure module function get_num_params(self) result(num_params)
       class(network), intent(in) :: self
-      integer :: num_params
+      integer :: n, num_params
 
-      num_params = sum(self % layers % get_num_params())
-
+      ! num_params = sum(self % layers % get_num_params())
       ! get_num_params = self % layers % get_num_params()
+
+      num_params = 0
+
+      do n = 1, size(self % layers)
+         num_params = num_params +  self % layers(n) % get_num_params()
+      end do
    end function get_num_params
 
    module subroutine train(self, input_data, output_data, batch_size, &
