@@ -45,6 +45,6 @@ program params
    print *,''
 
    nparam = net % get_num_params()
-   print '(i0," #parameters")', nparam
+   print '("#parameters: ", i0)', nparam
 
 end program params
