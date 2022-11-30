@@ -15,7 +15,6 @@ program params
    net = network([ &
       input(1), &
       dense(5), &
-      dense(3), &
       dense(1) &
       ])
 
