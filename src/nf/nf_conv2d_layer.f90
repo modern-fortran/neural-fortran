@@ -83,11 +83,11 @@ module nf_conv2d_layer
          !! Gradient (next layer)
       end subroutine backward
 
-      pure module function get_num_params(self) result(res)
+      pure module function get_num_params(self) result(num_params)
          !! Get the number of parameters in the layer.
          class(conv2d_layer), intent(in) :: self
          !! A `conv2d_layer` instance
-         integer :: res
+         integer :: num_params
          !! Number of parameters
       end function get_num_params
 

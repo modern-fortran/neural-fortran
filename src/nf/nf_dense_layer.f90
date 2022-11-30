@@ -81,11 +81,11 @@ module nf_dense_layer
          !! Input from the previous layer
       end subroutine forward
 
-      pure module function get_num_params(self) result(res)
+      pure module function get_num_params(self) result(num_params)
          !! Return the number of parameters in this layer.
          class(dense_layer), intent(in) :: self
          !! Dense layer instance
-         integer :: res
+         integer :: num_params
          !! Number of parameters in this layer
       end function get_num_params
 
