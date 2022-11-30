@@ -368,64 +368,66 @@ contains
       call self % layers % print_info()
    end subroutine print_info
 
-   pure module integer function get_num_params(self)
-   class(network), intent(in) :: self
-   !call self % layers % print_info()
-   ! get_num_params = self % layers % get_num_params()
-   get_num_params = 0
-end function get_num_params
+   pure module function get_num_params(self) result(num_params)
+      class(network), intent(in) :: self
+      integer :: num_params
 
-module subroutine train(self, input_data, output_data, batch_size, &
-   epochs, optimizer)
-   class(network), intent(in out) :: self
-   real, intent(in) :: input_data(:,:)
-   real, intent(in) :: output_data(:,:)
-   integer, intent(in) :: batch_size
-   integer, intent(in) :: epochs
-   type(sgd), intent(in) :: optimizer
+      num_params = sum(self % layers % get_num_params())
 
-   real :: pos
-   integer :: dataset_size
-   integer :: batch_start, batch_end
-   integer :: i, j, n
-   integer :: istart, iend, indices(2)
+      ! get_num_params = self % layers % get_num_params()
+   end function get_num_params
 
-   dataset_size = size(output_data, dim=2)
+   module subroutine train(self, input_data, output_data, batch_size, &
+      epochs, optimizer)
+      class(network), intent(in out) :: self
+      real, intent(in) :: input_data(:,:)
+      real, intent(in) :: output_data(:,:)
+      integer, intent(in) :: batch_size
+      integer, intent(in) :: epochs
+      type(sgd), intent(in) :: optimizer
 
-   epoch_loop: do n = 1, epochs
-      batch_loop: do i = 1, dataset_size / batch_size
+      real :: pos
+      integer :: dataset_size
+      integer :: batch_start, batch_end
+      integer :: i, j, n
+      integer :: istart, iend, indices(2)
 
-         ! Pull a random mini-batch from the dataset
-         call random_number(pos)
-         batch_start = int(pos * (dataset_size - batch_size + 1)) + 1
-         batch_end = batch_start + batch_size - 1
+      dataset_size = size(output_data, dim=2)
 
-         ! FIXME shuffle in a way that doesn't require co_broadcast
-         call co_broadcast(batch_start, 1)
-         call co_broadcast(batch_end, 1)
+      epoch_loop: do n = 1, epochs
+         batch_loop: do i = 1, dataset_size / batch_size
 
-         ! Distribute the batch in nearly equal pieces to all images
-         indices = tile_indices(batch_size)
-         istart = indices(1) + batch_start - 1
-         iend = indices(2) + batch_start - 1
+            ! Pull a random mini-batch from the dataset
+            call random_number(pos)
+            batch_start = int(pos * (dataset_size - batch_size + 1)) + 1
+            batch_end = batch_start + batch_size - 1
 
-         do concurrent(j = istart:iend)
-            call self % forward(input_data(:,j))
-            call self % backward(output_data(:,j))
-         end do
+            ! FIXME shuffle in a way that doesn't require co_broadcast
+            call co_broadcast(batch_start, 1)
+            call co_broadcast(batch_end, 1)
 
-         call self % update(optimizer % learning_rate / batch_size)
+            ! Distribute the batch in nearly equal pieces to all images
+            indices = tile_indices(batch_size)
+            istart = indices(1) + batch_start - 1
+            iend = indices(2) + batch_start - 1
 
-      end do batch_loop
-   end do epoch_loop
+            do concurrent(j = istart:iend)
+               call self % forward(input_data(:,j))
+               call self % backward(output_data(:,j))
+            end do
 
-end subroutine train
+            call self % update(optimizer % learning_rate / batch_size)
+
+         end do batch_loop
+      end do epoch_loop
+
+   end subroutine train
 
 
-module subroutine update(self, learning_rate)
-   class(network), intent(in out) :: self
-   real, intent(in) :: learning_rate
-   call self % layers % update(learning_rate)
-end subroutine update
+   module subroutine update(self, learning_rate)
+      class(network), intent(in out) :: self
+      real, intent(in) :: learning_rate
+      call self % layers % update(learning_rate)
+   end subroutine update
 
 end submodule nf_network_submodule
