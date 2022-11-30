@@ -7,7 +7,7 @@ program params
    integer, parameter :: num_iterations = 100000
    integer, parameter :: test_size = 30
    real :: xtest(test_size), ytest(test_size), ypred(test_size)
-   integer :: i, n
+   integer :: i, n, nparam
 
    print '("Sine training")'
    print '(60("="))'
@@ -43,5 +43,8 @@ program params
    print *,''
    print '("Extract parameters")'
    print *,''
+
+   nparam = net % get_num_params()
+   print '(i0," #parameters")', nparam
 
 end program params
