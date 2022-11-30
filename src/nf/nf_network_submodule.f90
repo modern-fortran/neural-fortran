@@ -372,9 +372,6 @@ contains
       class(network), intent(in) :: self
       integer :: n, num_params
 
-      ! num_params = sum(self % layers % get_num_params())
-      ! get_num_params = self % layers % get_num_params()
-
       num_params = 0
 
       do n = 1, size(self % layers)
