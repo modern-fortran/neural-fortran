@@ -368,7 +368,7 @@ contains
       call self % layers % print_info()
    end subroutine print_info
 
-   module integer function get_num_params(self)
+   pure module integer function get_num_params(self)
    class(network), intent(in) :: self
    !call self % layers % print_info()
    ! get_num_params = self % layers % get_num_params()

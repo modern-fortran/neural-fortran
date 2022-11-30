@@ -151,7 +151,7 @@ module nf_network
          !! Network instance
       end subroutine print_info
 
-      module integer function get_num_params(self)
+      pure module integer function get_num_params(self)
       !! Get the number of parameters in the network.
       class(network), intent(in) :: self
       !! Network instance
