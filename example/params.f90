@@ -8,6 +8,7 @@ program params
    integer, parameter :: test_size = 30
    real :: xtest(test_size), ytest(test_size), ypred(test_size)
    integer :: i, n, nparam
+   real, allocatable :: parameters(:)
 
    print '("Sine training")'
    print '(60("="))'
