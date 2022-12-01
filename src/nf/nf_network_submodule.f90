@@ -383,6 +383,10 @@ contains
       class(network), intent(in) :: self
       real, allocatable, intent(inout) :: params(:)
       integer :: n
+
+      do n = 1, size(self % layers)
+         call self % layers(n) % get_parameters(params)
+      end do
    end subroutine get_parameters
 
    module subroutine train(self, input_data, output_data, batch_size, &
