@@ -200,8 +200,14 @@ contains
       class(conv2d_layer), intent(in) :: self
       real, allocatable, intent(inout) :: params(:)
 
+      ! automatic reallocation of params
+
       ! first pack the kernel
-      params = [params, pack(self%kernel, .true.)]
+      if (allocated(params)) then
+         params = [params, pack(self%kernel, .true.)]
+      else
+         params = pack(self%kernel, .true.)
+      end if
 
       ! then pack the biases
       params = [params, pack(self % biases, .true.)]
