@@ -65,14 +65,13 @@ contains
       real, allocatable, intent(inout) :: params(:)
 
       ! automatic reallocation of params
-      if (allocated(params)) then
-         print *, "Reallocating params:", params
-      else
-         print *, "Allocating params"
-      end if
 
       ! first pack the weights
-      params = [params, pack(self % weights, .true.)]
+      if (allocated(params)) then
+         params = [params, pack(self % weights, .true.)]
+      else
+         params = pack(self % weights, .true.)
+      end if
 
       ! then pack the biases
       params = [params, pack(self % biases, .true.)]
