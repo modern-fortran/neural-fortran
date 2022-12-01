@@ -196,6 +196,18 @@ contains
 
    end function get_num_params
 
+   pure module subroutine get_parameters(self, params)
+      class(conv2d_layer), intent(in) :: self
+      real, allocatable, intent(inout) :: params(:)
+
+      ! first pack the kernel
+      params = [params, pack(self%kernel, .true.)]
+
+      ! then pack the biases
+      params = [params, pack(self % biases, .true.)]
+
+   end subroutine get_parameters
+
    elemental module subroutine set_activation(self, activation)
       class(conv2d_layer), intent(in out) :: self
       character(*), intent(in) :: activation
