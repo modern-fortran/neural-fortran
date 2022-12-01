@@ -90,7 +90,7 @@ module nf_dense_layer
          !! Number of parameters in this layer
       end function get_num_params
 
-      pure module subroutine get_parameters(self, params)
+      module subroutine get_parameters(self, params)
          !! Return the parameters of this layer.
          !! The parameters are returned in the order of the weights, then the
          !! biases.

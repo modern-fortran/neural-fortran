@@ -196,7 +196,7 @@ contains
 
    end function get_num_params
 
-   pure module subroutine get_parameters(self, params)
+   module subroutine get_parameters(self, params)
       class(conv2d_layer), intent(in) :: self
       real, allocatable, intent(inout) :: params(:)
 

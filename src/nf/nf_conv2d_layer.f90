@@ -92,7 +92,7 @@ module nf_conv2d_layer
          !! Number of parameters
       end function get_num_params
 
-      pure module subroutine get_parameters(self, params)
+      module subroutine get_parameters(self, params)
          !! Get the parameters of the layer.
          class(conv2d_layer), intent(in) :: self
          !! A `conv2d_layer` instance
