@@ -306,7 +306,7 @@ contains
        type is(dense_layer)
          call this_layer % get_parameters(params)
        type is(conv2d_layer)
-         ! call this_layer % get_parameters(params)
+         call this_layer % get_parameters(params)
        type is(maxpool2d_layer)
          ! No parameters to get.
        type is(flatten_layer)

@@ -36,6 +36,7 @@ module nf_conv2d_layer
       procedure :: init
       procedure :: forward
       procedure :: get_num_params
+      procedure :: get_parameters
       procedure :: backward
       procedure :: set_activation
       procedure :: update
@@ -90,6 +91,14 @@ module nf_conv2d_layer
          integer :: num_params
          !! Number of parameters
       end function get_num_params
+
+      pure module subroutine get_parameters(self, params)
+         !! Get the parameters of the layer.
+         class(conv2d_layer), intent(in) :: self
+         !! A `conv2d_layer` instance
+         real, allocatable, intent(inout) :: params(:)
+         !! Parameters
+      end subroutine get_parameters
 
       elemental module subroutine set_activation(self, activation)
          !! Set the activation functions.
