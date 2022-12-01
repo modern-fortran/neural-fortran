@@ -46,11 +46,12 @@ program params
    print *,''
 
    nparam = net % get_num_params()
-   print '("#parameters: ", i0)', nparam
+   print '("get_num_params = ", i0)', nparam
 
    call net % get_parameters(parameters)
 
    if (allocated(parameters)) then
+      print '("size(parameters) = ", i0)', size(parameters)
       print *,'parameters:', parameters
    end if
 
