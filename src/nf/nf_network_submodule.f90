@@ -379,7 +379,7 @@ contains
       end do
    end function get_num_params
 
-   pure module subroutine get_parameters(self, params)
+   impure module subroutine get_parameters(self, params)
       class(network), intent(in) :: self
       real, allocatable, intent(inout) :: params(:)
       integer :: n
