@@ -64,15 +64,13 @@ contains
       class(dense_layer), intent(in) :: self
       real, allocatable, intent(inout) :: params(:)
 
-      ! first pack the weights
-      if (.not. allocated(params)) then
-         params = pack(self % weights, .true.)
-      else
-         params = [params, pack(self % weights, .true.)]
-      end if
+      ! automatic reallocation of params
 
-      ! then pack the biases (params is certain to have been allocated by this stage)
-      if(allocated(params)) params = [params, pack(self % biases, .true.)]
+      ! first pack the weights
+      params = [params, pack(self % weights, .true.)]
+
+      ! then pack the biases
+      params = [params, pack(self % biases, .true.)]
 
    end subroutine get_parameters
 
