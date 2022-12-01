@@ -96,7 +96,7 @@ module nf_dense_layer
          !! biases.
          class(dense_layer), intent(in) :: self
          !! Dense layer instance
-         real, intent(inout) :: params(:)
+         real, allocatable, intent(inout) :: params(:)
          !! Parameters of this layer
       end subroutine get_parameters
 

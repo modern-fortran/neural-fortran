@@ -62,12 +62,18 @@ contains
 
    pure module subroutine get_parameters(self, params)
       class(dense_layer), intent(in) :: self
-      real, intent(inout) :: params(:)
+      real, allocatable, intent(inout) :: params(:)
 
-      params(1:self % input_size * self % output_size) = &
-         reshape(self % weights, [self % input_size * self % output_size])
+      ! first pack the weights
+      if (.not. allocated(params)) then
+         params = pack(self % weights, .true.)
+      else
+         params = [params, pack(self % weights, .true.)]
+      end if
 
-      params(self % input_size * self % output_size + 1:) = self % biases
+      ! then pack the biases (params is certain to have been allocated by this stage)
+      if(allocated(params)) params = [params, pack(self % biases, .true.)]
+
    end subroutine get_parameters
 
    module subroutine init(self, input_shape)
