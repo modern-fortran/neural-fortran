@@ -60,6 +60,16 @@ contains
 
    end function get_num_params
 
+   pure module subroutine get_parameters(self, params)
+      class(dense_layer), intent(in) :: self
+      real, intent(inout) :: params(:)
+
+      params(1:self % input_size * self % output_size) = &
+         reshape(self % weights, [self % input_size * self % output_size])
+
+      params(self % input_size * self % output_size + 1:) = self % biases
+   end subroutine get_parameters
+
    module subroutine init(self, input_shape)
       class(dense_layer), intent(in out) :: self
       integer, intent(in) :: input_shape(:)
