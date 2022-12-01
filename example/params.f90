@@ -16,7 +16,7 @@ program params
    net = network([ &
       input(1), &
       dense(5), &
-      dense(3), &
+      dense(3), & ! only for testing purposes (this layer is not really needed to solve this problem)
       dense(1) &
       ])
 
