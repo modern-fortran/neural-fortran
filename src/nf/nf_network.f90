@@ -18,6 +18,7 @@ module nf_network
 
       procedure :: backward
       procedure :: get_num_params
+      procedure :: get_parameters
       procedure :: print_info
       procedure :: train
       procedure :: update
@@ -156,6 +157,15 @@ module nf_network
       class(network), intent(in) :: self
       !! Network instance
    end function get_num_params
+
+
+   pure module subroutine get_parameters(self, params)
+      !! Get the network parameters (weights and biases).
+      class(network), intent(in) :: self
+      !! Network instance
+      real, allocatable, intent(inout) :: params(:)
+      !! Network parameters
+   end subroutine get_parameters
 
    module subroutine train(self, input_data, output_data, batch_size, &
       epochs, optimizer)
