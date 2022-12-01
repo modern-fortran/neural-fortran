@@ -292,31 +292,31 @@ contains
          error stop 'Unknown layer type.'
       end select
 
-      impure module subroutine get_parameters(self, params)
-         class(layer), intent(in) :: self
-         real, allocatable, intent(inout) :: params(:)
-
-         select type(this_layer => self % p)
-          type is(input1d_layer)
-            ! No parameters to get.
-          type is(input3d_layer)
-            ! No parameters to get.
-          type is(dense_layer)
-            call this_layer % get_parameters(params)
-          type is(conv2d_layer)
-            call this_layer % get_parameters(params)
-          type is(maxpool2d_layer)
-            ! No parameters to get.
-          type is(flatten_layer)
-            ! No parameters to get.
-          type is(reshape3d_layer)
-            ! No parameters to get.
-          class default
-            error stop 'Unknown layer type.'
-         end select
-      end subroutine get_parameters
-
    end function get_num_params
+
+   module subroutine get_parameters(self, params)
+      class(layer), intent(in) :: self
+      real, allocatable, intent(inout) :: params(:)
+
+      select type(this_layer => self % p)
+       type is(input1d_layer)
+         ! No parameters to get.
+       type is(input3d_layer)
+         ! No parameters to get.
+       type is(dense_layer)
+         ! call this_layer % get_parameters(params)
+       type is(conv2d_layer)
+         ! call this_layer % get_parameters(params)
+       type is(maxpool2d_layer)
+         ! No parameters to get.
+       type is(flatten_layer)
+         ! No parameters to get.
+       type is(reshape3d_layer)
+         ! No parameters to get.
+       class default
+         error stop 'Unknown layer type.'
+      end select
+   end subroutine get_parameters
 
    impure elemental module subroutine update(self, learning_rate)
       implicit none

@@ -127,7 +127,7 @@ module nf_layer
          !! Number of parameters in this layer
       end function get_num_params
 
-      impure module subroutine get_parameters(self, params)
+      module subroutine get_parameters(self, params)
          !! Returns the parameters of this layer.
          class(layer), intent(in) :: self
          !! Layer instance
