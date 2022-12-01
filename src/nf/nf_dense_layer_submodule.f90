@@ -65,6 +65,7 @@ contains
       real, allocatable, intent(inout) :: params(:)
 
       ! automatic reallocation of params
+      if (allocated(params)) print *, "Reallocating params:", params
 
       ! first pack the weights
       params = [params, pack(self % weights, .true.)]
