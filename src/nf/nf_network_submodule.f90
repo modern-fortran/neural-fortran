@@ -379,6 +379,12 @@ contains
       end do
    end function get_num_params
 
+   pure module subroutine get_parameters(self, params)
+      class(network), intent(in) :: self
+      real, allocatable, intent(inout) :: params(:)
+      integer :: n
+   end subroutine get_parameters
+
    module subroutine train(self, input_data, output_data, batch_size, &
       epochs, optimizer)
       class(network), intent(in out) :: self
