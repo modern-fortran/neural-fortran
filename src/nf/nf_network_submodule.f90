@@ -380,8 +380,8 @@ contains
         end do
     end subroutine get_parameters
 
-    pure module subroutine set_parameters(self, params)
-        class(network), intent(in) :: self
+    module subroutine set_parameters(self, params)
+        class(network), intent(in out) :: self
         real, intent(in) :: params(:)
         integer :: n, consumed
 

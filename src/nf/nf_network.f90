@@ -167,9 +167,9 @@ module nf_network
       !! Network parameters
         end subroutine get_parameters
 
-        pure module subroutine set_parameters(self, params)
+        module subroutine set_parameters(self, params)
       !! Set the network parameters (weights and biases).
-            class(network), intent(in) :: self
+            class(network), intent(in out) :: self
       !! Network instance
             real, intent(in) :: params(:)
       !! Network parameters
