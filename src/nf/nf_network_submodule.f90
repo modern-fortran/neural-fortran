@@ -383,6 +383,18 @@ contains
     pure module subroutine set_parameters(self, params)
         class(network), intent(in) :: self
         real, intent(in) :: params(:)
+        integer :: n, consumed
+
+        ! check if the number of parameters is correct
+        if (size(params) .ne. self%get_num_params()) then
+            error stop 'network % set_parameters: number of parameters does not match'
+        end if
+
+        consumed = 0
+
+        do n = 1, size(self%layers)
+            consumed = consumed + self%layers(n)%set_parameters(params(consumed + 1:))
+        end do
     end subroutine set_parameters
 
     module subroutine train(self, input_data, output_data, batch_size, &
