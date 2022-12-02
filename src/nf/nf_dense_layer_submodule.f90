@@ -1,195 +1,212 @@
 submodule(nf_dense_layer) nf_dense_layer_submodule
 
-   use nf_activation_1d, only: activation_function, &
-      elu, elu_prime, &
-      exponential, &
-      gaussian, gaussian_prime, &
-      relu, relu_prime, &
-      sigmoid, sigmoid_prime, &
-      softmax, softmax_prime, &
-      softplus, softplus_prime, &
-      step, step_prime, &
-      tanhf, tanh_prime
-   use nf_base_layer, only: base_layer
-   use nf_random, only: randn
+    use nf_activation_1d, only: activation_function, &
+                                elu, elu_prime, &
+                                exponential, &
+                                gaussian, gaussian_prime, &
+                                relu, relu_prime, &
+                                sigmoid, sigmoid_prime, &
+                                softmax, softmax_prime, &
+                                softplus, softplus_prime, &
+                                step, step_prime, &
+                                tanhf, tanh_prime
+    use nf_base_layer, only: base_layer
+    use nf_random, only: randn
 
-   implicit none
+    implicit none
 
 contains
 
-   elemental module function dense_layer_cons(output_size, activation) &
-      result(res)
-      integer, intent(in) :: output_size
-      character(*), intent(in) :: activation
-      type(dense_layer) :: res
-      res % output_size = output_size
-      call res % set_activation(activation)
-   end function dense_layer_cons
+    elemental module function dense_layer_cons(output_size, activation) &
+        result(res)
+        integer, intent(in) :: output_size
+        character(*), intent(in) :: activation
+        type(dense_layer) :: res
+        res%output_size = output_size
+        call res%set_activation(activation)
+    end function dense_layer_cons
 
+    pure module subroutine backward(self, input, gradient)
+        class(dense_layer), intent(in out) :: self
+        real, intent(in) :: input(:)
+        real, intent(in) :: gradient(:)
+        real :: db(self%output_size)
+        real :: dw(self%input_size, self%output_size)
 
-   pure module subroutine backward(self, input, gradient)
-      class(dense_layer), intent(in out) :: self
-      real, intent(in) :: input(:)
-      real, intent(in) :: gradient(:)
-      real :: db(self % output_size)
-      real :: dw(self % input_size, self % output_size)
+        db = gradient*self%activation_prime(self%z)
+        dw = matmul(reshape(input, [size(input), 1]), reshape(db, [1, size(db)]))
+        self%gradient = matmul(self%weights, db)
+        self%dw = self%dw + dw
+        self%db = self%db + db
 
-      db = gradient * self % activation_prime(self % z)
-      dw = matmul(reshape(input, [size(input), 1]), reshape(db, [1, size(db)]))
-      self % gradient = matmul(self % weights, db)
-      self % dw = self % dw + dw
-      self % db = self % db + db
+    end subroutine backward
 
-   end subroutine backward
+    pure module subroutine forward(self, input)
+        class(dense_layer), intent(in out) :: self
+        real, intent(in) :: input(:)
 
+        self%z = matmul(input, self%weights) + self%biases
+        self%output = self%activation(self%z)
 
-   pure module subroutine forward(self, input)
-      class(dense_layer), intent(in out) :: self
-      real, intent(in) :: input(:)
+    end subroutine forward
 
-      self % z = matmul(input, self % weights) + self % biases
-      self % output = self % activation(self % z)
+    pure module function get_num_params(self) result(num_params)
+        class(dense_layer), intent(in) :: self
+        integer :: num_params
 
-   end subroutine forward
+        num_params = self%input_size*self%output_size + self%output_size
 
-   pure module function get_num_params(self) result(num_params)
-      class(dense_layer), intent(in) :: self
-      integer :: num_params
+    end function get_num_params
 
-      num_params = self % input_size * self % output_size + self % output_size
+    pure module subroutine get_parameters(self, params)
+        class(dense_layer), intent(in) :: self
+        real, allocatable, intent(inout) :: params(:)
 
-   end function get_num_params
+        ! automatic reallocation of params
 
-   pure module subroutine get_parameters(self, params)
-      class(dense_layer), intent(in) :: self
-      real, allocatable, intent(inout) :: params(:)
+        ! first pack the weights
+        if (allocated(params)) then
+            params = [params, pack(self%weights, .true.)]
+        else
+            params = pack(self%weights, .true.)
+        end if
 
-      ! automatic reallocation of params
+        ! then pack the biases
+        params = [params, pack(self%biases, .true.)]
 
-      ! first pack the weights
-      if (allocated(params)) then
-         params = [params, pack(self % weights, .true.)]
-      else
-         params = pack(self % weights, .true.)
-      end if
+    end subroutine get_parameters
 
-      ! then pack the biases
-      params = [params, pack(self % biases, .true.)]
+    module function set_parameters(self, params) result(consumed)
+        class(dense_layer), intent(in out) :: self
+        real, intent(in) :: params(:)
+        integer :: consumed
 
-   end subroutine get_parameters
+        ! check if the number of parameters is correct
+        if (size(params) .lt. self%get_num_params()) then
+            error stop 'Error: number of parameters does not match'
+        end if
 
-   module subroutine init(self, input_shape)
-      class(dense_layer), intent(in out) :: self
-      integer, intent(in) :: input_shape(:)
+        ! reshape the weights
+        self%weights = reshape(params(1:self%input_size*self%output_size), &
+                               [self%input_size, self%output_size])
 
-      self % input_size = input_shape(1)
+        ! reshape the biases
+        self%biases = reshape(params(self%input_size*self%output_size + 1:), &
+                              [self%output_size])
 
-      ! Weights are a 2-d array of shape previous layer size
-      ! times this layer size.
-      allocate(self % weights(self % input_size, self % output_size))
-      self % weights = randn(self % input_size, self % output_size) &
-         / self % input_size
+        consumed = self%get_num_params()
+    end function set_parameters
 
-      ! Broadcast weights to all other images, if any.
-      call co_broadcast(self % weights, 1)
+    module subroutine init(self, input_shape)
+        class(dense_layer), intent(in out) :: self
+        integer, intent(in) :: input_shape(:)
 
-      allocate(self % biases(self % output_size))
-      self % biases = 0
+        self%input_size = input_shape(1)
 
-      allocate(self % output(self % output_size))
-      self % output = 0
+        ! Weights are a 2-d array of shape previous layer size
+        ! times this layer size.
+        allocate (self%weights(self%input_size, self%output_size))
+        self%weights = randn(self%input_size, self%output_size) &
+                       /self%input_size
 
-      allocate(self % z(self % output_size))
-      self % z = 0
+        ! Broadcast weights to all other images, if any.
+        call co_broadcast(self%weights, 1)
 
-      allocate(self % dw(self % input_size, self % output_size))
-      self % dw = 0
+        allocate (self%biases(self%output_size))
+        self%biases = 0
 
-      allocate(self % db(self % output_size))
-      self % db = 0
+        allocate (self%output(self%output_size))
+        self%output = 0
 
-      allocate(self % gradient(self % output_size))
-      self % gradient = 0
+        allocate (self%z(self%output_size))
+        self%z = 0
 
-   end subroutine init
+        allocate (self%dw(self%input_size, self%output_size))
+        self%dw = 0
 
+        allocate (self%db(self%output_size))
+        self%db = 0
 
-   elemental module subroutine set_activation(self, activation)
-      class(dense_layer), intent(in out) :: self
-      character(*), intent(in) :: activation
+        allocate (self%gradient(self%output_size))
+        self%gradient = 0
 
-      select case(trim(activation))
+    end subroutine init
 
-         ! TODO need to figure out how to handle the alpha param
-         !case('elu')
-         !  self % activation => elu
-         !  self % activation_prime => elu_prime
-         !  self % activation_name = 'elu'
+    elemental module subroutine set_activation(self, activation)
+        class(dense_layer), intent(in out) :: self
+        character(*), intent(in) :: activation
 
-       case('exponential')
-         self % activation => exponential
-         self % activation_prime => exponential
-         self % activation_name = 'exponential'
+        select case (trim(activation))
 
-       case('gaussian')
-         self % activation => gaussian
-         self % activation_prime => gaussian_prime
-         self % activation_name = 'gaussian'
+            ! TODO need to figure out how to handle the alpha param
+            !case('elu')
+            !  self % activation => elu
+            !  self % activation_prime => elu_prime
+            !  self % activation_name = 'elu'
 
-       case('relu')
-         self % activation => relu
-         self % activation_prime => relu_prime
-         self % activation_name = 'relu'
+        case ('exponential')
+            self%activation => exponential
+            self%activation_prime => exponential
+            self%activation_name = 'exponential'
 
-       case('sigmoid')
-         self % activation => sigmoid
-         self % activation_prime => sigmoid_prime
-         self % activation_name = 'sigmoid'
+        case ('gaussian')
+            self%activation => gaussian
+            self%activation_prime => gaussian_prime
+            self%activation_name = 'gaussian'
 
-       case('softmax')
-         self % activation => softmax
-         self % activation_prime => softmax_prime
-         self % activation_name = 'softmax'
+        case ('relu')
+            self%activation => relu
+            self%activation_prime => relu_prime
+            self%activation_name = 'relu'
 
-       case('softplus')
-         self % activation => softplus
-         self % activation_prime => softplus_prime
-         self % activation_name = 'softplus'
+        case ('sigmoid')
+            self%activation => sigmoid
+            self%activation_prime => sigmoid_prime
+            self%activation_name = 'sigmoid'
 
-       case('step')
-         self % activation => step
-         self % activation_prime => step_prime
-         self % activation_name = 'step'
+        case ('softmax')
+            self%activation => softmax
+            self%activation_prime => softmax_prime
+            self%activation_name = 'softmax'
 
-       case('tanh')
-         self % activation => tanhf
-         self % activation_prime => tanh_prime
-         self % activation_name = 'tanh'
+        case ('softplus')
+            self%activation => softplus
+            self%activation_prime => softplus_prime
+            self%activation_name = 'softplus'
 
-       case default
-         error stop 'Activation must be one of: ' // &
-            '"elu", "exponential", "gaussian", "relu", ' // &
-            '"sigmoid", "softmax", "softplus", "step", ' // &
-            'or "tanh".'
+        case ('step')
+            self%activation => step
+            self%activation_prime => step_prime
+            self%activation_name = 'step'
 
-      end select
+        case ('tanh')
+            self%activation => tanhf
+            self%activation_prime => tanh_prime
+            self%activation_name = 'tanh'
 
-   end subroutine set_activation
+        case default
+            error stop 'Activation must be one of: '// &
+                '"elu", "exponential", "gaussian", "relu", '// &
+                '"sigmoid", "softmax", "softplus", "step", '// &
+                'or "tanh".'
 
+        end select
 
-   module subroutine update(self, learning_rate)
-      class(dense_layer), intent(in out) :: self
-      real, intent(in) :: learning_rate
+    end subroutine set_activation
 
-      ! Sum weight and bias gradients across images, if any
-      call co_sum(self % dw)
-      call co_sum(self % db)
+    module subroutine update(self, learning_rate)
+        class(dense_layer), intent(in out) :: self
+        real, intent(in) :: learning_rate
 
-      self % weights = self % weights - learning_rate * self % dw
-      self % biases = self % biases - learning_rate * self % db
-      self % dw = 0
-      self % db = 0
+        ! Sum weight and bias gradients across images, if any
+        call co_sum(self%dw)
+        call co_sum(self%db)
 
-   end subroutine update
+        self%weights = self%weights - learning_rate*self%dw
+        self%biases = self%biases - learning_rate*self%db
+        self%dw = 0
+        self%db = 0
+
+    end subroutine update
 
 end submodule nf_dense_layer_submodule

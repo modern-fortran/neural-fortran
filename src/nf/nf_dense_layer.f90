@@ -101,11 +101,11 @@ module nf_dense_layer
          !! Parameters of this layer
         end subroutine get_parameters
 
-        pure module function set_parameters(self, params) result(consumed)
+        module function set_parameters(self, params) result(consumed)
          !! Set the parameters of this layer.
          !! The parameters are set in the order of the weights, then the
          !! biases.
-            class(dense_layer), intent(in) :: self
+            class(dense_layer), intent(in out) :: self
          !! Dense layer instance
             real, intent(in) :: params(:)
          !! Parameters of this layer
