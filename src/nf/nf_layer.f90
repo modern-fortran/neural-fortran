@@ -3,150 +3,160 @@ module nf_layer
    !! This module provides the `layer` type that is part of the public
    !! user-facing API.
 
-   use nf_base_layer, only: base_layer
+    use nf_base_layer, only: base_layer
 
-   implicit none
+    implicit none
 
-   private
-   public :: layer
+    private
+    public :: layer
 
-   type :: layer
+    type :: layer
 
       !! Main layer type. Use custom constructor functions from
       !! nf_layer_constructors.f90 to create `layer` instances.
 
-      class(base_layer), allocatable :: p
-      character(:), allocatable :: name
-      character(:), allocatable :: activation
-      integer, allocatable :: layer_shape(:)
-      integer, allocatable :: input_layer_shape(:)
-      logical :: initialized = .false.
+        class(base_layer), allocatable :: p
+        character(:), allocatable :: name
+        character(:), allocatable :: activation
+        integer, allocatable :: layer_shape(:)
+        integer, allocatable :: input_layer_shape(:)
+        logical :: initialized = .false.
 
-   contains
+    contains
 
-      procedure :: forward
-      procedure :: get_num_params
-      procedure :: get_parameters
-      procedure :: init
-      procedure :: print_info
-      procedure :: update
+        procedure :: forward
+        procedure :: get_num_params
+        procedure :: get_parameters
+        procedure :: set_parameters
+        procedure :: init
+        procedure :: print_info
+        procedure :: update
 
-      ! Specific subroutines for different array ranks
-      procedure, private :: backward_1d
-      procedure, private :: backward_3d
-      procedure, private :: get_output_1d
-      procedure, private :: get_output_3d
+        ! Specific subroutines for different array ranks
+        procedure, private :: backward_1d
+        procedure, private :: backward_3d
+        procedure, private :: get_output_1d
+        procedure, private :: get_output_3d
 
-      generic :: backward => backward_1d, backward_3d
-      generic :: get_output => get_output_1d, get_output_3d
+        generic :: backward => backward_1d, backward_3d
+        generic :: get_output => get_output_1d, get_output_3d
 
-   end type layer
+    end type layer
 
-   interface backward
+    interface backward
 
-      pure module subroutine backward_1d(self, previous, gradient)
+        pure module subroutine backward_1d(self, previous, gradient)
          !! Apply a backward pass on the layer.
          !! This changes the internal state of the layer.
          !! This is normally called internally by the `network % backward`
          !! method.
-         class(layer), intent(in out) :: self
+            class(layer), intent(in out) :: self
          !! Layer instance
-         class(layer), intent(in) :: previous
+            class(layer), intent(in) :: previous
          !! Previous layer instance
-         real, intent(in) :: gradient(:)
+            real, intent(in) :: gradient(:)
          !! Array of gradient values from the next layer
-      end subroutine backward_1d
+        end subroutine backward_1d
 
-      pure module subroutine backward_3d(self, previous, gradient)
+        pure module subroutine backward_3d(self, previous, gradient)
          !! Apply a backward pass on the layer.
          !! This changes the internal state of the layer.
          !! This is normally called internally by the `network % backward`
          !! method.
-         class(layer), intent(in out) :: self
+            class(layer), intent(in out) :: self
          !! Layer instance
-         class(layer), intent(in) :: previous
+            class(layer), intent(in) :: previous
          !! Previous layer instance
-         real, intent(in) :: gradient(:,:,:)
+            real, intent(in) :: gradient(:, :, :)
          !! Array of gradient values from the next layer
-      end subroutine backward_3d
+        end subroutine backward_3d
 
-   end interface backward
+    end interface backward
 
-   interface
+    interface
 
-      pure module subroutine forward(self, input)
+        pure module subroutine forward(self, input)
          !! Apply a forward pass on the layer.
          !! This changes the internal state of the layer.
          !! This is normally called internally by the `network % forward`
          !! method.
-         class(layer), intent(in out) :: self
+            class(layer), intent(in out) :: self
          !! Layer instance
-         class(layer), intent(in) :: input
+            class(layer), intent(in) :: input
          !! Input layer instance
-      end subroutine forward
+        end subroutine forward
 
-      pure module subroutine get_output_1d(self, output)
+        pure module subroutine get_output_1d(self, output)
          !! Returns the output values (activations) from this layer.
-         class(layer), intent(in) :: self
+            class(layer), intent(in) :: self
          !! Layer instance
-         real, allocatable, intent(out) :: output(:)
+            real, allocatable, intent(out) :: output(:)
          !! Output values from this layer
-      end subroutine get_output_1d
+        end subroutine get_output_1d
 
-      pure module subroutine get_output_3d(self, output)
+        pure module subroutine get_output_3d(self, output)
          !! Returns the output values (activations) from a layer with a 3-d output
          !! (e.g. input3d, conv2d)
-         class(layer), intent(in) :: self
+            class(layer), intent(in) :: self
          !! Layer instance
-         real, allocatable, intent(out) :: output(:,:,:)
+            real, allocatable, intent(out) :: output(:, :, :)
          !! Output values from this layer
-      end subroutine get_output_3d
+        end subroutine get_output_3d
 
-      impure elemental module subroutine init(self, input)
+        impure elemental module subroutine init(self, input)
          !! Initialize the layer, using information from the input layer,
          !! i.e. the layer that precedes this one.
-         class(layer), intent(in out) :: self
+            class(layer), intent(in out) :: self
          !! Layer instance
-         class(layer), intent(in) :: input
+            class(layer), intent(in) :: input
          !! Input layer instance
-      end subroutine init
+        end subroutine init
 
-      impure elemental module subroutine print_info(self)
+        impure elemental module subroutine print_info(self)
          !! Prints a summary information about this layer to the screen.
          !! This method is called by `network % print_info` for all layers
          !! on that network.
-         class(layer), intent(in) :: self
+            class(layer), intent(in) :: self
          !! Layer instance
-      end subroutine print_info
+        end subroutine print_info
 
-      pure module function get_num_params(self) result(num_params)
+        pure module function get_num_params(self) result(num_params)
          !! Returns the number of parameters in this layer.
-         class(layer), intent(in) :: self
+            class(layer), intent(in) :: self
          !! Layer instance
-         integer :: num_params
+            integer :: num_params
          !! Number of parameters in this layer
-      end function get_num_params
+        end function get_num_params
 
-      pure module subroutine get_parameters(self, params)
+        pure module subroutine get_parameters(self, params)
          !! Returns the parameters of this layer.
-         class(layer), intent(in) :: self
+            class(layer), intent(in) :: self
          !! Layer instance
-         real, allocatable, intent(inout) :: params(:)
+            real, allocatable, intent(inout) :: params(:)
          !! Parameters of this layer
-      end subroutine get_parameters
+        end subroutine get_parameters
 
-      impure elemental module subroutine update(self, learning_rate)
+        pure module function set_parameters(self, params) result(consumed)
+         !! Returns the parameters of this layer.
+            class(layer), intent(in) :: self
+         !! Layer instance
+            real, intent(in) :: params(:)
+         !! Parameters of this layer
+            integer :: consumed
+        end function set_parameters
+
+        impure elemental module subroutine update(self, learning_rate)
          !! Update the weights and biases on the layer using the stored
          !! gradients (from backward passes), and flush those same stored
          !! gradients to zero.
          !! This changes the state of the layer.
          !! Typically used only internally from the `network % update` method.
-         class(layer), intent(in out) :: self
+            class(layer), intent(in out) :: self
          !! Layer instance
-         real, intent(in) :: learning_rate
+            real, intent(in) :: learning_rate
          !! Learning rate to use; must be > 0.
-      end subroutine update
+        end subroutine update
 
-   end interface
+    end interface
 
 end module nf_layer
