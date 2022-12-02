@@ -1,7 +1,7 @@
 program params
     use nf, only: dense, input, network
     implicit none
-    type(network) :: net
+    type(network) :: net, net2
     real :: x(1), y(1)
     real, parameter :: pi = 4*atan(1.)
     integer, parameter :: num_iterations = 100000
@@ -55,5 +55,14 @@ program params
         print '("size(parameters) = ", i0)', size(parameters)
         print *, 'parameters:', parameters
     end if
+
+    net2 = network([ &
+                   input(1), &
+                   dense(5), &
+                   dense(3), & ! only for testing purposes (this layer is not really needed to solve this problem)
+                   dense(1) &
+                   ])
+
+    call net2%print_info()
 
 end program params
