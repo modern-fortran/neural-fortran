@@ -216,6 +216,20 @@ contains
         real, intent(in) :: params(:)
         integer :: consumed
 
+        ! check if the number of parameters is correct
+        if (size(params) .lt. self%get_num_params()) then
+            error stop 'Error: number of parameters does not match'
+        end if
+
+        ! reshape the kernel
+        self%kernel = reshape(params(1:self%filters*self%channels*self%kernel_size*self%kernel_size), &
+                              [self%filters, self%channels, self%kernel_size, self%kernel_size])
+
+        ! reshape the biases
+        self%biases = reshape(params(self%filters*self%channels*self%kernel_size*self%kernel_size + 1:), &
+                              [self%filters])
+
+        consumed = self%get_num_params()
     end function set_parameters
 
     elemental module subroutine set_activation(self, activation)
