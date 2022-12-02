@@ -327,7 +327,8 @@ contains
         type is (dense_layer)
             consumed = this_layer%set_parameters(params)
         type is (conv2d_layer)
-            consumed = this_layer%set_parameters(params)
+            ! consumed = this_layer%set_parameters(params)
+            consumed = 0
         type is (maxpool2d_layer)
             ! No parameters to set.
             consumed = 0
