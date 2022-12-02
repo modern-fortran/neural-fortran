@@ -312,8 +312,8 @@ contains
         end select
     end subroutine get_parameters
 
-    pure module function set_parameters(self, params) result(consumed)
-        class(layer), intent(in) :: self
+    impure module function set_parameters(self, params) result(consumed)
+        class(layer), intent(in out) :: self
         real, intent(in) :: params(:)
         integer :: consumed
 

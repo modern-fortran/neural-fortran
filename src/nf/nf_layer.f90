@@ -136,9 +136,9 @@ module nf_layer
          !! Parameters of this layer
         end subroutine get_parameters
 
-        pure module function set_parameters(self, params) result(consumed)
+        impure module function set_parameters(self, params) result(consumed)
          !! Returns the parameters of this layer.
-            class(layer), intent(in) :: self
+            class(layer), intent(in out) :: self
          !! Layer instance
             real, intent(in) :: params(:)
          !! Parameters of this layer
