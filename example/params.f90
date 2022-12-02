@@ -66,11 +66,11 @@ program params
     call net2%print_info()
 
     ypred = [(net%predict([xtest(i)]), i=1, test_size)]
-    print *, 'Before:'
+    print *, 'Original network test output:'
     print *, ypred
 
     ypred = [(net2%predict([xtest(i)]), i=1, test_size)]
-    print *, 'After:'
+    print *, 'Cloned network test output:'
     print *, ypred
 
 end program params
