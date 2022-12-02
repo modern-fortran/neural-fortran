@@ -65,6 +65,9 @@ program params
 
     call net2%print_info()
 
+    ! copy the parameters from net to net2
+    call net2%set_parameters(parameters)
+
     ypred = [(net%predict([xtest(i)]), i=1, test_size)]
     print *, 'Original network test output:'
     print *, ypred
