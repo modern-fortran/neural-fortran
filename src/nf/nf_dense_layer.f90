@@ -4,141 +4,141 @@ module nf_dense_layer
    !! It is used internally by the layer type.
    !! It is not intended to be used directly by the user.
 
-    use nf_activation_1d, only: activation_function
-    use nf_base_layer, only: base_layer
+   use nf_activation_1d, only: activation_function
+   use nf_base_layer, only: base_layer
 
-    implicit none
+   implicit none
 
-    private
-    public :: dense_layer
+   private
+   public :: dense_layer
 
-    type, extends(base_layer) :: dense_layer
+   type, extends(base_layer) :: dense_layer
 
       !! Concrete implementation of a dense (fully-connected) layer type
 
-        integer :: input_size
-        integer :: output_size
+      integer :: input_size
+      integer :: output_size
 
-        real, allocatable :: weights(:, :)
-        real, allocatable :: biases(:)
-        real, allocatable :: z(:) ! matmul(x, w) + b
-        real, allocatable :: output(:) ! activation(z)
-        real, allocatable :: gradient(:) ! matmul(w, db)
-        real, allocatable :: dw(:, :) ! weight gradients
-        real, allocatable :: db(:) ! bias gradients
+      real, allocatable :: weights(:, :)
+      real, allocatable :: biases(:)
+      real, allocatable :: z(:) ! matmul(x, w) + b
+      real, allocatable :: output(:) ! activation(z)
+      real, allocatable :: gradient(:) ! matmul(w, db)
+      real, allocatable :: dw(:, :) ! weight gradients
+      real, allocatable :: db(:) ! bias gradients
 
-        procedure(activation_function), pointer, nopass :: &
-            activation => null()
-        procedure(activation_function), pointer, nopass :: &
-            activation_prime => null()
+      procedure(activation_function), pointer, nopass :: &
+         activation => null()
+      procedure(activation_function), pointer, nopass :: &
+         activation_prime => null()
 
-    contains
+   contains
 
-        procedure :: backward
-        procedure :: forward
-        procedure :: get_num_params
-        procedure :: get_parameters
-        procedure :: set_parameters
-        procedure :: init
-        procedure :: set_activation
-        procedure :: update
+      procedure :: backward
+      procedure :: forward
+      procedure :: get_num_params
+      procedure :: get_parameters
+      procedure :: set_parameters
+      procedure :: init
+      procedure :: set_activation
+      procedure :: update
 
-    end type dense_layer
+   end type dense_layer
 
-    interface dense_layer
-        elemental module function dense_layer_cons(output_size, activation) &
-            result(res)
+   interface dense_layer
+      elemental module function dense_layer_cons(output_size, activation) &
+         result(res)
          !! This function returns the `dense_layer` instance.
-            integer, intent(in) :: output_size
+         integer, intent(in) :: output_size
          !! Number of neurons in this layer
-            character(*), intent(in) :: activation
+         character(*), intent(in) :: activation
          !! Name of the activation function to use;
          !! See nf_activation.f90 for available functions.
-            type(dense_layer) :: res
+         type(dense_layer) :: res
          !! dense_layer instance
-        end function dense_layer_cons
-    end interface dense_layer
+      end function dense_layer_cons
+   end interface dense_layer
 
-    interface
+   interface
 
-        pure module subroutine backward(self, input, gradient)
+      pure module subroutine backward(self, input, gradient)
          !! Apply the backward gradient descent pass.
          !! Only weight and bias gradients are updated in this subroutine,
          !! while the weights and biases themselves are untouched.
-            class(dense_layer), intent(in out) :: self
+         class(dense_layer), intent(in out) :: self
          !! Dense layer instance
-            real, intent(in) :: input(:)
+         real, intent(in) :: input(:)
          !! Input from the previous layer
-            real, intent(in) :: gradient(:)
+         real, intent(in) :: gradient(:)
          !! Gradient from the next layer
-        end subroutine backward
+      end subroutine backward
 
-        pure module subroutine forward(self, input)
+      pure module subroutine forward(self, input)
          !! Propagate forward the layer.
          !! Calling this subroutine updates the values of a few data components
          !! of `dense_layer` that are needed for the backward pass.
-            class(dense_layer), intent(in out) :: self
+         class(dense_layer), intent(in out) :: self
          !! Dense layer instance
-            real, intent(in) :: input(:)
+         real, intent(in) :: input(:)
          !! Input from the previous layer
-        end subroutine forward
+      end subroutine forward
 
-        pure module function get_num_params(self) result(num_params)
+      pure module function get_num_params(self) result(num_params)
          !! Return the number of parameters in this layer.
-            class(dense_layer), intent(in) :: self
+         class(dense_layer), intent(in) :: self
          !! Dense layer instance
-            integer :: num_params
+         integer :: num_params
          !! Number of parameters in this layer
-        end function get_num_params
+      end function get_num_params
 
-        pure module subroutine get_parameters(self, params)
+      pure module subroutine get_parameters(self, params)
          !! Return the parameters of this layer.
          !! The parameters are returned in the order of the weights, then the
          !! biases.
-            class(dense_layer), intent(in) :: self
+         class(dense_layer), intent(in) :: self
          !! Dense layer instance
-            real, allocatable, intent(inout) :: params(:)
+         real, allocatable, intent(inout) :: params(:)
          !! Parameters of this layer
-        end subroutine get_parameters
+      end subroutine get_parameters
 
-        module function set_parameters(self, params) result(consumed)
+      module function set_parameters(self, params) result(consumed)
          !! Set the parameters of this layer.
          !! The parameters are set in the order of the weights, then the
          !! biases.
-            class(dense_layer), intent(in out) :: self
+         class(dense_layer), intent(in out) :: self
          !! Dense layer instance
-            real, intent(in) :: params(:)
+         real, intent(in) :: params(:)
          !! Parameters of this layer
-            integer :: consumed
+         integer :: consumed
          !! Number of parameters consumed
-        end function set_parameters
+      end function set_parameters
 
-        module subroutine init(self, input_shape)
+      module subroutine init(self, input_shape)
          !! Initialize the layer data structures.
          !!
          !! This is a deferred procedure from the `base_layer` abstract type.
-            class(dense_layer), intent(in out) :: self
+         class(dense_layer), intent(in out) :: self
          !! Dense layer instance
-            integer, intent(in) :: input_shape(:)
+         integer, intent(in) :: input_shape(:)
          !! Shape of the input layer
-        end subroutine init
+      end subroutine init
 
-        elemental module subroutine set_activation(self, activation)
+      elemental module subroutine set_activation(self, activation)
          !! Set the activation functions.
-            class(dense_layer), intent(in out) :: self
+         class(dense_layer), intent(in out) :: self
          !! Layer instance
-            character(*), intent(in) :: activation
+         character(*), intent(in) :: activation
          !! String with the activation function name
-        end subroutine set_activation
+      end subroutine set_activation
 
-        module subroutine update(self, learning_rate)
+      module subroutine update(self, learning_rate)
          !! Update the weights and biases.
-            class(dense_layer), intent(in out) :: self
+         class(dense_layer), intent(in out) :: self
          !! Dense layer instance
-            real, intent(in) :: learning_rate
+         real, intent(in) :: learning_rate
          !! Learning rate (must be > 0)
-        end subroutine update
+      end subroutine update
 
-    end interface
+   end interface
 
 end module nf_dense_layer
