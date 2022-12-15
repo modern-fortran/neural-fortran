@@ -207,6 +207,8 @@ examples, in increasing level of complexity:
   dense model from a Keras HDF5 file and running the inference.
 6. [cnn_from_keras](example/cnn_from_keras.f90): Creating a pre-trained
   convolutional model from a Keras HDF5 file and running the inference.
+7. [get_set_network_params](example/get_set_network_params.f90): Getting and
+  setting hyperparameters of a network.
 
 The examples also show you the extent of the public API that's meant to be
 used in applications, i.e. anything from the `nf` module.
