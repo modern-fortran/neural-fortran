@@ -49,7 +49,7 @@ program get_set_network_params
   nparam = net % get_num_params()
   print '("get_num_params = ", i0)', nparam
 
-  call net % get_parameters(parameters)
+  call net % get_params(parameters)
 
   if (allocated(parameters)) then
     print '("size(parameters) = ", i0)', size(parameters)
@@ -66,7 +66,7 @@ program get_set_network_params
   call net2 % print_info()
 
   ! copy the parameters from net to net2
-  call net2 % set_parameters(parameters)
+  call net2 % set_params(parameters)
 
   ypred = [(net % predict([xtest(i)]), i=1, test_size)]
   print *, 'Original network test output:'

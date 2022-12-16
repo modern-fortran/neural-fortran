@@ -25,6 +25,9 @@ module nf_layer
   contains
 
     procedure :: forward
+    procedure :: get_num_params
+    procedure :: get_params
+    procedure :: set_params
     procedure :: init
     procedure :: print_info
     procedure :: update
@@ -116,6 +119,31 @@ module nf_layer
       class(layer), intent(in) :: self
         !! Layer instance
     end subroutine print_info
+
+    pure module function get_num_params(self) result(num_params)
+      !! Returns the number of parameters in this layer.
+      class(layer), intent(in) :: self
+        !! Layer instance
+      integer :: num_params
+        !! Number of parameters in this layer
+    end function get_num_params
+
+    pure module subroutine get_params(self, params)
+      !! Returns the parameters of this layer.
+      class(layer), intent(in) :: self
+        !! Layer instance
+      real, allocatable, intent(in out) :: params(:)
+        !! Parameters of this layer
+    end subroutine get_params
+
+    impure module function set_params(self, params) result(consumed)
+      !! Returns the parameters of this layer.
+      class(layer), intent(in out) :: self
+        !! Layer instance
+      real, intent(in) :: params(:)
+        !! Parameters of this layer
+      integer :: consumed
+    end function set_params
 
     impure elemental module subroutine update(self, learning_rate)
       !! Update the weights and biases on the layer using the stored

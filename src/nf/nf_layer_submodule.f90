@@ -269,6 +269,91 @@ contains
   end subroutine print_info
 
 
+  pure module function get_num_params(self) result(num_params)
+    implicit none
+    class(layer), intent(in) :: self
+    integer :: num_params
+
+    select type (this_layer => self % p)
+      type is (input1d_layer)
+        num_params = 0
+      type is (input3d_layer)
+        num_params = 0
+      type is (dense_layer)
+        num_params = this_layer % get_num_params()
+      type is (conv2d_layer)
+        num_params = this_layer % get_num_params()
+      type is (maxpool2d_layer)
+        num_params = 0
+      type is (flatten_layer)
+        num_params = 0
+      type is (reshape3d_layer)
+        num_params = 0
+      class default
+        error stop 'Unknown layer type.'
+    end select
+
+  end function get_num_params
+
+
+  pure module subroutine get_params(self, params)
+    class(layer), intent(in) :: self
+    real, allocatable, intent(in out) :: params(:)
+
+    select type (this_layer => self % p)
+      type is (input1d_layer)
+         ! No parameters to get.
+      type is (input3d_layer)
+         ! No parameters to get.
+      type is (dense_layer)
+        call this_layer % get_params(params)
+      type is (conv2d_layer)
+        call this_layer % get_params(params)
+      type is (maxpool2d_layer)
+        ! No parameters to get.
+      type is (flatten_layer)
+        ! No parameters to get.
+      type is (reshape3d_layer)
+        ! No parameters to get.
+      class default
+        error stop 'Unknown layer type.'
+    end select
+
+  end subroutine get_params
+
+
+  impure module function set_params(self, params) result(consumed)
+    class(layer), intent(in out) :: self
+    real, intent(in) :: params(:)
+    integer :: consumed
+
+    select type (this_layer => self%p)
+     type is (input1d_layer)
+       ! No parameters to set.
+       consumed = 0
+     type is (input3d_layer)
+       ! No parameters to set.
+       consumed = 0
+     type is (dense_layer)
+       consumed = this_layer % set_params(params)
+     type is (conv2d_layer)
+       consumed = this_layer % set_params(params)
+     type is (maxpool2d_layer)
+       ! No parameters to set.
+       consumed = 0
+     type is (flatten_layer)
+       ! No parameters to set.
+       consumed = 0
+     type is (reshape3d_layer)
+       ! No parameters to set.
+       consumed = 0
+     class default
+       error stop 'Unknown layer type.'
+    end select
+
+  end function set_params
+
+
   impure elemental module subroutine update(self, learning_rate)
     implicit none
     class(layer), intent(in out) :: self
