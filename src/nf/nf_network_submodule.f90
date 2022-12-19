@@ -375,6 +375,8 @@ contains
       real, allocatable, intent(inout) :: params(:)
       integer :: n
 
+      if (allocated(params)) deallocate(params)
+
       do n = 1, size(self%layers)
          call self%layers(n)%get_parameters(params)
       end do
