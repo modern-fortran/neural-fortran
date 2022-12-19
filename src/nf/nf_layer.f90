@@ -128,22 +128,21 @@ module nf_layer
         !! Number of parameters in this layer
     end function get_num_params
 
-    pure module subroutine get_params(self, params)
+    pure module function get_params(self) result(params)
       !! Returns the parameters of this layer.
       class(layer), intent(in) :: self
         !! Layer instance
-      real, allocatable, intent(in out) :: params(:)
+      real, allocatable :: params(:)
         !! Parameters of this layer
-    end subroutine get_params
+    end function get_params
 
-    impure module function set_params(self, params) result(consumed)
+    module subroutine set_params(self, params)
       !! Returns the parameters of this layer.
       class(layer), intent(in out) :: self
         !! Layer instance
       real, intent(in) :: params(:)
         !! Parameters of this layer
-      integer :: consumed
-    end function set_params
+    end subroutine set_params
 
     impure elemental module subroutine update(self, learning_rate)
       !! Update the weights and biases on the layer using the stored

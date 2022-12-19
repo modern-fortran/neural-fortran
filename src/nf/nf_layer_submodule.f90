@@ -296,9 +296,9 @@ contains
   end function get_num_params
 
 
-  pure module subroutine get_params(self, params)
+  pure module function get_params(self) result(params)
     class(layer), intent(in) :: self
-    real, allocatable, intent(in out) :: params(:)
+    real, allocatable :: params(:)
 
     select type (this_layer => self % p)
       type is (input1d_layer)
@@ -306,9 +306,9 @@ contains
       type is (input3d_layer)
          ! No parameters to get.
       type is (dense_layer)
-        call this_layer % get_params(params)
+        params = this_layer % get_params()
       type is (conv2d_layer)
-        call this_layer % get_params(params)
+        params = this_layer % get_params()
       type is (maxpool2d_layer)
         ! No parameters to get.
       type is (flatten_layer)
@@ -319,39 +319,33 @@ contains
         error stop 'Unknown layer type.'
     end select
 
-  end subroutine get_params
+  end function get_params
 
 
-  impure module function set_params(self, params) result(consumed)
+  module subroutine set_params(self, params)
     class(layer), intent(in out) :: self
     real, intent(in) :: params(:)
-    integer :: consumed
 
     select type (this_layer => self%p)
      type is (input1d_layer)
        ! No parameters to set.
-       consumed = 0
      type is (input3d_layer)
        ! No parameters to set.
-       consumed = 0
      type is (dense_layer)
-       consumed = this_layer % set_params(params)
+       call this_layer % set_params(params)
      type is (conv2d_layer)
-       consumed = this_layer % set_params(params)
+       call this_layer % set_params(params)
      type is (maxpool2d_layer)
        ! No parameters to set.
-       consumed = 0
      type is (flatten_layer)
        ! No parameters to set.
-       consumed = 0
      type is (reshape3d_layer)
        ! No parameters to set.
-       consumed = 0
      class default
        error stop 'Unknown layer type.'
     end select
 
-  end function set_params
+  end subroutine set_params
 
 
   impure elemental module subroutine update(self, learning_rate)

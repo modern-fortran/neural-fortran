@@ -189,40 +189,32 @@ contains
   end subroutine backward
 
 
-  pure  module function get_num_params(self) result(num_params)
+  pure module function get_num_params(self) result(num_params)
     class(conv2d_layer), intent(in) :: self
     integer :: num_params
     num_params = product(shape(self % kernel)) + size(self % biases)
   end function get_num_params
 
 
-  pure module subroutine get_params(self, params)
+  pure module function get_params(self) result(params)
     class(conv2d_layer), intent(in) :: self
-    real, allocatable, intent(in out) :: params(:)
+    real, allocatable :: params(:)
 
-    ! automatic reallocation of params
+    params = [ &
+      pack(self % kernel, .true.), &
+      pack(self % biases, .true.) &
+    ]
 
-    ! first pack the kernel
-    if (allocated(params)) then
-      params = [params, pack(self % kernel, .true.)]
-    else
-      params = pack(self % kernel, .true.)
-    end if
-
-    ! then pack the biases
-    params = [params, pack(self % biases, .true.)]
-
-  end subroutine get_params
+  end function get_params
 
 
-  module function set_params(self, params) result(consumed)
+  module subroutine set_params(self, params)
     class(conv2d_layer), intent(in out) :: self
     real, intent(in) :: params(:)
-    integer :: consumed
 
     ! Check that the number of parameters is correct.
-    if (size(params) < self % get_num_params()) then
-       error stop 'Number of parameters does not match'
+    if (size(params) /= self % get_num_params()) then
+       error stop 'conv2d % set_params: Number of parameters does not match'
     end if
 
     ! Reshape the kernel.
@@ -237,9 +229,7 @@ contains
       [self % filters] &
     )
 
-    consumed = self%get_num_params()
-
-  end function set_params
+  end subroutine set_params
 
 
   elemental module subroutine set_activation(self, activation)

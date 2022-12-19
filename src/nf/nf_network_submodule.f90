@@ -374,7 +374,6 @@ contains
     integer :: n, num_params
 
     num_params = 0
-
     do n = 1, size(self % layers)
       num_params = num_params + self % layers(n) % get_num_params()
     end do
@@ -382,31 +381,41 @@ contains
   end function get_num_params
 
 
-  pure module subroutine get_params(self, params)
+  pure module function get_params(self) result(params)
     class(network), intent(in) :: self
-    real, allocatable, intent(in out) :: params(:)
-    integer :: n
+    real, allocatable :: params(:)
+    integer :: n, nstart, nend
 
+    allocate(params(self % get_num_params()))
+
+    nstart = 1
     do n = 1, size(self % layers)
-      call self % layers(n) % get_params(params)
+
+      if (self % layers(n) % get_num_params() < 1) cycle
+
+      nend = nstart + self % layers(n) % get_num_params() - 1
+      params(nstart:nend) = self % layers(n) % get_params()
+      nstart = nend + 1
     end do
 
-  end subroutine get_params
+  end function get_params
 
 
   module subroutine set_params(self, params)
     class(network), intent(in out) :: self
     real, intent(in) :: params(:)
-    integer :: n, consumed
+    integer :: n, nstart, nend
 
     ! Check that the number of parameters is correct.
-    if (size(params) .ne. self % get_num_params()) then
+    if (size(params) /= self % get_num_params()) then
       error stop 'network % set_params: number of parameters does not match.'
     end if
 
-    consumed = 0
+    nstart = 1
     do n = 1, size(self % layers)
-      consumed = consumed + self % layers(n) % set_params(params(consumed + 1:))
+      nend = nstart + self % layers(n) % get_num_params() - 1
+      call self % layers(n) % set_params(params(nstart:nend))
+      nstart = nend + 1
     end do
 
   end subroutine set_params

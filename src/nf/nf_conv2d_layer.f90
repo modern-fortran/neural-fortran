@@ -93,23 +93,21 @@ module nf_conv2d_layer
         !! Number of parameters
     end function get_num_params
 
-    pure module subroutine get_params(self, params)
+    pure module function get_params(self) result(params)
       !! Get the parameters of the layer.
       class(conv2d_layer), intent(in) :: self
         !! A `conv2d_layer` instance
-      real, allocatable, intent(in out) :: params(:)
+      real, allocatable :: params(:)
         !! Parameters to get
-    end subroutine get_params
+    end function get_params
 
-    module function set_params(self, params) result(consumed)
+    module subroutine set_params(self, params)
       !! Set the parameters of the layer.
       class(conv2d_layer), intent(in out) :: self
         !! A `conv2d_layer` instance
       real, intent(in) :: params(:)
         !! Parameters to set
-      integer :: consumed
-        !! Number of parameters consumed
-    end function set_params
+    end subroutine set_params
 
     elemental module subroutine set_activation(self, activation)
     !! Set the activation functions.

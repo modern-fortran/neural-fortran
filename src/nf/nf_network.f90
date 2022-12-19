@@ -153,13 +153,13 @@ module nf_network
       !! Network instance
     end function get_num_params
 
-    pure module subroutine get_params(self, params)
+    pure module function get_params(self) result(params)
       !! Get the network parameters (weights and biases).
       class(network), intent(in) :: self
         !! Network instance
-      real, allocatable, intent(in out) :: params(:)
+      real, allocatable :: params(:)
         !! Network parameters to get
-    end subroutine get_params
+    end function get_params
 
     module subroutine set_params(self, params)
       !! Set the network parameters (weights and biases).

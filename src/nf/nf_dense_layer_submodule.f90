@@ -63,32 +63,24 @@ contains
   end function get_num_params
 
 
-  pure module subroutine get_params(self, params)
+  pure module function get_params(self) result(params)
     class(dense_layer), intent(in) :: self
-    real, allocatable, intent(in out) :: params(:)
+    real, allocatable :: params(:)
 
-    ! automatic reallocation of params
+    params = [ &
+      pack(self % weights, .true.), &
+      pack(self % biases, .true.) &
+    ]
 
-    ! first pack the weights
-    if (allocated(params)) then
-      params = [params, pack(self % weights, .true.)]
-    else
-      params = pack(self % weights, .true.)
-    end if
-
-    ! then pack the biases
-    params = [params, pack(self % biases, .true.)]
-
-  end subroutine get_params
+  end function get_params
 
 
-  module function set_params(self, params) result(consumed)
+  module subroutine set_params(self, params)
     class(dense_layer), intent(in out) :: self
     real, intent(in) :: params(:)
-    integer :: consumed
 
     ! check if the number of parameters is correct
-    if (size(params) < self % get_num_params()) then
+    if (size(params) /= self % get_num_params()) then
       error stop 'Error: number of parameters does not match'
     end if
 
@@ -104,9 +96,7 @@ contains
       [self % output_size] &
     )
 
-    consumed = self % get_num_params()
-
-  end function set_params
+  end subroutine set_params
 
 
   module subroutine init(self, input_shape)

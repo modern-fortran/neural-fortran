@@ -91,25 +91,23 @@ module nf_dense_layer
          !! Number of parameters in this layer
     end function get_num_params
 
-    pure module subroutine get_params(self, params)
+    pure module function get_params(self) result(params)
       !! Return the parameters of this layer.
       !! The parameters are ordered as weights first, biases second.
       class(dense_layer), intent(in) :: self
         !! Dense layer instance
-      real, allocatable, intent(in out) :: params(:)
+      real, allocatable :: params(:)
         !! Parameters of this layer
-    end subroutine get_params
+    end function get_params
 
-    module function set_params(self, params) result(consumed)
+    module subroutine set_params(self, params)
       !! Set the parameters of this layer.
       !! The parameters are ordered as weights first, biases second.
       class(dense_layer), intent(in out) :: self
         !! Dense layer instance
       real, intent(in) :: params(:)
         !! Parameters of this layer
-      integer :: consumed
-        !! Number of parameters consumed
-    end function set_params
+    end subroutine set_params
 
     module subroutine init(self, input_shape)
       !! Initialize the layer data structures.

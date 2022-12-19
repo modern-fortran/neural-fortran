@@ -6,7 +6,8 @@ program get_set_network_params
   real, parameter :: pi = 4*atan(1.)
   integer, parameter :: num_iterations = 100000
   integer, parameter :: test_size = 30
-  real :: xtest(test_size), ytest(test_size), ypred(test_size)
+  real :: xtest(test_size), ytest(test_size)
+  real :: ypred1(test_size), ypred2(test_size)
   integer :: i, n, nparam
   real, allocatable :: parameters(:)
 
@@ -31,13 +32,13 @@ program get_set_network_params
     x = x*2*pi
     y = (sin(x) + 1)/2
 
-    call net%forward(x)
-    call net%backward(y)
-    call net%update(1.)
+    call net % forward(x)
+    call net % backward(y)
+    call net % update(1.)
 
     if (mod(n, 10000) == 0) then
-      ypred = [(net % predict([xtest(i)]), i=1, test_size)]
-      print '(i0,1x,f9.6)', n, sum((ypred - ytest)**2)/size(ypred)
+      ypred1 = [(net % predict([xtest(i)]), i=1, test_size)]
+      print '(i0,1x,f9.6)', n, sum((ypred1 - ytest)**2) / size(ypred1)
     end if
 
   end do
@@ -49,12 +50,12 @@ program get_set_network_params
   nparam = net % get_num_params()
   print '("get_num_params = ", i0)', nparam
 
-  call net % get_params(parameters)
+  parameters = net % get_params()
+  print '("size(parameters) = ", i0)', size(parameters)
+  print *, 'parameters:', parameters
 
-  if (allocated(parameters)) then
-    print '("size(parameters) = ", i0)', size(parameters)
-    print *, 'parameters:', parameters
-  end if
+  print *, 'Now create another network of the same shape and set'
+  print *, 'the parameters from the original network to it.'
 
   net2 = network([ &
     input(1), &
@@ -63,17 +64,11 @@ program get_set_network_params
     dense(1) &
   ])
 
-  call net2 % print_info()
-
   ! copy the parameters from net to net2
   call net2 % set_params(parameters)
 
-  ypred = [(net % predict([xtest(i)]), i=1, test_size)]
-  print *, 'Original network test output:'
-  print *, ypred
-
-  ypred = [(net2 % predict([xtest(i)]), i=1, test_size)]
-  print *, 'Cloned network test output:'
-  print *, ypred
+  ypred1 = [(net % predict([xtest(i)]), i=1, test_size)]
+  ypred2 = [(net2 % predict([xtest(i)]), i=1, test_size)]
+  print *, 'Original and cloned network outputs match:', all(ypred1 == ypred2)
 
 end program get_set_network_params
