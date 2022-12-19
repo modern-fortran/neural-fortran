@@ -136,14 +136,13 @@ module nf_layer
          !! Parameters of this layer
       end subroutine get_parameters
 
-      impure module function set_parameters(self, params) result(consumed)
+      impure module subroutine set_parameters(self, params)
          !! Returns the parameters of this layer.
          class(layer), intent(in out) :: self
          !! Layer instance
          real, intent(in) :: params(:)
          !! Parameters of this layer
-         integer :: consumed
-      end function set_parameters
+      end subroutine set_parameters
 
       impure elemental module subroutine update(self, learning_rate)
          !! Update the weights and biases on the layer using the stored

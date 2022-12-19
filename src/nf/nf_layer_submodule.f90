@@ -312,35 +312,29 @@ contains
       end select
    end subroutine get_parameters
 
-   impure module function set_parameters(self, params) result(consumed)
+   impure module subroutine set_parameters(self, params)
       class(layer), intent(in out) :: self
       real, intent(in) :: params(:)
-      integer :: consumed
 
       select type (this_layer => self%p)
        type is (input1d_layer)
          ! No parameters to set.
-         consumed = 0
        type is (input3d_layer)
          ! No parameters to set.
-         consumed = 0
        type is (dense_layer)
-         consumed = this_layer%set_parameters(params)
+         call this_layer%set_parameters(params)
        type is (conv2d_layer)
-         consumed = this_layer%set_parameters(params)
+         call this_layer%set_parameters(params)
        type is (maxpool2d_layer)
          ! No parameters to set.
-         consumed = 0
        type is (flatten_layer)
          ! No parameters to set.
-         consumed = 0
        type is (reshape3d_layer)
          ! No parameters to set.
-         consumed = 0
        class default
          error stop 'Unknown layer type.'
       end select
-   end function set_parameters
+   end subroutine set_parameters
 
    impure elemental module subroutine update(self, learning_rate)
       implicit none
