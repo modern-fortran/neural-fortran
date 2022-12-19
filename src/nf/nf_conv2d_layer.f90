@@ -101,15 +101,13 @@ module nf_conv2d_layer
          !! Parameters
       end subroutine get_parameters
 
-      module function set_parameters(self, params) result(consumed)
+      module subroutine set_parameters(self, params)
          !! Set the parameters of the layer.
          class(conv2d_layer), intent(in out) :: self
          !! A `conv2d_layer` instance
          real, intent(in) :: params(:)
          !! Parameters
-         integer :: consumed
-         !! Number of parameters consumed
-      end function set_parameters
+      end subroutine set_parameters
 
       elemental module subroutine set_activation(self, activation)
          !! Set the activation functions.

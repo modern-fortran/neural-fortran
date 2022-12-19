@@ -211,10 +211,9 @@ contains
 
    end subroutine get_parameters
 
-   module function set_parameters(self, params) result(consumed)
+   module subroutine set_parameters(self, params)
       class(conv2d_layer), intent(in out) :: self
       real, intent(in) :: params(:)
-      integer :: consumed
 
       ! check if the number of parameters is correct
       if (size(params) .lt. self%get_num_params()) then
@@ -229,8 +228,7 @@ contains
       self%biases = reshape(params(self%filters*self%channels*self%kernel_size*self%kernel_size + 1:), &
          [self%filters])
 
-      consumed = self%get_num_params()
-   end function set_parameters
+   end subroutine set_parameters
 
    elemental module subroutine set_activation(self, activation)
       class(conv2d_layer), intent(in out) :: self
