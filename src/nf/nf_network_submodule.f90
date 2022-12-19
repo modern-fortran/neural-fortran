@@ -385,17 +385,18 @@ contains
    module subroutine set_parameters(self, params)
       class(network), intent(in out) :: self
       real, intent(in) :: params(:)
-      integer :: n, consumed
+      integer :: n, nstart, nend
 
       ! check if the number of parameters is correct
       if (size(params) .ne. self%get_num_params()) then
          error stop 'network % set_parameters: number of parameters does not match'
       end if
 
-      consumed = 0
-
+      nstart = 1
       do n = 1, size(self%layers)
-         consumed = consumed + self%layers(n)%set_parameters(params(consumed + 1:))
+         nend = nstart + self%layers(n)%get_num_params() - 1
+         call self%layers(n)%set_parameters(params(nstart:nend))
+         nstart = nend + 1
       end do
    end subroutine set_parameters
 
