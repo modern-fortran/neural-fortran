@@ -76,10 +76,9 @@ contains
 
    end subroutine get_parameters
 
-   module function set_parameters(self, params) result(consumed)
+   module subroutine set_parameters(self, params)
       class(dense_layer), intent(in out) :: self
       real, intent(in) :: params(:)
-      integer :: consumed
 
       ! check if the number of parameters is correct
       if (size(params) .lt. self%get_num_params()) then
@@ -94,8 +93,7 @@ contains
       self%biases = reshape(params(self%input_size*self%output_size + 1:), &
          [self%output_size])
 
-      consumed = self%get_num_params()
-   end function set_parameters
+   end subroutine set_parameters
 
    module subroutine init(self, input_shape)
       class(dense_layer), intent(in out) :: self
