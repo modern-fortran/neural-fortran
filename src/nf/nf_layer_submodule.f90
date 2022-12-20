@@ -269,7 +269,7 @@ contains
   end subroutine print_info
 
 
-  pure module function get_num_params(self) result(num_params)
+  elemental module function get_num_params(self) result(num_params)
     implicit none
     class(layer), intent(in) :: self
     integer :: num_params

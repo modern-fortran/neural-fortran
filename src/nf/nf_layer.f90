@@ -120,7 +120,7 @@ module nf_layer
         !! Layer instance
     end subroutine print_info
 
-    pure module function get_num_params(self) result(num_params)
+    elemental module function get_num_params(self) result(num_params)
       !! Returns the number of parameters in this layer.
       class(layer), intent(in) :: self
         !! Layer instance
