@@ -327,6 +327,13 @@ contains
     class(layer), intent(in out) :: self
     real, intent(in) :: params(:)
 
+    ! Check that the number of parameters is correct.
+    ! This check will still pass if the size(params) == 0 and the layer is a
+    ! non-zero parameter layer; if so, we will warn the user about it below.
+    if (size(params) /= self % get_num_params()) then
+      error stop 'layer % set_params: number of parameters does not match.'
+    end if
+
     ! When layer % set_params() is called from network % set_params,
     ! zero-parameter layers such as input, flatten, reshape, and maxpool layers
     ! will not be reached because we are guarding against calling
