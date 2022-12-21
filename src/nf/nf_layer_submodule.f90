@@ -264,6 +264,7 @@ contains
     if (.not. self % name == 'input') &
       print '("Input shape: ", *(i0, 1x))', self % input_layer_shape
     print '("Output shape: ", *(i0, 1x))', self % layer_shape
+    print '("Parameters: ", i0)', self % get_num_params()
     if (.not. self % name == 'input') &
       print '("Activation: ", a)', self % activation
     print *
