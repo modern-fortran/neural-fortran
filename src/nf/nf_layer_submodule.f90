@@ -1,5 +1,6 @@
 submodule(nf_layer) nf_layer_submodule
 
+  use iso_fortran_env, only: stderr => error_unit
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
@@ -326,23 +327,48 @@ contains
     class(layer), intent(in out) :: self
     real, intent(in) :: params(:)
 
-    select type (this_layer => self%p)
-     type is (input1d_layer)
-       ! No parameters to set.
-     type is (input3d_layer)
-       ! No parameters to set.
-     type is (dense_layer)
-       call this_layer % set_params(params)
-     type is (conv2d_layer)
-       call this_layer % set_params(params)
-     type is (maxpool2d_layer)
-       ! No parameters to set.
-     type is (flatten_layer)
-       ! No parameters to set.
-     type is (reshape3d_layer)
-       ! No parameters to set.
-     class default
-       error stop 'Unknown layer type.'
+    ! When layer % set_params() is called from network % set_params,
+    ! zero-parameter layers such as input, flatten, reshape, and maxpool layers
+    ! will not be reached because we are guarding against calling
+    ! layer % set_params() with zero-size parameters there.
+    ! However, a user is allowed to call layer % set_params() on a
+    ! zero-parameter layer and pass to it parameters of non-zero size.
+    ! If that happens, we will warn about it here.
+    select type (this_layer => self % p)
+
+      type is (input1d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (input3d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (dense_layer)
+        call this_layer % set_params(params)
+
+      type is (conv2d_layer)
+        call this_layer % set_params(params)
+
+      type is (maxpool2d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (flatten_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (reshape3d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+          class default
+        error stop 'Unknown layer type.'
     end select
 
   end subroutine set_params
