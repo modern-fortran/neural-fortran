@@ -13,6 +13,10 @@ program get_set_network_params
 
   print '("Getting and setting network parameters")'
   print '(60("="))'
+  print *
+  print '(a)', 'First, let''s instantiate small dense network net1'
+  print '(a)', 'of shape (1,5,1) and fit it to a sine function:'
+  print *
 
   net1 = network([ &
     input(1), &
@@ -37,23 +41,26 @@ program get_set_network_params
 
     if (mod(n, 10000) == 0) then
       ypred1 = [(net1 % predict([xtest(i)]), i=1, test_size)]
-      print '(i0,1x,f9.6)', n, sum((ypred1 - ytest)**2) / size(ypred1)
+      print '(a,i0,1x,f9.6)', 'Number of iterations, loss: ', &
+        n, sum((ypred1 - ytest)**2) / size(ypred1)
     end if
 
   end do
 
   print *
-  print '("Extract parameters")'
+  print '(a)', 'Now, let''s see how many network parameters there are'
+  print '(a)', 'by printing the result of net1 % get_num_params():'
   print *
-
-  print '("get_num_params = ", i0)', net1 % get_num_params()
-
-  parameters = net1 % get_params()
-  print '("size(parameters) = ", i0)', size(parameters)
-  print *, 'parameters:', parameters
+  print '("net1 % get_num_params() = ", i0)', net1 % get_num_params()
   print *
-  print *, 'Now create another network of the same shape and set'
-  print *, 'the parameters from the original network to it.'
+  print '(a)', 'We can see the values of the network parameters'
+  print '(a)', 'by printing the result of net1 % get_params():'
+  print *
+  print '("net1 % get_params() = ", *(g0,1x))', net1 % get_params()
+  print *
+  print '(a)', 'Now, let''s create another network of the same shape and set'
+  print '(a)', 'the parameters from the original network to it'
+  print '(a)', 'by calling call net2 % set_params(net1 % get_params()):'
 
   net2 = network([ &
     input(1), &
@@ -62,12 +69,24 @@ program get_set_network_params
   ])
 
   ! Set the parameters of net1 to net2
-  call net2 % set_params(parameters)
+  call net2 % set_params(net1 % get_params())
+
+  print *
+  print '(a)', 'We can check that the second network now has the same'
+  print '(a)', 'parameters as net1:'
+  print *
+  print '("net2 % get_params() = ", *(g0,1x))', net2 % get_params()
 
   ypred1 = [(net1 % predict([xtest(i)]), i=1, test_size)]
   ypred2 = [(net2 % predict([xtest(i)]), i=1, test_size)]
 
   print *
-  print *, 'Original and cloned network outputs match:', all(ypred1 == ypred2)
+  print '(a)', 'We can also check that the two networks produce the same output:'
+  print *
+  print '("net1 output: ", *(g0,1x))', ypred1
+  print '("net2 output: ", *(g0,1x))', ypred2
+
+  print *
+  print '(a)', 'Original and cloned network outputs match:', all(ypred1 == ypred2)
 
 end program get_set_network_params
