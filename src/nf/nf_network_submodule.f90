@@ -371,7 +371,7 @@ contains
 
   pure module function get_num_params(self) result(num_params)
     class(network), intent(in) :: self
-    integer :: n, num_params
+    integer :: num_params
 
     num_params = sum(self % layers % get_num_params())
 
@@ -411,6 +411,7 @@ contains
     nstart = 1
     do n = 1, size(self % layers)
       nend = nstart + self % layers(n) % get_num_params() - 1
+      if (nend - nstart < 1) cycle
       call self % layers(n) % set_params(params(nstart:nend))
       nstart = nend + 1
     end do
