@@ -17,6 +17,9 @@ module nf_network
   contains
 
     procedure :: backward
+    procedure :: get_num_params
+    procedure :: get_params
+    procedure :: set_params
     procedure :: print_info
     procedure :: train
     procedure :: update
@@ -143,6 +146,28 @@ module nf_network
       real, intent(in) :: output(:)
         !! Output data
     end subroutine backward
+
+    pure module integer function get_num_params(self)
+      !! Get the number of parameters in the network.
+      class(network), intent(in) :: self
+      !! Network instance
+    end function get_num_params
+
+    pure module function get_params(self) result(params)
+      !! Get the network parameters (weights and biases).
+      class(network), intent(in) :: self
+        !! Network instance
+      real, allocatable :: params(:)
+        !! Network parameters to get
+    end function get_params
+
+    module subroutine set_params(self, params)
+      !! Set the network parameters (weights and biases).
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: params(:)
+        !! Network parameters to set
+    end subroutine set_params
 
     module subroutine print_info(self)
       !! Prints a brief summary of the network and its layers to the screen.

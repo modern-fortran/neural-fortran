@@ -3,6 +3,7 @@ foreach(execid
   cnn_from_keras
   dense_mnist
   dense_from_keras
+  get_set_network_params
   simple
   sine
 )

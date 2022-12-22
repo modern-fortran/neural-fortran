@@ -36,6 +36,9 @@ module nf_dense_layer
 
     procedure :: backward
     procedure :: forward
+    procedure :: get_num_params
+    procedure :: get_params
+    procedure :: set_params
     procedure :: init
     procedure :: set_activation
     procedure :: update
@@ -79,6 +82,32 @@ module nf_dense_layer
       real, intent(in) :: input(:)
         !! Input from the previous layer
     end subroutine forward
+
+    pure module function get_num_params(self) result(num_params)
+       !! Return the number of parameters in this layer.
+       class(dense_layer), intent(in) :: self
+         !! Dense layer instance
+       integer :: num_params
+         !! Number of parameters in this layer
+    end function get_num_params
+
+    pure module function get_params(self) result(params)
+      !! Return the parameters of this layer.
+      !! The parameters are ordered as weights first, biases second.
+      class(dense_layer), intent(in) :: self
+        !! Dense layer instance
+      real, allocatable :: params(:)
+        !! Parameters of this layer
+    end function get_params
+
+    module subroutine set_params(self, params)
+      !! Set the parameters of this layer.
+      !! The parameters are ordered as weights first, biases second.
+      class(dense_layer), intent(in out) :: self
+        !! Dense layer instance
+      real, intent(in) :: params(:)
+        !! Parameters of this layer
+    end subroutine set_params
 
     module subroutine init(self, input_shape)
       !! Initialize the layer data structures.

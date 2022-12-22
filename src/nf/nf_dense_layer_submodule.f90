@@ -53,6 +53,52 @@ contains
   end subroutine forward
 
 
+  pure module function get_num_params(self) result(num_params)
+    class(dense_layer), intent(in) :: self
+    integer :: num_params
+
+    ! Number of weigths times number of biases
+    num_params = self % input_size * self % output_size + self % output_size
+
+  end function get_num_params
+
+
+  pure module function get_params(self) result(params)
+    class(dense_layer), intent(in) :: self
+    real, allocatable :: params(:)
+
+    params = [ &
+      pack(self % weights, .true.), &
+      pack(self % biases, .true.) &
+    ]
+
+  end function get_params
+
+
+  module subroutine set_params(self, params)
+    class(dense_layer), intent(in out) :: self
+    real, intent(in) :: params(:)
+
+    ! check if the number of parameters is correct
+    if (size(params) /= self % get_num_params()) then
+      error stop 'Error: number of parameters does not match'
+    end if
+
+    ! reshape the weights
+    self % weights = reshape( &
+      params(:self % input_size * self % output_size), &
+      [self % input_size, self % output_size] &
+    )
+
+    ! reshape the biases
+    self % biases = reshape( &
+      params(self % input_size * self % output_size + 1:), &
+      [self % output_size] &
+    )
+
+  end subroutine set_params
+
+
   module subroutine init(self, input_shape)
     class(dense_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)

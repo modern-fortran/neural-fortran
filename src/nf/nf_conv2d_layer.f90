@@ -36,6 +36,9 @@ module nf_conv2d_layer
     procedure :: init
     procedure :: forward
     procedure :: backward
+    procedure :: get_num_params
+    procedure :: get_params
+    procedure :: set_params
     procedure :: set_activation
     procedure :: update
 
@@ -81,6 +84,30 @@ module nf_conv2d_layer
       real, intent(in) :: gradient(:,:,:)
         !! Gradient (next layer)
     end subroutine backward
+
+    pure module function get_num_params(self) result(num_params)
+      !! Get the number of parameters in the layer.
+      class(conv2d_layer), intent(in) :: self
+        !! A `conv2d_layer` instance
+      integer :: num_params
+        !! Number of parameters
+    end function get_num_params
+
+    pure module function get_params(self) result(params)
+      !! Get the parameters of the layer.
+      class(conv2d_layer), intent(in) :: self
+        !! A `conv2d_layer` instance
+      real, allocatable :: params(:)
+        !! Parameters to get
+    end function get_params
+
+    module subroutine set_params(self, params)
+      !! Set the parameters of the layer.
+      class(conv2d_layer), intent(in out) :: self
+        !! A `conv2d_layer` instance
+      real, intent(in) :: params(:)
+        !! Parameters to set
+    end subroutine set_params
 
     elemental module subroutine set_activation(self, activation)
     !! Set the activation functions.

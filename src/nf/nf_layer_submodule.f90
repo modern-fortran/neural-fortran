@@ -1,5 +1,6 @@
 submodule(nf_layer) nf_layer_submodule
 
+  use iso_fortran_env, only: stderr => error_unit
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
@@ -263,10 +264,122 @@ contains
     if (.not. self % name == 'input') &
       print '("Input shape: ", *(i0, 1x))', self % input_layer_shape
     print '("Output shape: ", *(i0, 1x))', self % layer_shape
+    print '("Parameters: ", i0)', self % get_num_params()
     if (.not. self % name == 'input') &
       print '("Activation: ", a)', self % activation
     print *
   end subroutine print_info
+
+
+  elemental module function get_num_params(self) result(num_params)
+    implicit none
+    class(layer), intent(in) :: self
+    integer :: num_params
+
+    select type (this_layer => self % p)
+      type is (input1d_layer)
+        num_params = 0
+      type is (input3d_layer)
+        num_params = 0
+      type is (dense_layer)
+        num_params = this_layer % get_num_params()
+      type is (conv2d_layer)
+        num_params = this_layer % get_num_params()
+      type is (maxpool2d_layer)
+        num_params = 0
+      type is (flatten_layer)
+        num_params = 0
+      type is (reshape3d_layer)
+        num_params = 0
+      class default
+        error stop 'Unknown layer type.'
+    end select
+
+  end function get_num_params
+
+
+  pure module function get_params(self) result(params)
+    class(layer), intent(in) :: self
+    real, allocatable :: params(:)
+
+    select type (this_layer => self % p)
+      type is (input1d_layer)
+         ! No parameters to get.
+      type is (input3d_layer)
+         ! No parameters to get.
+      type is (dense_layer)
+        params = this_layer % get_params()
+      type is (conv2d_layer)
+        params = this_layer % get_params()
+      type is (maxpool2d_layer)
+        ! No parameters to get.
+      type is (flatten_layer)
+        ! No parameters to get.
+      type is (reshape3d_layer)
+        ! No parameters to get.
+      class default
+        error stop 'Unknown layer type.'
+    end select
+
+  end function get_params
+
+
+  module subroutine set_params(self, params)
+    class(layer), intent(in out) :: self
+    real, intent(in) :: params(:)
+
+    ! Check that the number of parameters is correct.
+    ! This check will still pass if the size(params) == 0 and the layer is a
+    ! non-zero parameter layer; if so, we will warn the user about it below.
+    if (size(params) /= self % get_num_params()) then
+      error stop 'layer % set_params: number of parameters does not match.'
+    end if
+
+    ! When layer % set_params() is called from network % set_params,
+    ! zero-parameter layers such as input, flatten, reshape, and maxpool layers
+    ! will not be reached because we are guarding against calling
+    ! layer % set_params() with zero-size parameters there.
+    ! However, a user is allowed to call layer % set_params() on a
+    ! zero-parameter layer and pass to it parameters of non-zero size.
+    ! If that happens, we will warn about it here.
+    select type (this_layer => self % p)
+
+      type is (input1d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (input3d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (dense_layer)
+        call this_layer % set_params(params)
+
+      type is (conv2d_layer)
+        call this_layer % set_params(params)
+
+      type is (maxpool2d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (flatten_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (reshape3d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+          class default
+        error stop 'Unknown layer type.'
+    end select
+
+  end subroutine set_params
 
 
   impure elemental module subroutine update(self, learning_rate)

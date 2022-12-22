@@ -188,6 +188,50 @@ contains
 
   end subroutine backward
 
+
+  pure module function get_num_params(self) result(num_params)
+    class(conv2d_layer), intent(in) :: self
+    integer :: num_params
+    num_params = product(shape(self % kernel)) + size(self % biases)
+  end function get_num_params
+
+
+  pure module function get_params(self) result(params)
+    class(conv2d_layer), intent(in) :: self
+    real, allocatable :: params(:)
+
+    params = [ &
+      pack(self % kernel, .true.), &
+      pack(self % biases, .true.) &
+    ]
+
+  end function get_params
+
+
+  module subroutine set_params(self, params)
+    class(conv2d_layer), intent(in out) :: self
+    real, intent(in) :: params(:)
+
+    ! Check that the number of parameters is correct.
+    if (size(params) /= self % get_num_params()) then
+       error stop 'conv2d % set_params: Number of parameters does not match'
+    end if
+
+    ! Reshape the kernel.
+    self % kernel = reshape( &
+      params(:product(shape(self % kernel))), &
+      shape(self % kernel) &
+    )
+
+    ! Reshape the biases.
+    self % biases = reshape( &
+      params(product(shape(self % kernel)) + 1:), &
+      [self % filters] &
+    )
+
+  end subroutine set_params
+
+
   elemental module subroutine set_activation(self, activation)
     class(conv2d_layer), intent(in out) :: self
     character(*), intent(in) :: activation

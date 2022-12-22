@@ -7,6 +7,7 @@ foreach(execid
   flatten_layer
   reshape_layer
   dense_network
+  get_set_network_params
   io_hdf5
   keras_read_model
   dense_network_from_keras

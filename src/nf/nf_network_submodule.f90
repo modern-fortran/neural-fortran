@@ -369,6 +369,56 @@ contains
   end subroutine print_info
 
 
+  pure module function get_num_params(self) result(num_params)
+    class(network), intent(in) :: self
+    integer :: num_params
+
+    num_params = sum(self % layers % get_num_params())
+
+  end function get_num_params
+
+
+  pure module function get_params(self) result(params)
+    class(network), intent(in) :: self
+    real, allocatable :: params(:)
+    integer :: n, nstart, nend
+
+    allocate(params(self % get_num_params()))
+
+    nstart = 1
+    do n = 1, size(self % layers)
+
+      if (self % layers(n) % get_num_params() < 1) cycle
+
+      nend = nstart + self % layers(n) % get_num_params() - 1
+      params(nstart:nend) = self % layers(n) % get_params()
+      nstart = nend + 1
+    end do
+
+  end function get_params
+
+
+  module subroutine set_params(self, params)
+    class(network), intent(in out) :: self
+    real, intent(in) :: params(:)
+    integer :: n, nstart, nend
+
+    ! Check that the number of parameters is correct.
+    if (size(params) /= self % get_num_params()) then
+      error stop 'network % set_params: number of parameters does not match.'
+    end if
+
+    nstart = 1
+    do n = 1, size(self % layers)
+      nend = nstart + self % layers(n) % get_num_params() - 1
+      if (nend - nstart < 1) cycle
+      call self % layers(n) % set_params(params(nstart:nend))
+      nstart = nend + 1
+    end do
+
+  end subroutine set_params
+
+
   module subroutine train(self, input_data, output_data, batch_size, &
                           epochs, optimizer)
     class(network), intent(in out) :: self
