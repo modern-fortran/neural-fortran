@@ -87,6 +87,6 @@ program get_set_network_params
   print '("net2 output: ", *(g0,1x))', ypred2
 
   print *
-  print '(a)', 'Original and cloned network outputs match:', all(ypred1 == ypred2)
+  print '("Original and cloned network outputs match: ",l)', all(ypred1 == ypred2)
 
 end program get_set_network_params
