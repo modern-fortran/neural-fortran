@@ -369,11 +369,11 @@ contains
   end subroutine print_info
 
 
-  pure module function get_num_params(self) result(num_params)
+  pure module function get_num_params(self)
     class(network), intent(in) :: self
-    integer :: num_params
+    integer :: get_num_params
 
-    num_params = sum(self % layers % get_num_params())
+    get_num_params = sum(self % layers % get_num_params())
 
   end function get_num_params
 
