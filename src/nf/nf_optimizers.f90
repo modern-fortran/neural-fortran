@@ -5,9 +5,13 @@ module nf_optimizers
   implicit none
 
   private
-  public :: sgd
+  public :: optimizer_base_type, sgd
 
-  type :: sgd
+  type, abstract :: optimizer_base_type
+    character(:), allocatable :: name
+  end type optimizer_base_type
+
+  type, extends(optimizer_base_type) :: sgd
     !! Stochastic Gradient Descent optimizer
     real :: learning_rate
     real :: momentum = 0 !TODO

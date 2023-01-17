@@ -12,7 +12,7 @@ submodule(nf_network) nf_network_submodule
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
   use nf_loss, only: quadratic_derivative
-  use nf_optimizers, only: sgd
+  use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
 
   implicit none
@@ -426,7 +426,7 @@ contains
     real, intent(in) :: output_data(:,:)
     integer, intent(in) :: batch_size
     integer, intent(in) :: epochs
-    type(sgd), intent(in) :: optimizer
+    class(optimizer_base_type), intent(in) :: optimizer
 
     real :: pos
     integer :: dataset_size
@@ -439,26 +439,31 @@ contains
     epoch_loop: do n = 1, epochs
       batch_loop: do i = 1, dataset_size / batch_size
 
-      ! Pull a random mini-batch from the dataset
-      call random_number(pos)
-      batch_start = int(pos * (dataset_size - batch_size + 1)) + 1
-      batch_end = batch_start + batch_size - 1
+        ! Pull a random mini-batch from the dataset
+        call random_number(pos)
+        batch_start = int(pos * (dataset_size - batch_size + 1)) + 1
+        batch_end = batch_start + batch_size - 1
 
-      ! FIXME shuffle in a way that doesn't require co_broadcast
-      call co_broadcast(batch_start, 1)
-      call co_broadcast(batch_end, 1)
+        ! FIXME shuffle in a way that doesn't require co_broadcast
+        call co_broadcast(batch_start, 1)
+        call co_broadcast(batch_end, 1)
 
-      ! Distribute the batch in nearly equal pieces to all images
-      indices = tile_indices(batch_size)
-      istart = indices(1) + batch_start - 1
-      iend = indices(2) + batch_start - 1
+        ! Distribute the batch in nearly equal pieces to all images
+        indices = tile_indices(batch_size)
+        istart = indices(1) + batch_start - 1
+        iend = indices(2) + batch_start - 1
 
-      do concurrent(j = istart:iend)
-        call self % forward(input_data(:,j))
-        call self % backward(output_data(:,j))
-      end do
+        do concurrent(j = istart:iend)
+          call self % forward(input_data(:,j))
+          call self % backward(output_data(:,j))
+        end do
 
-      call self % update(optimizer % learning_rate / batch_size)
+        select type (optimizer)
+          type is (sgd)
+            call self % update(optimizer % learning_rate / batch_size)
+          class default
+            error stop 'Unsupported optimizer'
+        end select
 
       end do batch_loop
     end do epoch_loop
