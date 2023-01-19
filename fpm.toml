@@ -1,9 +1,9 @@
 name = "neural-fortran"
-version = "0.10.0"
+version = "0.11.0"
 license = "MIT"
 author = "Milan Curcic"
 maintainer = "milancurcic@hey.com"
-copyright = "Copyright 2018-2022, neural-fortran contributors"
+copyright = "Copyright 2018-2023, neural-fortran contributors"
 
 [build]
 external-modules = "hdf5"
