@@ -45,10 +45,37 @@ contains
 
     res % layers = layers
 
+    ! If connecting a 3-d output layer to a 1-d input layer without a flatten
+    ! layer in between, insert a flatten layer.
+    n = 2
+    do while (n <= size(res % layers))
+      select type(this_layer => res % layers(n) % p)
+        type is(dense_layer)
+          select type(prev_layer => res % layers(n-1) % p)
+            type is(input3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(conv2d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(maxpool2d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(reshape3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            class default
+              n = n + 1
+          end select
+        class default
+          n = n + 1
+      end select
+    end do
+
     ! Loop over each layer in order and call the init methods.
     ! This will allocate the data internal to each layer (e.g. weights, biases)
     ! according to the size of the previous layer.
-    do n = 2, size(layers)
+    do n = 2, size(res % layers)
       call res % layers(n) % init(res % layers(n - 1))
     end do
 

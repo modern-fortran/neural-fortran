@@ -5,6 +5,7 @@ foreach(execid
   conv2d_layer
   maxpool2d_layer
   flatten_layer
+  insert_flatten
   reshape_layer
   dense_network
   get_set_network_params

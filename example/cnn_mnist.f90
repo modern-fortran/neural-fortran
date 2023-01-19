@@ -28,7 +28,6 @@ program cnn_mnist
     maxpool2d(pool_size=2), &
     conv2d(filters=16, kernel_size=3, activation='relu'), &
     maxpool2d(pool_size=2), &
-    flatten(), &
     dense(10, activation='softmax') &
   ])
 
