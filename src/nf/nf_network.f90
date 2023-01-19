@@ -3,7 +3,7 @@ module nf_network
   !! This module provides the network type to create new models.
 
   use nf_layer, only: layer
-  use nf_optimizers, only: sgd
+  use nf_optimizers, only: optimizer_base_type
 
   implicit none
 
@@ -193,7 +193,7 @@ module nf_network
         !! Set to `size(input_data, dim=2)` for a batch gradient descent.
       integer, intent(in) :: epochs
         !! Number of epochs to run
-      type(sgd), intent(in) :: optimizer
+      class(optimizer_base_type), intent(in) :: optimizer
         !! Optimizer instance; currently this is an `sgd` optimizer type
         !! and it will be made to be a more general optimizer type.
     end subroutine train
