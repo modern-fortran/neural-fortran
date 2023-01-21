@@ -4,6 +4,7 @@ submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
                               elu, elu_prime, &
                               exponential, &
                               gaussian, gaussian_prime, &
+                              linear, linear_prime, &
                               relu, relu_prime, &
                               sigmoid, sigmoid_prime, &
                               softmax, softmax_prime, &
@@ -254,6 +255,11 @@ contains
         self % activation_prime => gaussian_prime
         self % activation_name = 'gaussian'
 
+      case('linear')
+        self % activation => linear
+        self % activation_prime => linear_prime
+        self % activation_name = 'linear'
+
       case('relu')
         self % activation => relu
         self % activation_prime => relu_prime
@@ -286,9 +292,8 @@ contains
 
       case default
         error stop 'Activation must be one of: ' // &
-          '"elu", "exponential", "gaussian", "relu", ' // &
-          '"sigmoid", "softmax", "softplus", "step", ' // &
-          'or "tanh".'
+          '"elu", "exponential", "gaussian", "linear", "relu", "sigmoid", ' // &
+          '"softmax", "softplus", "step", or "tanh".'
 
     end select
 

@@ -10,6 +10,7 @@ module nf_activation_1d
   public :: elu, elu_prime
   public :: exponential
   public :: gaussian, gaussian_prime
+  public :: linear, linear_prime
   public :: relu, relu_prime
   public :: sigmoid, sigmoid_prime
   public :: softmax, softmax_prime
@@ -71,6 +72,20 @@ contains
     real :: res(size(x))
     res = -2 * x * gaussian(x)
   end function gaussian_prime
+
+  pure function linear(x) result(res)
+    ! Linear activation function.
+    real, intent(in) :: x(:)
+    real :: res(size(x))
+    res = x
+  end function linear
+
+  pure function linear_prime(x) result(res)
+    ! First derivative of the Gaussian activation function.
+    real, intent(in) :: x(:)
+    real :: res(size(x))
+    res = 1
+  end function linear_prime
 
   pure function relu(x) result(res)
     !! Rectified Linear Unit (ReLU) activation function.
