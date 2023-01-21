@@ -242,9 +242,11 @@ Thanks to all open-source contributors to neural-fortran:
 [@ivan-pi](https://github.com/ivan-pi),
 [@jacobwilliams](https://github.com/jacobwilliams),
 [@jvdp1](https://github.com/jvdp1),
+[@jvo203](https://github.com/jvo203),
 [@milancurcic](https://github.com/milancurcic),
 [@pirpyn](https://github.com/pirpyn),
 [@rouson](https://github.com/rouson),
+[@rweed](https://github.com/rweed),
 and [@scivision](https://github.com/scivision).
 
 Development of convolutional networks and Keras HDF5 adapters in
