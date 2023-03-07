@@ -11,7 +11,8 @@ module nf_activation_1d
   public :: exponential
   public :: gaussian, gaussian_prime
   public :: linear, linear_prime
-  public :: relu, leaky_relu, relu_prime
+  public :: relu, relu_prime
+  public :: leaky_relu, leaky_relu_prime
   public :: sigmoid, sigmoid_prime
   public :: softmax, softmax_prime
   public :: softplus, softplus_prime
@@ -94,13 +95,6 @@ contains
     res = max(0., x)
   end function relu
 
-  pure function leaky_relu(x) result(res)
-    !! Leaky Rectified Linear Unit (Leaky ReLU) activation function.
-    real, intent(in) :: x(:)
-    real :: res(size(x))
-    res = max(0.01*x, x)
-  end function leaky_relu
-
   pure function relu_prime(x) result(res)
     ! First derivative of the Rectified Linear Unit (ReLU) activation function.
     real, intent(in) :: x(:)
@@ -111,6 +105,26 @@ contains
       res = 0
     end where
   end function relu_prime
+
+  pure function leaky_relu(x, alpha) result(res)
+    !! Leaky Rectified Linear Unit (Leaky ReLU) activation function.
+    real, intent(in) :: x(:)
+    real, intent(in) :: alpha
+    real :: res(size(x))
+    res = max(alpha*x, x)
+  end function leaky_relu
+
+  pure function leaky_relu_prime(x, alpha) result(res)
+    ! First derivative of the Leaky Rectified Linear Unit (Leaky ReLU) activation function.
+    real, intent(in) :: x(:)
+    real, intent(in) :: alpha
+    real :: res(size(x))
+    where (x > 0)
+      res = 1
+    elsewhere
+      res = alpha
+    end where
+  end function leaky_relu_prime
 
   pure function sigmoid(x) result(res)
     ! Sigmoid activation function.
