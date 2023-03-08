@@ -20,8 +20,9 @@ module nf_activation_1d
   public :: tanhf, tanh_prime
 
   interface
-    pure function activation_function(x)
+    pure function activation_function(x, alpha)
       real, intent(in) :: x(:)
+      real, intent(in), optional :: alpha
       real :: activation_function(size(x))
     end function activation_function
   end interface
@@ -53,51 +54,58 @@ contains
     end where
   end function elu_prime
 
-  pure function exponential(x) result(res)
+  pure function exponential(x, alpha) result(res)
     ! Exponential activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = exp(x)
   end function exponential
 
-  pure function gaussian(x) result(res)
+  pure function gaussian(x, alpha) result(res)
     ! Gaussian activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = exp(-x**2)
   end function gaussian
 
-  pure function gaussian_prime(x) result(res)
+  pure function gaussian_prime(x, alpha) result(res)
     ! First derivative of the Gaussian activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = -2 * x * gaussian(x)
   end function gaussian_prime
 
-  pure function linear(x) result(res)
+  pure function linear(x, alpha) result(res)
     ! Linear activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = x
   end function linear
 
-  pure function linear_prime(x) result(res)
+  pure function linear_prime(x, alpha) result(res)
     ! First derivative of the Gaussian activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = 1
   end function linear_prime
 
-  pure function relu(x) result(res)
+  pure function relu(x, alpha) result(res)
     !! Rectified Linear Unit (ReLU) activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = max(0., x)
   end function relu
 
-  pure function relu_prime(x) result(res)
+  pure function relu_prime(x, alpha) result(res)
     ! First derivative of the Rectified Linear Unit (ReLU) activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     where (x > 0)
       res = 1
@@ -126,52 +134,59 @@ contains
     end where
   end function leaky_relu_prime
 
-  pure function sigmoid(x) result(res)
+  pure function sigmoid(x, alpha) result(res)
     ! Sigmoid activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = 1 / (1 + exp(-x))
   endfunction sigmoid
 
-  pure function sigmoid_prime(x) result(res)
+  pure function sigmoid_prime(x, alpha) result(res)
     ! First derivative of the sigmoid activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = sigmoid(x) * (1 - sigmoid(x))
   end function sigmoid_prime
 
-  pure function softmax(x) result(res)
+  pure function softmax(x, alpha) result(res)
     !! Softmax activation function
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = exp(x - maxval(x))
     res = res / sum(res)
   end function softmax
 
-  pure function softmax_prime(x) result(res)
+  pure function softmax_prime(x, alpha) result(res)
     !! Derivative of the softmax activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = softmax(x) * (1 - softmax(x))
   end function softmax_prime
 
-  pure function softplus(x) result(res)
+  pure function softplus(x, alpha) result(res)
     ! Softplus activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = log(exp(x) + 1)
   end function softplus
 
-  pure function softplus_prime(x) result(res)
+  pure function softplus_prime(x,alpha) result(res)
     ! First derivative of the softplus activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = exp(x) / (exp(x) + 1)
   end function softplus_prime
 
-  pure function step(x) result(res)
+  pure function step(x, alpha) result(res)
     ! Step activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     where (x > 0)
       res = 1
@@ -180,26 +195,29 @@ contains
     end where
   end function step
 
-  pure function step_prime(x) result(res)
+  pure function step_prime(x, alpha) result(res)
     ! First derivative of the step activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = 0
   end function step_prime
 
-  pure function tanhf(x) result(res)
+  pure function tanhf(x, alpha) result(res)
     ! Tangent hyperbolic activation function. 
     ! Same as the intrinsic tanh, but must be 
     ! defined here so that we can use procedure
     ! pointer with it.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = tanh(x)
   end function tanhf
 
-  pure function tanh_prime(x) result(res)
+  pure function tanh_prime(x, alpha) result(res)
     ! First derivative of the tanh activation function.
     real, intent(in) :: x(:)
+    real, intent(in), optional :: alpha
     real :: res(size(x))
     res = 1 - tanh(x)**2
   end function tanh_prime

@@ -143,11 +143,10 @@ contains
 
     select case(trim(activation))
 
-      ! TODO need to figure out how to handle the alpha param
-      !case('elu')
-      !  self % activation => elu
-      !  self % activation_prime => elu_prime
-      !  self % activation_name = 'elu'
+      case('elu')
+       self % activation => elu
+       self % activation_prime => elu_prime
+       self % activation_name = 'elu'
 
       case('exponential')
         self % activation => exponential
