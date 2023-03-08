@@ -19,13 +19,14 @@ submodule(nf_dense_layer) nf_dense_layer_submodule
 
 contains
 
-  elemental module function dense_layer_cons(output_size, activation) &
+  elemental module function dense_layer_cons(output_size, activation, alpha) &
     result(res)
     integer, intent(in) :: output_size
+    real, intent(in) :: alpha
     character(*), intent(in) :: activation
     type(dense_layer) :: res
     res % output_size = output_size
-    call res % set_activation(activation)
+    call res % set_activation(activation, alpha)
   end function dense_layer_cons
 
 
@@ -140,7 +141,7 @@ contains
   elemental module subroutine set_activation(self, activation, alpha)
     class(dense_layer), intent(in out) :: self
     character(*), intent(in) :: activation
-    integer, intent(in) :: alpha
+    real, intent(in) :: alpha
 
     select case(trim(activation))
 

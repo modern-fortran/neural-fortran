@@ -46,10 +46,12 @@ module nf_dense_layer
   end type dense_layer
 
   interface dense_layer
-    elemental module function dense_layer_cons(output_size, activation) &
+    elemental module function dense_layer_cons(output_size, activation, alpha) &
       result(res)
       !! This function returns the `dense_layer` instance.
       integer, intent(in) :: output_size
+      !! Alpha
+      real, intent(in) :: alpha
         !! Number of neurons in this layer
       character(*), intent(in) :: activation
         !! Name of the activation function to use;
@@ -125,7 +127,7 @@ module nf_dense_layer
         !! Layer instance
       character(*), intent(in) :: activation
         !! Alpha
-      integer, intent(in) :: alpha
+      real, intent(in) :: alpha
         !! String with the activation function name
     end subroutine set_activation
 

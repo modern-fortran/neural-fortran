@@ -18,15 +18,16 @@ submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
 contains
 
-  pure module function conv2d_layer_cons(filters, kernel_size, activation) result(res)
+  pure module function conv2d_layer_cons(filters, kernel_size, activation, alpha) result(res)
     implicit none
     integer, intent(in) :: filters
+    real, intent(in) :: alpha
     integer, intent(in) :: kernel_size
     character(*), intent(in) :: activation
     type(conv2d_layer) :: res
     res % kernel_size = kernel_size
     res % filters = filters
-    call res % set_activation(activation)
+    call res % set_activation(activation, alpha)
   end function conv2d_layer_cons
 
 
@@ -237,7 +238,7 @@ contains
   elemental module subroutine set_activation(self, activation, alpha)
     class(conv2d_layer), intent(in out) :: self
     character(*), intent(in) :: activation
-    integer, intent(in) :: alpha
+    real, intent(in) :: alpha
 
     select case(trim(activation))
 

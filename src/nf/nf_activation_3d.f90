@@ -32,7 +32,7 @@ contains
   pure function elu(x, alpha) result(res)
     ! Exponential Linear Unit (ELU) activation function.
     real, intent(in) :: x(:,:,:)
-    real, intent(in) :: alpha
+    real, intent(in), optional :: alpha
     real :: res(size(x,1),size(x,2),size(x,3))
     where (x >= 0)
       res = x
@@ -45,7 +45,7 @@ contains
     ! First derivative of the Exponential Linear Unit (ELU)
     ! activation function.
     real, intent(in) :: x(:,:,:)
-    real, intent(in) :: alpha
+    real, intent(in), optional :: alpha
     real :: res(size(x,1),size(x,2),size(x,3))
     where (x >= 0)
       res = 1
@@ -117,7 +117,7 @@ contains
   pure function leaky_relu(x, alpha) result(res)
     !! Leaky Rectified Linear Unit (Leaky ReLU) activation function.
     real, intent(in) :: x(:,:,:)
-    real, intent(in) :: alpha
+    real, intent(in), optional :: alpha
     real :: res(size(x,1),size(x,2),size(x,3))
     res = max(alpha*x, x)
   end function leaky_relu
@@ -125,7 +125,7 @@ contains
   pure function leaky_relu_prime(x, alpha) result(res)
     ! First derivative of the Leaky Rectified Linear Unit (Leaky ReLU) activation function.
     real, intent(in) :: x(:,:,:)
-    real, intent(in) :: alpha
+    real, intent(in), optional :: alpha
     real :: res(size(x,1),size(x,2),size(x,3))
     where (x > 0)
       res = 1
