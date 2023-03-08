@@ -6,7 +6,7 @@ submodule(nf_dense_layer) nf_dense_layer_submodule
                               gaussian, gaussian_prime, &
                               linear, linear_prime, &
                               relu, relu_prime, & 
-                              leaky_relu, leaky_relu_prime &
+                              leaky_relu, leaky_relu_prime, &
                               sigmoid, sigmoid_prime, &
                               softmax, softmax_prime, &
                               softplus, softplus_prime, &
