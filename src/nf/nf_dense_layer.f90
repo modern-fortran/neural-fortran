@@ -119,11 +119,13 @@ module nf_dense_layer
         !! Shape of the input layer
     end subroutine init
 
-    elemental module subroutine set_activation(self, activation)
+    elemental module subroutine set_activation(self, activation, alpha)
       !! Set the activation functions.
       class(dense_layer), intent(in out) :: self
         !! Layer instance
       character(*), intent(in) :: activation
+        !! Alpha
+      integer, intent(in) :: alpha
         !! String with the activation function name
     end subroutine set_activation
 

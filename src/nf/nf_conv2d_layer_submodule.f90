@@ -234,9 +234,10 @@ contains
   end subroutine set_params
 
 
-  elemental module subroutine set_activation(self, activation)
+  elemental module subroutine set_activation(self, activation, alpha)
     class(conv2d_layer), intent(in out) :: self
     character(*), intent(in) :: activation
+    integer, intent(in) :: alpha
 
     select case(trim(activation))
 

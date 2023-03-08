@@ -109,11 +109,13 @@ module nf_conv2d_layer
         !! Parameters to set
     end subroutine set_params
 
-    elemental module subroutine set_activation(self, activation)
+    elemental module subroutine set_activation(self, activation, alpha)
     !! Set the activation functions.
     class(conv2d_layer), intent(in out) :: self
       !! Layer instance
     character(*), intent(in) :: activation
+      !! Alpha
+    integer, intent(in) :: alpha
       !! String with the activation function name
     end subroutine set_activation
 
