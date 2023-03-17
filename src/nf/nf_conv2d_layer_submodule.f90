@@ -6,6 +6,7 @@ submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
                               gaussian, gaussian_prime, &
                               linear, linear_prime, &
                               relu, relu_prime, &
+                              leaky_relu, leaky_relu_prime, &
                               sigmoid, sigmoid_prime, &
                               softmax, softmax_prime, &
                               softplus, softplus_prime, &
@@ -239,11 +240,10 @@ contains
 
     select case(trim(activation))
 
-      ! TODO need to figure out how to handle the alpha param
-      !case('elu')
-      !  self % activation => elu
-      !  self % activation_prime => elu_prime
-      !  self % activation_name = 'elu'
+      case('elu')
+       self % activation => elu
+       self % activation_prime => elu_prime
+       self % activation_name = 'elu'
 
       case('exponential')
         self % activation => exponential
@@ -264,6 +264,11 @@ contains
         self % activation => relu
         self % activation_prime => relu_prime
         self % activation_name = 'relu'
+
+      case('leaky_relu')
+        self % activation => leaky_relu
+        self % activation_prime => leaky_relu_prime
+        self % activation_name = 'leaky_relu'
 
       case('sigmoid')
         self % activation => sigmoid
@@ -292,8 +297,8 @@ contains
 
       case default
         error stop 'Activation must be one of: ' // &
-          '"elu", "exponential", "gaussian", "linear", "relu", "sigmoid", ' // &
-          '"softmax", "softplus", "step", or "tanh".'
+          '"elu", "exponential", "gaussian", "linear", "relu", ' // &
+          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", or "tanh".'
 
     end select
 

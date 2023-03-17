@@ -53,7 +53,7 @@ module nf_dense_layer
         !! Number of neurons in this layer
       character(*), intent(in) :: activation
         !! Name of the activation function to use;
-        !! See nf_activation.f90 for available functions.
+        !! See nf_activation_1d.f90 for available functions.
       type(dense_layer) :: res
         !! dense_layer instance
     end function dense_layer_cons
