@@ -18,16 +18,15 @@ submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
 contains
 
-  pure module function conv2d_layer_cons(filters, kernel_size, activation, alpha) result(res)
+  pure module function conv2d_layer_cons(filters, kernel_size, activation) result(res)
     implicit none
     integer, intent(in) :: filters
-    real, intent(in) :: alpha
     integer, intent(in) :: kernel_size
     character(*), intent(in) :: activation
     type(conv2d_layer) :: res
     res % kernel_size = kernel_size
     res % filters = filters
-    call res % set_activation(activation, alpha)
+    call res % set_activation(activation)
   end function conv2d_layer_cons
 
 
@@ -235,10 +234,9 @@ contains
   end subroutine set_params
 
 
-  elemental module subroutine set_activation(self, activation, alpha)
+  elemental module subroutine set_activation(self, activation)
     class(conv2d_layer), intent(in out) :: self
     character(*), intent(in) :: activation
-    real, intent(in) :: alpha
 
     select case(trim(activation))
 
@@ -299,8 +297,8 @@ contains
 
       case default
         error stop 'Activation must be one of: ' // &
-          '"elu", "exponential", "gaussian", "linear", "relu", "leaky_relu", "sigmoid", ' // &
-          '"softmax", "softplus", "step", or "tanh".'
+          '"elu", "exponential", "gaussian", "linear", "relu", ' // &
+          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", or "tanh".'
 
     end select
 

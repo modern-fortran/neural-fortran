@@ -45,11 +45,10 @@ module nf_conv2d_layer
   end type conv2d_layer
 
   interface conv2d_layer
-    pure module function conv2d_layer_cons(filters, kernel_size, activation, alpha) &
+    pure module function conv2d_layer_cons(filters, kernel_size, activation) &
       result(res)
       !! `conv2d_layer` constructor function
       integer, intent(in) :: filters
-      real, intent(in) :: alpha
       integer, intent(in) :: kernel_size
       character(*), intent(in) :: activation
       type(conv2d_layer) :: res
@@ -110,13 +109,11 @@ module nf_conv2d_layer
         !! Parameters to set
     end subroutine set_params
 
-    elemental module subroutine set_activation(self, activation, alpha)
+    elemental module subroutine set_activation(self, activation)
     !! Set the activation functions.
     class(conv2d_layer), intent(in out) :: self
       !! Layer instance
     character(*), intent(in) :: activation
-      !! Alpha
-    real, intent(in) :: alpha
       !! String with the activation function name
     end subroutine set_activation
 

@@ -19,14 +19,13 @@ submodule(nf_dense_layer) nf_dense_layer_submodule
 
 contains
 
-  elemental module function dense_layer_cons(output_size, activation, alpha) &
+  elemental module function dense_layer_cons(output_size, activation) &
     result(res)
     integer, intent(in) :: output_size
-    real, intent(in) :: alpha
     character(*), intent(in) :: activation
     type(dense_layer) :: res
     res % output_size = output_size
-    call res % set_activation(activation, alpha)
+    call res % set_activation(activation)
   end function dense_layer_cons
 
 
@@ -138,10 +137,9 @@ contains
   end subroutine init
 
 
-  elemental module subroutine set_activation(self, activation, alpha)
+  elemental module subroutine set_activation(self, activation)
     class(dense_layer), intent(in out) :: self
     character(*), intent(in) :: activation
-    real, intent(in) :: alpha
 
     select case(trim(activation))
 
@@ -202,8 +200,8 @@ contains
 
       case default
         error stop 'Activation must be one of: ' // &
-          '"elu", "exponential", "gaussian", "linear", "relu", "leaky_relu", "sigmoid", ' // &
-          '"softmax", "softplus", "step", or "tanh".'
+          '"elu", "exponential", "gaussian", "linear", "relu", ' // &
+          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", or "tanh".'
 
     end select
 

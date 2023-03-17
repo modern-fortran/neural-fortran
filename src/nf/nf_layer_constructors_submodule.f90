@@ -22,6 +22,8 @@ contains
     res % name = 'conv2d'
 
     if (present(activation)) then
+      if (activation == 'leaky_relu') &
+        error stop 'Leaky ReLU activation is not implemented'
       res % activation = activation
     else
       res % activation = 'sigmoid'
@@ -44,6 +46,8 @@ contains
     res % layer_shape = [layer_size]
 
     if (present(activation)) then
+      if (activation == 'leaky_relu') &
+        error stop 'Leaky ReLU activation is not implemented'
       res % activation = activation
     else
       res % activation = 'sigmoid'
