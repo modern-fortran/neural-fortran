@@ -24,8 +24,7 @@ include(cmake/json.cmake)
 # library to archive (libneural.a)
 add_library(neural
   src/nf.f90
-  src/nf/nf_activation_1d.f90
-  src/nf/nf_activation_3d.f90
+  src/nf/nf_activation.f90
   src/nf/nf_base_layer.f90
   src/nf/nf_conv2d_layer.f90
   src/nf/nf_conv2d_layer_submodule.f90

@@ -4,7 +4,7 @@ module nf_dense_layer
   !! It is used internally by the layer type.
   !! It is not intended to be used directly by the user.
 
-  use nf_activation_1d, only: activation_function
+  use nf_activation, only: activation_function
   use nf_base_layer, only: base_layer
 
   implicit none
@@ -50,7 +50,7 @@ module nf_dense_layer
         !! Number of neurons in this layer
       character(*), intent(in) :: activation
         !! Name of the activation function to use;
-        !! See nf_activation_1d.f90 for available functions.
+        !! See nf_activation.f90 for available functions.
       type(dense_layer) :: res
         !! dense_layer instance
     end function dense_layer_cons

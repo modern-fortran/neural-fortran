@@ -1,17 +1,17 @@
 submodule(nf_dense_layer) nf_dense_layer_submodule
 
-  use nf_activation_1d, only: activation_function, &
-                              elu, &
-                              exponential, &
-                              gaussian, &
-                              linear, &
-                              relu, &
-                              leaky_relu, &
-                              sigmoid, &
-                              softmax, &
-                              softplus, &
-                              step, &
-                              tanhf
+  use nf_activation, only: activation_function, &
+                           elu, &
+                           exponential, &
+                           gaussian, &
+                           linear, &
+                           relu, &
+                           leaky_relu, &
+                           sigmoid, &
+                           softmax, &
+                           softplus, &
+                           step, &
+                           tanhf
   use nf_base_layer, only: base_layer
   use nf_random, only: randn
 

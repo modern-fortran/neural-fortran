@@ -1,17 +1,17 @@
 submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
-  use nf_activation_3d, only: activation_function, &
-                              elu, elu_prime, &
-                              exponential, &
-                              gaussian, gaussian_prime, &
-                              linear, linear_prime, &
-                              relu, relu_prime, &
-                              leaky_relu, leaky_relu_prime, &
-                              sigmoid, sigmoid_prime, &
-                              softmax, softmax_prime, &
-                              softplus, softplus_prime, &
-                              step, step_prime, &
-                              tanhf, tanh_prime
+  use nf_activation, only: activation_function, &
+                           elu, &
+                           exponential, &
+                           gaussian, &
+                           linear, &
+                           relu, &
+                           leaky_relu, &
+                           sigmoid, &
+                           softmax, &
+                           softplus, &
+                           step, &
+                           tanhf
   use nf_random, only: randn
 
   implicit none
@@ -116,7 +116,7 @@ contains
     end do convolution
 
     ! Activate
-    self % output = self % activation(self % z)
+    self % output = self % activation % eval(self % z)
 
   end subroutine forward
 
@@ -155,7 +155,7 @@ contains
     ! z = w .inner. x + b
     ! gdz = dL/dy * sigma'(z)
     gdz = 0
-    gdz(:,istart:iend,jstart:jend) = gradient * self % activation_prime(self % z)
+    gdz(:,istart:iend,jstart:jend) = gradient * self % activation % eval_prime(self % z)
 
     ! dL/db = sum(dL/dy * sigma'(z))
     do concurrent (n = 1:self % filters)
@@ -240,60 +240,49 @@ contains
 
     select case(trim(activation))
 
-      case('elu')
-       self % activation => elu
-       self % activation_prime => elu_prime
-       self % activation_name = 'elu'
+    case('elu')
+     allocate ( self % activation, source = elu(alpha = 0.01) )
+     self % activation_name = 'elu'
 
-      case('exponential')
-        self % activation => exponential
-        self % activation_prime => exponential
-        self % activation_name = 'exponential'
+    case('exponential')
+      allocate ( self % activation, source = exponential() )
+      self % activation_name = 'exponential'
 
-      case('gaussian')
-        self % activation => gaussian
-        self % activation_prime => gaussian_prime
-        self % activation_name = 'gaussian'
+    case('gaussian')
+      allocate ( self % activation, source = gaussian() )
+      self % activation_name = 'gaussian'
 
-      case('linear')
-        self % activation => linear
-        self % activation_prime => linear_prime
-        self % activation_name = 'linear'
+    case('linear')
+      allocate ( self % activation, source = linear() )
+      self % activation_name = 'linear'
 
-      case('relu')
-        self % activation => relu
-        self % activation_prime => relu_prime
-        self % activation_name = 'relu'
+    case('relu')
+      allocate ( self % activation, source = relu() )
+      self % activation_name = 'relu'
 
-      case('leaky_relu')
-        self % activation => leaky_relu
-        self % activation_prime => leaky_relu_prime
-        self % activation_name = 'leaky_relu'
+    case('leaky_relu')
+      allocate ( self % activation, source = leaky_relu(alpha = 0.01) )
+      self % activation_name = 'leaky_relu'
 
-      case('sigmoid')
-        self % activation => sigmoid
-        self % activation_prime => sigmoid_prime
-        self % activation_name = 'sigmoid'
+    case('sigmoid')
+      allocate ( self % activation, source = sigmoid() )
+      self % activation_name = 'sigmoid'
 
-      case('softmax')
-        self % activation => softmax
-        self % activation_prime => softmax_prime
-        self % activation_name = 'softmax'
+    case('softmax')
+      allocate ( self % activation, source = softmax() )
+      self % activation_name = 'softmax'
 
-      case('softplus')
-        self % activation => softplus
-        self % activation_prime => softplus_prime
-        self % activation_name = 'softplus'
+    case('softplus')
+      allocate ( self % activation, source = softplus() )
+      self % activation_name = 'softplus'
 
-      case('step')
-        self % activation => step
-        self % activation_prime => step_prime
-        self % activation_name = 'step'
+    case('step')
+      allocate ( self % activation, source = step() )
+      self % activation_name = 'step'
 
-      case('tanh')
-        self % activation => tanhf
-        self % activation_prime => tanh_prime
-        self % activation_name = 'tanh'
+    case('tanh')
+      allocate ( self % activation, source = tanhf() )
+      self % activation_name = 'tanh'
 
       case default
         error stop 'Activation must be one of: ' // &
