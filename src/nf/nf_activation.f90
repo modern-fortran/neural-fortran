@@ -21,10 +21,13 @@ module nf_activation
 
   type, abstract :: activation_function
   contains
-    procedure(eval_1d_i), deferred :: eval_1d
-    procedure(eval_1d_i), deferred :: eval_1d_prime
-    procedure(eval_3d_i), deferred :: eval_3d
-    procedure(eval_3d_i), deferred :: eval_3d_prime
+    procedure(eval_1d_i),  deferred :: eval_1d
+    procedure(eval_1d_i),  deferred :: eval_1d_prime
+    procedure(eval_3d_i),  deferred :: eval_3d
+    procedure(eval_3d_i),  deferred :: eval_3d_prime
+    procedure :: get_name
+
+    ! procedure(get_name_i), deferred :: get_name
 
     generic :: eval => eval_1d, eval_3d
     generic :: eval_prime => eval_1d_prime, eval_3d_prime
@@ -47,6 +50,14 @@ module nf_activation
       real, intent(in) :: x(:,:,:)
       real :: res(size(x,1),size(x,2),size(x,3))
     end function eval_3d_i
+  end interface
+
+  abstract interface
+    pure function get_name_i(self) result(name)
+      import :: activation_function
+      class(activation_function), intent(in) :: self
+      character(len=:), allocatable :: name
+    end function get_name_i
   end interface
 
   type, extends(activation_function) :: elu
@@ -520,5 +531,37 @@ contains
     real :: res(size(x,1),size(x,2),size(x,3))
     res = 1 - tanh(x)**2
   end function eval_3d_tanh_prime
+
+  pure function get_name(self) result(name)
+    ! Return activation function name
+    class(activation_function), intent(in) :: self
+    character(len=:), allocatable :: name
+    select type (self)
+    class is (elu)
+        allocate( name, source = 'elu' )
+    class is (exponential)
+        allocate( name, source = 'exponential' )
+    class is (gaussian)
+        allocate( name, source = 'gaussian' )
+    class is (linear)
+        allocate( name, source = 'linear' )
+    class is (relu)
+        allocate( name, source = 'relu' )
+    class is (leaky_relu)
+        allocate( name, source = 'leaky_relu' )
+    class is (sigmoid)
+        allocate( name, source = 'sigmoid' )
+    class is (softmax)
+        allocate( name, source = 'softmax' )
+    class is (softplus)
+        allocate( name, source = 'softplus' )
+    class is (step)
+        allocate( name, source = 'step' )
+    class is (tanhf)
+        allocate( name, source = 'tanh' )
+    class default
+        error stop 'Unknown activation function type.'
+    end select
+  end function get_name
 
 end module nf_activation
