@@ -27,10 +27,7 @@ module nf_dense_layer
     real, allocatable :: dw(:,:) ! weight gradients
     real, allocatable :: db(:) ! bias gradients
 
-    procedure(activation_function), pointer, nopass :: &
-      activation => null()
-    procedure(activation_function), pointer, nopass :: &
-      activation_prime => null()
+    class(activation_function), allocatable :: activation
 
   contains
 
