@@ -1,17 +1,6 @@
 submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
-  use nf_activation, only: activation_function, &
-                           elu, &
-                           exponential, &
-                           gaussian, &
-                           linear, &
-                           relu, &
-                           leaky_relu, &
-                           sigmoid, &
-                           softmax, &
-                           softplus, &
-                           step, &
-                           tanhf
+  use nf_activation, only: activation_function
   use nf_random, only: randn
 
   implicit none
