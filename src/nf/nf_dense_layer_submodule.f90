@@ -22,10 +22,13 @@ contains
   elemental module function dense_layer_cons(output_size, activation) &
     result(res)
     integer, intent(in) :: output_size
-    character(*), intent(in) :: activation
+    class(activation_function), intent(in) :: activation
     type(dense_layer) :: res
+
     res % output_size = output_size
-    call res % set_activation(activation)
+    res % activation_name = activation % get_name()
+    allocate( res % activation, source = activation )
+
   end function dense_layer_cons
 
 
@@ -135,67 +138,6 @@ contains
     self % gradient = 0
 
   end subroutine init
-
-
-  elemental module subroutine set_activation(self, activation)
-    class(dense_layer), intent(in out) :: self
-    character(*), intent(in) :: activation
-
-    select case(trim(activation))
-
-      case('elu')
-       allocate ( self % activation, source = elu(alpha = 0.01) )
-       self % activation_name = 'elu'
-
-      case('exponential')
-        allocate ( self % activation, source = exponential() )
-        self % activation_name = 'exponential'
-
-      case('gaussian')
-        allocate ( self % activation, source = gaussian() )
-        self % activation_name = 'gaussian'
-
-      case('linear')
-        allocate ( self % activation, source = linear() )
-        self % activation_name = 'linear'
-
-      case('relu')
-        allocate ( self % activation, source = relu() )
-        self % activation_name = 'relu'
-
-      case('leaky_relu')
-        allocate ( self % activation, source = leaky_relu(alpha = 0.01) )
-        self % activation_name = 'leaky_relu'
-
-      case('sigmoid')
-        allocate ( self % activation, source = sigmoid() )
-        self % activation_name = 'sigmoid'
-
-      case('softmax')
-        allocate ( self % activation, source = softmax() )
-        self % activation_name = 'softmax'
-
-      case('softplus')
-        allocate ( self % activation, source = softplus() )
-        self % activation_name = 'softplus'
-
-      case('step')
-        allocate ( self % activation, source = step() )
-        self % activation_name = 'step'
-
-      case('tanh')
-        allocate ( self % activation, source = tanhf() )
-        self % activation_name = 'tanh'
-
-      case default
-        error stop 'Activation must be one of: ' // &
-          '"elu", "exponential", "gaussian", "linear", "relu", ' // &
-          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", or "tanh".'
-
-    end select
-
-  end subroutine set_activation
-
 
   module subroutine update(self, learning_rate)
     class(dense_layer), intent(in out) :: self

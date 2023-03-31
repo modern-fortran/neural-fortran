@@ -37,7 +37,6 @@ module nf_dense_layer
     procedure :: get_params
     procedure :: set_params
     procedure :: init
-    procedure :: set_activation
     procedure :: update
 
   end type dense_layer
@@ -48,8 +47,8 @@ module nf_dense_layer
       !! This function returns the `dense_layer` instance.
       integer, intent(in) :: output_size
         !! Number of neurons in this layer
-      character(*), intent(in) :: activation
-        !! Name of the activation function to use;
+      class(activation_function), intent(in) :: activation
+        !! Instance of the activation_function to use;
         !! See nf_activation.f90 for available functions.
       type(dense_layer) :: res
         !! dense_layer instance
@@ -115,14 +114,6 @@ module nf_dense_layer
       integer, intent(in) :: input_shape(:)
         !! Shape of the input layer
     end subroutine init
-
-    elemental module subroutine set_activation(self, activation)
-      !! Set the activation functions.
-      class(dense_layer), intent(in out) :: self
-        !! Layer instance
-      character(*), intent(in) :: activation
-        !! String with the activation function name
-    end subroutine set_activation
 
     module subroutine update(self, learning_rate)
       !! Update the weights and biases.

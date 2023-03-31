@@ -8,6 +8,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_activation, only: activation_function, sigmoid
 
   implicit none
 
@@ -16,22 +17,27 @@ contains
   pure module function conv2d(filters, kernel_size, activation) result(res)
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
-    character(*), intent(in), optional :: activation
+    class(activation_function), intent(in), optional :: activation
     type(layer) :: res
+
+    class(activation_function), allocatable :: activation_tmp
 
     res % name = 'conv2d'
 
     if (present(activation)) then
-      if (activation == 'leaky_relu') &
-        error stop 'Leaky ReLU activation is not implemented'
-      res % activation = activation
+        allocate( activation_tmp, source = activation)
     else
-      res % activation = 'sigmoid'
+        allocate( activation_tmp, source = sigmoid() )
     end if
+
+    if (activation_tmp % get_name() == 'leaky_relu') &
+        error stop 'Leaky ReLU activation is not implemented'
+
+    res % activation = activation_tmp % get_name()
 
     allocate( &
       res % p, &
-      source=conv2d_layer(filters, kernel_size, res % activation) &
+      source=conv2d_layer(filters, kernel_size, activation_tmp) &
     )
 
   end function conv2d
@@ -39,21 +45,26 @@ contains
 
   pure module function dense(layer_size, activation) result(res)
     integer, intent(in) :: layer_size
-    character(*), intent(in), optional :: activation
+    class(activation_function), intent(in), optional :: activation
     type(layer) :: res
+
+    class(activation_function), allocatable :: activation_tmp
 
     res % name = 'dense'
     res % layer_shape = [layer_size]
 
     if (present(activation)) then
-      if (activation == 'leaky_relu') &
-        error stop 'Leaky ReLU activation is not implemented'
-      res % activation = activation
+        allocate( activation_tmp, source = activation)
     else
-      res % activation = 'sigmoid'
+        allocate( activation_tmp, source = sigmoid() )
     end if
 
-    allocate(res % p, source=dense_layer(layer_size, res % activation))
+    if (activation_tmp % get_name() == 'leaky_relu') &
+        error stop 'Leaky ReLU activation is not implemented'
+
+    res % activation = activation_tmp % get_name()
+
+    allocate(res % p, source=dense_layer(layer_size, activation_tmp))
 
   end function dense
 

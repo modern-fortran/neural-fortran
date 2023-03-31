@@ -6,4 +6,7 @@ module nf
     conv2d, dense, flatten, input, maxpool2d, reshape
   use nf_network, only: network
   use nf_optimizers, only: sgd
+  use nf_activation, only: activation_function, elu, exponential,  &
+                           gaussian, linear, relu, leaky_relu,     &
+                           sigmoid, softmax, softplus, step, tanhf
 end module nf

@@ -14,6 +14,18 @@ submodule(nf_network) nf_network_submodule
   use nf_loss, only: quadratic_derivative
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
+  use nf_activation, only: activation_function, &
+                           elu, &
+                           exponential, &
+                           gaussian, &
+                           linear, &
+                           relu, &
+                           leaky_relu, &
+                           sigmoid, &
+                           softmax, &
+                           softplus, &
+                           step, &
+                           tanhf
 
   implicit none
 
@@ -109,13 +121,14 @@ contains
             keras_layers(n) % filters, &
             !FIXME add support for non-square kernel
             keras_layers(n) % kernel_size(1), &
-            keras_layers(n) % activation &
+            get_activation_by_name(keras_layers(n) % activation) &
           )
 
         case('Dense')
+
           layers(n) = dense( &
             keras_layers(n) % units(1), &
-            keras_layers(n) % activation &
+            get_activation_by_name(keras_layers(n) % activation) &
           )
 
         case('Flatten')
@@ -212,6 +225,56 @@ contains
 
   end function network_from_keras
 
+
+  pure function get_activation_by_name(activation_name) result(res)
+  ! Workaround to get activation_function with some
+  ! hardcoded default parameters by its name.
+  ! Need this function since we get only activation name
+  ! from keras files.
+    character(len=*), intent(in) :: activation_name
+    class(activation_function), allocatable :: res
+
+    select case(trim(activation_name))
+    case('elu')
+     allocate ( res, source = elu(alpha = 0.1) )
+
+    case('exponential')
+      allocate ( res, source = exponential() )
+
+    case('gaussian')
+      allocate ( res, source = gaussian() )
+
+    case('linear')
+      allocate ( res, source = linear() )
+
+    case('relu')
+      allocate ( res, source = relu() )
+
+    case('leaky_relu')
+      allocate ( res, source = leaky_relu(alpha = 0.1) )
+
+    case('sigmoid')
+      allocate ( res, source = sigmoid() )
+
+    case('softmax')
+      allocate ( res, source = softmax() )
+
+    case('softplus')
+      allocate ( res, source = softplus() )
+
+    case('step')
+      allocate ( res, source = step() )
+
+    case('tanh')
+      allocate ( res, source = tanhf() )
+
+    case default
+        error stop 'activation_name must be one of: ' // &
+          '"elu", "exponential", "gaussian", "linear", "relu", ' // &
+          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", or "tanh".'
+    end select
+
+  end function get_activation_by_name
 
   pure module subroutine backward(self, output)
     class(network), intent(in out) :: self
