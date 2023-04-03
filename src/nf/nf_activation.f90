@@ -51,7 +51,7 @@ module nf_activation
   end interface
 
   type, extends(activation_function) :: elu
-    real :: alpha
+    real :: alpha = 1 ! Keras & PyTorch default
   contains
     procedure :: eval_1d       => eval_1d_elu
     procedure :: eval_1d_prime => eval_1d_elu_prime
@@ -92,7 +92,7 @@ module nf_activation
   end type relu
 
   type, extends(activation_function) :: leaky_relu
-    real :: alpha
+    real :: alpha = 0.3 ! Keras default (PyTorch default is 0.01)
   contains
     procedure :: eval_1d       => eval_1d_leaky_relu
     procedure :: eval_1d_prime => eval_1d_leaky_relu_prime
