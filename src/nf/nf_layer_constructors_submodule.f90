@@ -30,9 +30,6 @@ contains
       allocate(activation_tmp, source=sigmoid())
     end if
 
-    if (activation_tmp % get_name() == 'leaky_relu') &
-      error stop 'Leaky ReLU activation is not implemented'
-
     res % activation = activation_tmp % get_name()
 
     allocate( &
@@ -58,9 +55,6 @@ contains
     else
       allocate(activation_tmp, source=sigmoid())
     end if
-
-    if (activation_tmp % get_name() == 'leaky_relu') &
-      error stop 'Leaky ReLU activation is not implemented'
 
     res % activation = activation_tmp % get_name()
 
