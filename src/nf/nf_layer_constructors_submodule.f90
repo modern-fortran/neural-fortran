@@ -25,13 +25,13 @@ contains
     res % name = 'conv2d'
 
     if (present(activation)) then
-        allocate( activation_tmp, source = activation)
+      allocate(activation_tmp, source=activation)
     else
-        allocate( activation_tmp, source = sigmoid() )
+      allocate(activation_tmp, source=sigmoid())
     end if
 
     if (activation_tmp % get_name() == 'leaky_relu') &
-        error stop 'Leaky ReLU activation is not implemented'
+      error stop 'Leaky ReLU activation is not implemented'
 
     res % activation = activation_tmp % get_name()
 
@@ -54,13 +54,13 @@ contains
     res % layer_shape = [layer_size]
 
     if (present(activation)) then
-        allocate( activation_tmp, source = activation)
+      allocate(activation_tmp, source=activation)
     else
-        allocate( activation_tmp, source = sigmoid() )
+      allocate(activation_tmp, source=sigmoid())
     end if
 
     if (activation_tmp % get_name() == 'leaky_relu') &
-        error stop 'Leaky ReLU activation is not implemented'
+      error stop 'Leaky ReLU activation is not implemented'
 
     res % activation = activation_tmp % get_name()
 
