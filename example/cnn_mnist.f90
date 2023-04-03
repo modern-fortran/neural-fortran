@@ -2,7 +2,7 @@ program cnn_mnist
 
   use nf, only: network, sgd, &
     input, conv2d, maxpool2d, flatten, dense, reshape, &
-    load_mnist, label_digits
+    load_mnist, label_digits, softmax, relu
 
   implicit none
 
@@ -24,11 +24,11 @@ program cnn_mnist
   net = network([ &
     input(784), &
     reshape([1,28,28]), &
-    conv2d(filters=8, kernel_size=3, activation='relu'), &
+    conv2d(filters=8, kernel_size=3, activation=relu()), &
     maxpool2d(pool_size=2), &
-    conv2d(filters=16, kernel_size=3, activation='relu'), &
+    conv2d(filters=16, kernel_size=3, activation=relu()), &
     maxpool2d(pool_size=2), &
-    dense(10, activation='softmax') &
+    dense(10, activation=softmax()) &
   ])
 
   call net % print_info()

@@ -1,6 +1,7 @@
 program test_dense_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf, only: dense, layer
+  use nf_activation, only: relu
   implicit none
   type(layer) :: layer1, layer2
   logical :: ok = .true.
@@ -27,7 +28,7 @@ program test_dense_layer
     write(stderr, '(a)') 'dense layer is defaults to sigmoid activation.. failed'
   end if
 
-  layer1 = dense(10, activation='relu')
+  layer1 = dense(10, activation=relu())
 
   if (.not. layer1 % activation == 'relu') then
     ok = .false.

@@ -2,7 +2,7 @@ module nf_conv2d_layer
 
   !! This modules provides a 2-d convolutional `conv2d_layer` type.
 
-  use nf_activation_3d, only: activation_function
+  use nf_activation, only: activation_function
   use nf_base_layer, only: base_layer
   implicit none
 
@@ -26,10 +26,7 @@ module nf_conv2d_layer
     real, allocatable :: db(:) ! bias gradients
     real, allocatable :: gradient(:,:,:)
 
-    procedure(activation_function), pointer, nopass :: &
-      activation => null()
-    procedure(activation_function), pointer, nopass :: &
-      activation_prime => null()
+    class(activation_function), allocatable :: activation
 
   contains
 
@@ -39,7 +36,6 @@ module nf_conv2d_layer
     procedure :: get_num_params
     procedure :: get_params
     procedure :: set_params
-    procedure :: set_activation
     procedure :: update
 
   end type conv2d_layer
@@ -50,7 +46,7 @@ module nf_conv2d_layer
       !! `conv2d_layer` constructor function
       integer, intent(in) :: filters
       integer, intent(in) :: kernel_size
-      character(*), intent(in) :: activation
+      class(activation_function), intent(in) :: activation
       type(conv2d_layer) :: res
     end function conv2d_layer_cons
   end interface conv2d_layer
@@ -108,14 +104,6 @@ module nf_conv2d_layer
       real, intent(in) :: params(:)
         !! Parameters to set
     end subroutine set_params
-
-    elemental module subroutine set_activation(self, activation)
-    !! Set the activation functions.
-    class(conv2d_layer), intent(in out) :: self
-      !! Layer instance
-    character(*), intent(in) :: activation
-      !! String with the activation function name
-    end subroutine set_activation
 
     module subroutine update(self, learning_rate)
       !! Update the weights and biases.

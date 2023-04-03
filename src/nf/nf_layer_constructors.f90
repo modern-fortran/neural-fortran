@@ -3,6 +3,7 @@ module nf_layer_constructors
   !! This module provides the functions to instantiate specific layers.
 
   use nf_layer, only: layer
+  use nf_activation, only : activation_function
 
   implicit none
 
@@ -71,15 +72,15 @@ module nf_layer_constructors
       !! Example:
       !!
       !! ```
-      !! use nf, only :: dense, layer
+      !! use nf, only :: dense, layer, relu
       !! type(layer) :: dense_layer
       !! dense_layer = dense(10)
-      !! dense_layer = dense(10, activation='relu')
+      !! dense_layer = dense(10, activation=relu())
       !! ```
       integer, intent(in) :: layer_size
         !! The number of neurons in a dense layer
-      character(*), intent(in), optional :: activation
-        !! Activation function (default 'sigmoid')
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function instance (default sigmoid)
       type(layer) :: res
         !! Resulting layer instance
     end function dense
@@ -126,8 +127,8 @@ module nf_layer_constructors
         !! Number of filters in the output of the layer
       integer, intent(in) :: kernel_size
         !! Width of the convolution window, commonly 3 or 5
-      character(*), intent(in), optional :: activation
-        !! Activation function (default 'sigmoid')
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
       type(layer) :: res
         !! Resulting layer instance
     end function conv2d

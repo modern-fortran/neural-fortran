@@ -1,17 +1,6 @@
 submodule(nf_dense_layer) nf_dense_layer_submodule
 
-  use nf_activation_1d, only: activation_function, &
-                              elu, elu_prime, &
-                              exponential, &
-                              gaussian, gaussian_prime, &
-                              linear, linear_prime, &
-                              relu, relu_prime, & 
-                              leaky_relu, leaky_relu_prime, &
-                              sigmoid, sigmoid_prime, &
-                              softmax, softmax_prime, &
-                              softplus, softplus_prime, &
-                              step, step_prime, &
-                              tanhf, tanh_prime
+  use nf_activation, only: activation_function
   use nf_base_layer, only: base_layer
   use nf_random, only: randn
 
@@ -22,10 +11,13 @@ contains
   elemental module function dense_layer_cons(output_size, activation) &
     result(res)
     integer, intent(in) :: output_size
-    character(*), intent(in) :: activation
+    class(activation_function), intent(in) :: activation
     type(dense_layer) :: res
+
     res % output_size = output_size
-    call res % set_activation(activation)
+    res % activation_name = activation % get_name()
+    allocate( res % activation, source = activation )
+
   end function dense_layer_cons
 
 
@@ -36,7 +28,7 @@ contains
     real :: db(self % output_size)
     real :: dw(self % input_size, self % output_size)
 
-    db = gradient * self % activation_prime(self % z)
+    db = gradient * self % activation % eval_prime(self % z)
     dw = matmul(reshape(input, [size(input), 1]), reshape(db, [1, size(db)]))
     self % gradient = matmul(self % weights, db)
     self % dw = self % dw + dw
@@ -50,7 +42,7 @@ contains
     real, intent(in) :: input(:)
 
     self % z = matmul(input, self % weights) + self % biases
-    self % output = self % activation(self % z)
+    self % output = self % activation % eval(self % z)
 
   end subroutine forward
 
@@ -135,78 +127,6 @@ contains
     self % gradient = 0
 
   end subroutine init
-
-
-  elemental module subroutine set_activation(self, activation)
-    class(dense_layer), intent(in out) :: self
-    character(*), intent(in) :: activation
-
-    select case(trim(activation))
-
-      case('elu')
-       self % activation => elu
-       self % activation_prime => elu_prime
-       self % activation_name = 'elu'
-
-      case('exponential')
-        self % activation => exponential
-        self % activation_prime => exponential
-        self % activation_name = 'exponential'
-
-      case('gaussian')
-        self % activation => gaussian
-        self % activation_prime => gaussian_prime
-        self % activation_name = 'gaussian'
-
-      case('linear')
-        self % activation => linear
-        self % activation_prime => linear_prime
-        self % activation_name = 'linear'
-
-      case('relu')
-        self % activation => relu
-        self % activation_prime => relu_prime
-        self % activation_name = 'relu'
-
-      case('leaky_relu')
-        self % activation => leaky_relu
-        self % activation_prime => leaky_relu_prime
-        self % activation_name = 'leaky_relu'
-
-      case('sigmoid')
-        self % activation => sigmoid
-        self % activation_prime => sigmoid_prime
-        self % activation_name = 'sigmoid'
-
-      case('softmax')
-        self % activation => softmax
-        self % activation_prime => softmax_prime
-        self % activation_name = 'softmax'
-
-      case('softplus')
-        self % activation => softplus
-        self % activation_prime => softplus_prime
-        self % activation_name = 'softplus'
-
-      case('step')
-        self % activation => step
-        self % activation_prime => step_prime
-        self % activation_name = 'step'
-
-      case('tanh')
-        self % activation => tanhf
-        self % activation_prime => tanh_prime
-        self % activation_name = 'tanh'
-
-      case default
-        error stop 'Activation must be one of: ' // &
-          '"elu", "exponential", "gaussian", "linear", "relu", ' // &
-          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", or "tanh".'
-
-    end select
-
-  end subroutine set_activation
-
 
   module subroutine update(self, learning_rate)
     class(dense_layer), intent(in out) :: self
