@@ -21,13 +21,11 @@ module nf_activation
 
   type, abstract :: activation_function
   contains
-    procedure(eval_1d_i),  deferred :: eval_1d
-    procedure(eval_1d_i),  deferred :: eval_1d_prime
-    procedure(eval_3d_i),  deferred :: eval_3d
-    procedure(eval_3d_i),  deferred :: eval_3d_prime
+    procedure(eval_1d_i), deferred :: eval_1d
+    procedure(eval_1d_i), deferred :: eval_1d_prime
+    procedure(eval_3d_i), deferred :: eval_3d
+    procedure(eval_3d_i), deferred :: eval_3d_prime
     procedure :: get_name
-
-    ! procedure(get_name_i), deferred :: get_name
 
     generic :: eval => eval_1d, eval_3d
     generic :: eval_prime => eval_1d_prime, eval_3d_prime
@@ -35,29 +33,21 @@ module nf_activation
   end type activation_function
 
   abstract interface
+
     pure function eval_1d_i(self, x) result(res)
       import :: activation_function
       class(activation_function), intent(in) :: self
       real, intent(in) :: x(:)
       real :: res(size(x))
     end function eval_1d_i
-  end interface
 
-  abstract interface
     pure function eval_3d_i(self, x) result(res)
       import :: activation_function
       class(activation_function), intent(in) :: self
       real, intent(in) :: x(:,:,:)
       real :: res(size(x,1),size(x,2),size(x,3))
     end function eval_3d_i
-  end interface
 
-  abstract interface
-    pure function get_name_i(self) result(name)
-      import :: activation_function
-      class(activation_function), intent(in) :: self
-      character(len=:), allocatable :: name
-    end function get_name_i
   end interface
 
   type, extends(activation_function) :: elu
@@ -160,7 +150,7 @@ contains
     where (x >= 0)
       res = x
     elsewhere
-      res = self%alpha * (exp(x) - 1)
+      res = self % alpha * (exp(x) - 1)
     end where
   end function eval_1d_elu
 
@@ -173,7 +163,7 @@ contains
     where (x >= 0)
       res = 1
     elsewhere
-      res = self%alpha * exp(x)
+      res = self % alpha * exp(x)
     end where
   end function eval_1d_elu_prime
 
@@ -185,7 +175,7 @@ contains
     where (x >= 0)
       res = x
     elsewhere
-      res = self%alpha * (exp(x) - 1)
+      res = self % alpha * (exp(x) - 1)
     end where
   end function eval_3d_elu
 
@@ -198,7 +188,7 @@ contains
     where (x >= 0)
       res = 1
     elsewhere
-      res = self%alpha * exp(x)
+      res = self % alpha * exp(x)
     end where
   end function eval_3d_elu_prime
 
@@ -327,7 +317,7 @@ contains
     class(leaky_relu), intent(in) :: self
     real, intent(in) :: x(:)
     real :: res(size(x))
-    res = max(self%alpha*x, x)
+    res = max(self % alpha * x, x)
   end function eval_1d_leaky_relu
 
   pure function eval_1d_leaky_relu_prime(self, x) result(res)
@@ -338,7 +328,7 @@ contains
     where (x > 0)
       res = 1
     elsewhere
-      res = self%alpha
+      res = self % alpha
     end where
   end function eval_1d_leaky_relu_prime
 
@@ -347,7 +337,7 @@ contains
     class(leaky_relu), intent(in) :: self
     real, intent(in) :: x(:,:,:)
     real :: res(size(x,1),size(x,2),size(x,3))
-    res = max(self%alpha*x, x)
+    res = max(self % alpha * x, x)
   end function eval_3d_leaky_relu
 
   pure function eval_3d_leaky_relu_prime(self, x) result(res)
@@ -358,7 +348,7 @@ contains
     where (x > 0)
       res = 1
     elsewhere
-      res = self%alpha
+      res = self % alpha
     end where
   end function eval_3d_leaky_relu_prime
 
@@ -425,7 +415,7 @@ contains
     class(softmax), intent(in) :: self
     real, intent(in) :: x(:,:,:)
     real :: res(size(x,1),size(x,2),size(x,3))
-    res = self%eval_3d(x) * (1 - self%eval_3d(x))
+    res = self % eval_3d(x) * (1 - self % eval_3d(x))
   end function eval_3d_softmax_prime
 
   pure function eval_1d_softplus(self, x) result(res)
@@ -533,34 +523,41 @@ contains
   end function eval_3d_tanh_prime
 
   pure function get_name(self) result(name)
-    ! Return activation function name
+    !! Return the name of the activation function.
+    !!
+    !! Normally we would place this in the definition of each type, however
+    !! accessing the name variable directly from the type would require type
+    !! guards just like we have here. This at least keeps all the type guards
+    !! in one place.
     class(activation_function), intent(in) :: self
-    character(len=:), allocatable :: name
+      !! The activation function instance.
+    character(:), allocatable :: name
+      !! The name of the activation function.
     select type (self)
     class is (elu)
-        allocate( name, source = 'elu' )
+      name = 'elu'
     class is (exponential)
-        allocate( name, source = 'exponential' )
+      name = 'exponential'
     class is (gaussian)
-        allocate( name, source = 'gaussian' )
+      name = 'gaussian'
     class is (linear)
-        allocate( name, source = 'linear' )
+      name = 'linear'
     class is (relu)
-        allocate( name, source = 'relu' )
+      name = 'relu'
     class is (leaky_relu)
-        allocate( name, source = 'leaky_relu' )
+      name = 'leaky_relu'
     class is (sigmoid)
-        allocate( name, source = 'sigmoid' )
+      name = 'sigmoid'
     class is (softmax)
-        allocate( name, source = 'softmax' )
+      name = 'softmax'
     class is (softplus)
-        allocate( name, source = 'softplus' )
+      name = 'softplus'
     class is (step)
-        allocate( name, source = 'step' )
+      name = 'step'
     class is (tanhf)
-        allocate( name, source = 'tanh' )
+      name = 'tanh'
     class default
-        error stop 'Unknown activation function type.'
+      error stop 'Unknown activation function type.'
     end select
   end function get_name
 
