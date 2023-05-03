@@ -17,6 +17,7 @@ include(FetchContent)
 include(cmake/options.cmake)
 include(cmake/compilers.cmake)
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(cmake/functional.cmake)
 include(cmake/h5fortran.cmake)
 include(cmake/json.cmake)
