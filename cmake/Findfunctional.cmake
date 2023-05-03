@@ -8,15 +8,12 @@ include(FindPackageHandleStandardArgs)
 
 find_library(functional_LIBRARY
   NAMES functional)
-message(STATUS "functional_LIBRARY: ${functional_LIBRARY}")
 
 find_path(functional_INCLUDE_DIR
   NAMES functional.mod)
-message(STATUS "functional_INCLUDE_DIR: ${functional_INCLUDE_DIR}")
 
 find_package_handle_standard_args(functional DEFAULT_MSG
   functional_LIBRARY functional_INCLUDE_DIR)
-message(STATUS "functional_FOUND: ${functional_FOUND}")
 
 if (functional_FOUND)
   mark_as_advanced(functional_INCLUDE_DIR)
