@@ -6,6 +6,7 @@ if (HDF5_HL_FOUND)
 endif()
 if (HDF5_IS_PARALLEL)
   message(STATUS "HDF5 is parallel")
+  find_package(MPI REQUIRED COMPONENTS Fortran)
   target_link_libraries(HDF5::HDF5 INTERFACE MPI::MPI_Fortran)
 endif()
 
