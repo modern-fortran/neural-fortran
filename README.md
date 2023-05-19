@@ -11,6 +11,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   - [Building with CMake](https://github.com/modern-fortran/neural-fortran#building-with-cmake)
 * [Examples](https://github.com/modern-fortran/neural-fortran#examples)
 * [API documentation](https://github.com/modern-fortran/neural-fortran#api-documentation)
+* [Contributing](https://github.com/modern-fortran/neural-fortran#contributing)
 * [Acknowledgement](https://github.com/modern-fortran/neural-fortran#acknowledgement)
 * [Related projects](https://github.com/modern-fortran/neural-fortran#related-projects)
 
@@ -232,6 +233,11 @@ ford ford.md
 
 from the neural-fortran top-level directory to generate the API documentation in doc/html.
 Point your browser to doc/html/index.html to read it.
+
+## Contributing
+
+This [Contributing guide](CONTRIBUTING.md) briefly describes the code organization.
+It may be useful to read if you want to contribute a new feature to neural-fortran.
 
 ## Acknowledgement
 
