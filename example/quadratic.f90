@@ -21,7 +21,7 @@ program quadratic_fit
   call net % print_info()
 
   allocate(xtest(test_size), ytest(test_size), ypred(test_size))
-  xtest = [(i - 1) * 2 / test_size, i = 1, test_size]
+  xtest = [((i - 1) * 2 / test_size, i = 1, test_size)]
   ytest = (xtest**2 / 2 + xtest / 2 + 1) / 2
 
   ! x and y as 1-D arrays
@@ -54,98 +54,78 @@ program quadratic_fit
   ! Print the mean squared error
   print '(i0,1x,f9.6)', num_iterations, sum((ypred - ytest)**2) / size(ypred)
 
-  deallocate(x, y, xtest, ytest, ypred)
-end program quadratic_fit
+  contains
 
+  subroutine sgd_optimizer(net, x, y, learning_rate, num_iterations)
+    type(network), intent(inout) :: net
+    real, dimension(:), intent(in) :: x, y
+    real, intent(in) :: learning_rate
+    integer, intent(in) :: num_iterations
+    integer :: i, n, num_samples
 
-subroutine sgd_optimizer(net, x, y, learning_rate, num_iterations)
-  type(network), intent(inout) :: net
-  real, dimension(:), intent(in) :: x, y
-  real, intent(in) :: learning_rate
-  integer, intent(in) :: num_iterations
-  integer :: i, n, num_samples
+    num_samples = size(x)
 
-  num_samples = size(x)
-
-  do n = 1, num_iterations
-    do i = 1, num_samples
-      call net % forward([x(i)])
-      call net % backward([y(i)])
-      ! SGD update
-      call update_parameters(net, learning_rate)
+    do n = 1, num_iterations
+      do i = 1, num_samples
+        call net % forward([x(i)])
+        call net % backward([y(i)])
+        ! SGD update
+        call net % update(learning_rate)
+      end do
     end do
-  end do
-end subroutine sgd_optimizer
+  end subroutine sgd_optimizer
 
 
-subroutine batch_sgd_optimizer(net, x, y, learning_rate, num_iterations)
-  type(network), intent(inout) :: net
-  real, dimension(:), intent(in) :: x, y
-  real, intent(in) :: learning_rate
-  integer, intent(in) :: num_iterations
-  integer :: i
+  subroutine batch_sgd_optimizer(net, x, y, learning_rate, num_iterations)
+    type(network), intent(inout) :: net
+    real, dimension(:), intent(in) :: x, y
+    real, intent(in) :: learning_rate
+    integer, intent(in) :: num_iterations
+    integer :: i
 
-  call net % forward(x)
-  call net % backward(y)
-  ! Batch SGD update
-  call update_parameters(net, learning_rate)
-
-  do i = 2, num_iterations
     call net % forward(x)
     call net % backward(y)
-    ! Accumulating gradients
-    call accumulate_gradients(net)
-  end do
+    ! Batch SGD update
+    call net % update(learning_rate / batch_size)
 
-  ! Updating parameters
-  call update_parameters(net, learning_rate)
-end subroutine batch_sgd_optimizer
-
-
-subroutine minibatch_sgd_optimizer(net, x, y, learning_rate, num_iterations, batch_size)
-  type(network), intent(inout) :: net
-  real, dimension(:), intent(in) :: x, y
-  real, intent(in) :: learning_rate
-  integer, intent(in) :: num_iterations, batch_size
-  integer :: i, n, num_samples, num_batches, start_index, end_index
-  real, dimension(:), allocatable :: batch_x, batch_y
-
-  num_samples = size(x)
-  num_batches = num_samples / batch_size
-
-  allocate(batch_x(batch_size), batch_y(batch_size))
-
-  do n = 1, num_iterations
-    do i = 1, num_batches
-      ! Selecting batch
-      start_index = (i - 1) * batch_size + 1
-      end_index = i * batch_size
-      batch_x = x(start_index:end_index)
-      batch_y = y(start_index:end_index)
-
-      call net % forward(batch_x)
-      call net % backward(batch_y)
-      ! Mini-batch SGD update
-      call update_parameters(net, learning_rate)
+    do i = 2, num_iterations
+      call net % forward(x)
+      call net % backward(y)
     end do
-  end do
 
-  deallocate(batch_x, batch_y)
-end subroutine minibatch_sgd_optimizer
+    ! Updating parameters
+    call net % update(learning_rate / batch_size)
+  end subroutine batch_sgd_optimizer
 
 
-! subroutine update_parameters(net, learning_rate)
-!   type(network), intent(inout) :: net
-!   real, intent(in) :: learning_rate
-!   integer :: i, num_layers
-!   type(dense_layer) :: layer
+  subroutine minibatch_sgd_optimizer(net, x, y, learning_rate, num_iterations, batch_size)
+    type(network), intent(inout) :: net
+    real, dimension(:), intent(in) :: x, y
+    real, intent(in) :: learning_rate
+    integer, intent(in) :: num_iterations, batch_size
+    integer :: i, n, num_samples, num_batches, start_index, end_index
+    real, dimension(:), allocatable :: batch_x, batch_y
 
-!   num_layers = net % num_layers()
+    num_samples = size(x)
+    num_batches = num_samples / batch_size
 
-!   do i = 1, num_layers
+    allocate(batch_x(batch_size), batch_y(batch_size))
 
-!     layer = net % get_layer(i)
-!     layer % weights = layer % weights - learning_rate * layer % gradients
-!     layer % biases = layer % biases - learning_rate * layer % gradients
-!   end do
-! end subroutine update_parameters
+    do n = 1, num_iterations
+      do i = 1, num_batches
+        ! Selecting batch
+        start_index = (i - 1) * batch_size + 1
+        end_index = i * batch_size
+        batch_x = x(start_index:end_index)
+        batch_y = y(start_index:end_index)
+
+        call net % forward(batch_x)
+        call net % backward(batch_y)
+        ! Mini-batch SGD update
+        call net % update(learning_rate / batch_size)
+      end do
+    end do
+
+  end subroutine minibatch_sgd_optimizer
+
+end program quadratic_fit
