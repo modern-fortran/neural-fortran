@@ -73,19 +73,13 @@ contains
     real, intent(in) :: learning_rate
     integer, intent(in) :: num_epochs
     integer :: i, n
-    integer, dimension(:), allocatable :: indices
 
     print *, "Running SGD optimizer..."
 
-    ! Generate shuffled indices for the mini-batches
-    allocate(indices(size(x)))
-    indices = [(i, i = 1, size(x))]
-    call shuffle(indices)
-
     do n = 1, num_epochs
       do i = 1, size(x)
-        call net % forward([x(indices(i))])
-        call net % backward([y(indices(i))])
+        call net % forward([x(i)])
+        call net % backward([y(i)])
         call net % update(learning_rate)
       end do
     end do
@@ -125,20 +119,27 @@ contains
     integer, intent(in) :: num_epochs, batch_size
     integer :: i, j, n, num_samples, num_batches, start_index, end_index
     real, dimension(:), allocatable :: batch_x, batch_y
+    integer, dimension(:), allocatable :: batch_indices
 
     print *, "Running mini-batch GD optimizer..."
 
     num_samples = size(x)
     num_batches = num_samples / batch_size
 
+    ! Generate shuffled indices for the mini-batches
     allocate(batch_x(batch_size), batch_y(batch_size))
+    allocate(batch_indices(num_batches))
+
+    do j = 1, num_batches
+      batch_indices(j) = (j - 1) * batch_size + 1
+    end do
+
+    call shuffle(batch_indices)
 
     do n = 1, num_epochs
       do j = 1, num_batches
-
-        ! Select the minibatch.
-        start_index = (j - 1) * batch_size + 1
-        end_index = j * batch_size
+        start_index = batch_indices(j)
+        end_index = min(start_index + batch_size - 1, num_samples)
 
         do i = start_index, end_index
           call net % forward([x(i)])
@@ -146,10 +147,8 @@ contains
         end do
 
         call net % update(learning_rate / batch_size)
-
       end do
     end do
-
   end subroutine minibatch_gd_optimizer
 
   subroutine shuffle(arr)
