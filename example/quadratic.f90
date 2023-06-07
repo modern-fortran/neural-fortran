@@ -64,7 +64,7 @@ program quadratic_fit
 
 contains
 
-  subroutine sgd_optimizer(net, x, y, learning_rate, num_epochs)
+   subroutine sgd_optimizer(net, x, y, learning_rate, num_epochs)
     ! In the stochastic gradient descent (SGD) optimizer, we run the forward
     ! and backward passes and update the weights for each training sample,
     ! one at a time.
@@ -73,13 +73,19 @@ contains
     real, intent(in) :: learning_rate
     integer, intent(in) :: num_epochs
     integer :: i, n
+    integer, dimension(:), allocatable :: indices
 
     print *, "Running SGD optimizer..."
 
+    ! Generate shuffled indices for the mini-batches
+    allocate(indices(size(x)))
+    indices = [(i, i = 1, size(x))]
+    call shuffle(indices)
+
     do n = 1, num_epochs
       do i = 1, size(x)
-        call net % forward([x(i)])
-        call net % backward([y(i)])
+        call net % forward([x(indices(i))])
+        call net % backward([y(indices(i))])
         call net % update(learning_rate)
       end do
     end do
@@ -130,7 +136,7 @@ contains
     do n = 1, num_epochs
       do j = 1, num_batches
 
-        ! Select the mini batch.
+        ! Select the minibatch.
         start_index = (j - 1) * batch_size + 1
         end_index = j * batch_size
 
@@ -145,5 +151,20 @@ contains
     end do
 
   end subroutine minibatch_gd_optimizer
+
+  subroutine shuffle(arr)
+    ! Shuffles an array using the Fisher-Yates algorithm.
+    integer, dimension(:), intent(inout) :: arr
+    real :: j
+    integer :: i, temp
+
+    do i = size(arr), 2, -1
+      call random_number(j)
+      j = floor(j * real(i)) + 1.0
+      temp = arr(i)
+      arr(i) = arr(int(j))
+      arr(int(j)) = temp
+    end do
+  end subroutine shuffle
 
 end program quadratic_fit
