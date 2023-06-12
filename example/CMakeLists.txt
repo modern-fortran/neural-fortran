@@ -6,6 +6,7 @@ foreach(execid
   get_set_network_params
   simple
   sine
+  quadratic
 )
   add_executable(${execid} ${execid}.f90)
   target_link_libraries(${execid} PRIVATE
