@@ -19,7 +19,7 @@ program quadratic_fit
 
   allocate(xtest(test_size), ytest(test_size))
   xtest = [((i - 1) * 2 / test_size, i = 1, test_size)]
-  ytest = (xtest**2 / 2 + xtest / 2 + 1) / 2
+  ytest = quadratic(xtest)
 
   ! x and y as 1-D arrays
   allocate(x(train_size), y(train_size))
@@ -28,8 +28,8 @@ program quadratic_fit
   do i = 1, train_size
     call random_number(x(i))
     x(i) = x(i) * 2
-    y(i) = (x(i)**2 / 2 + x(i) / 2 + 1) / 2
   end do
+  y = quadratic(x)
 
   ! optimizer and learning rate
   learning_rate = 0.01
@@ -64,7 +64,13 @@ program quadratic_fit
 
 contains
 
-   subroutine sgd_optimizer(net, x, y, learning_rate, num_epochs)
+  real elemental function quadratic(x) result(y)
+    ! Quadratic function
+    real, intent(in) :: x
+    y = (x**2 / 2 + x / 2 + 1) / 2
+  end function quadratic
+
+  subroutine sgd_optimizer(net, x, y, learning_rate, num_epochs)
     ! In the stochastic gradient descent (SGD) optimizer, we run the forward
     ! and backward passes and update the weights for each training sample,
     ! one at a time.
@@ -85,7 +91,6 @@ contains
     end do
 
   end subroutine sgd_optimizer
-
 
   subroutine batch_gd_optimizer(net, x, y, learning_rate, num_epochs)
     ! Like the stochastic gradient descent (SGD) optimizer, except that here we
@@ -109,10 +114,12 @@ contains
 
   end subroutine batch_gd_optimizer
 
-
   subroutine minibatch_gd_optimizer(net, x, y, learning_rate, num_epochs, batch_size)
     ! Like the batch SGD optimizer, except that here we accumulate the weight
     ! over a number of mini batches and update the weights once per mini batch.
+    !
+    ! Note: -O3 on GFortran must be accompanied with -fno-frontend-optimize for
+    ! this subroutine to converge to a solution.
     type(network), intent(inout) :: net
     real, dimension(:), intent(in) :: x, y
     real, intent(in) :: learning_rate
@@ -152,7 +159,7 @@ contains
   end subroutine minibatch_gd_optimizer
 
   subroutine shuffle(arr)
-    ! Shuffles an array using the Fisher-Yates algorithm.
+    ! Shuffle an array using the Fisher-Yates algorithm.
     integer, dimension(:), intent(inout) :: arr
     real :: j
     integer :: i, temp
