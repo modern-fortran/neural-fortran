@@ -3,16 +3,23 @@ program quadratic_fit
   ! stochastic gradient descent, batch gradient descent, and minibatch gradient
   ! descent.
   use nf, only: dense, input, network
+
   implicit none
   type(network) :: net_sgd, net_batch_sgd, net_minibatch_sgd
-  real, dimension(:), allocatable :: x, y
+
+  ! Training parameters
   integer, parameter :: num_epochs = 1000
   integer, parameter :: train_size = 1000
   integer, parameter :: test_size = 30
-  real, dimension(:), allocatable :: xtest, ytest
-  real, dimension(:), allocatable :: ypred_sgd, ypred_batch_sgd, ypred_minibatch_sgd
-  integer :: i, n, batch_size
-  real :: learning_rate
+  integer, parameter :: batch_size = 10
+  real, parameter :: learning_rate = 0.01
+
+  ! Input and output data
+  real, allocatable :: x(:), y(:) ! training data
+  real, allocatable :: xtest(:), ytest(:) ! testing data
+  real, allocatable :: ypred_sgd(:), ypred_batch_sgd(:), ypred_minibatch_sgd(:)
+
+  integer :: i, n
 
   print '("Fitting quadratic function")'
   print '(60("="))'
@@ -30,10 +37,6 @@ program quadratic_fit
     x(i) = x(i) * 2
   end do
   y = quadratic(x)
-
-  ! optimizer and learning rate
-  learning_rate = 0.01
-  batch_size = 10
 
   ! Instantiate a separate network for each optimization method.
   net_sgd = network([input(1), dense(3), dense(1)])
@@ -75,7 +78,7 @@ contains
     ! and backward passes and update the weights for each training sample,
     ! one at a time.
     type(network), intent(inout) :: net
-    real, dimension(:), intent(in) :: x, y
+    real, intent(in) :: x(:), y(:)
     real, intent(in) :: learning_rate
     integer, intent(in) :: num_epochs
     integer :: i, n
@@ -97,7 +100,7 @@ contains
     ! accumulate the weight gradients for all training samples and update the
     ! weights once per epoch.
     type(network), intent(inout) :: net
-    real, dimension(:), intent(in) :: x, y
+    real, intent(in) :: x(:), y(:)
     real, intent(in) :: learning_rate
     integer, intent(in) :: num_epochs
     integer :: i, n
@@ -121,12 +124,12 @@ contains
     ! Note: -O3 on GFortran must be accompanied with -fno-frontend-optimize for
     ! this subroutine to converge to a solution.
     type(network), intent(inout) :: net
-    real, dimension(:), intent(in) :: x, y
+    real, intent(in) :: x(:), y(:)
     real, intent(in) :: learning_rate
     integer, intent(in) :: num_epochs, batch_size
     integer :: i, j, n, num_samples, num_batches, start_index, end_index
-    real, dimension(:), allocatable :: batch_x, batch_y
-    integer, dimension(:), allocatable :: batch_indices
+    real, allocatable :: batch_x(:), batch_y(:)
+    integer, allocatable :: batch_indices(:)
 
     print *, "Running mini-batch GD optimizer..."
 
@@ -160,16 +163,16 @@ contains
 
   subroutine shuffle(arr)
     ! Shuffle an array using the Fisher-Yates algorithm.
-    integer, dimension(:), intent(inout) :: arr
-    real :: j
+    integer, intent(inout) :: arr(:)
+    real :: a
     integer :: i, temp
 
     do i = size(arr), 2, -1
-      call random_number(j)
-      j = floor(j * real(i)) + 1.0
+      call random_number(a)
+      a = floor(a * real(i)) + 1
       temp = arr(i)
-      arr(i) = arr(int(j))
-      arr(int(j)) = temp
+      arr(i) = arr(int(a))
+      arr(int(a)) = temp
     end do
   end subroutine shuffle
 
