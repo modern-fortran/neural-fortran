@@ -550,6 +550,7 @@ contains
 
         select type (optimizer)
           type is (sgd)
+            ! TODO Pass network parameters and gradients to optimizer
             call self % update(optimizer % learning_rate / batch_size)
           class default
             error stop 'Unsupported optimizer'
