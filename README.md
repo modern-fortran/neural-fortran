@@ -1,7 +1,5 @@
 # neural-fortran
 
-[![GitHub issues](https://img.shields.io/github/issues/modern-fortran/neural-fortran.svg)](https://github.com/modern-fortran/neural-fortran/issues)
-
 A parallel framework for deep learning.
 Read the paper [here](https://arxiv.org/abs/1902.06714).
 
@@ -244,20 +242,27 @@ It may be useful to read if you want to contribute a new feature to neural-fortr
 ## Acknowledgement
 
 Thanks to all open-source contributors to neural-fortran:
-[@awvwgk](https://github.com/awvwgk),
-[@ivan-pi](https://github.com/ivan-pi),
-[@jacobwilliams](https://github.com/jacobwilliams),
-[@jvdp1](https://github.com/jvdp1),
-[@jvo203](https://github.com/jvo203),
-[@milancurcic](https://github.com/milancurcic),
-[@pirpyn](https://github.com/pirpyn),
-[@rouson](https://github.com/rouson),
-[@rweed](https://github.com/rweed),
-and [@scivision](https://github.com/scivision).
+[awvwgk](https://github.com/awvwgk),
+[ggoyman](https://github.com/ggoyman),
+[ivan-pi](https://github.com/ivan-pi),
+[jacobwilliams](https://github.com/jacobwilliams),
+[jvdp1](https://github.com/jvdp1),
+[jvo203](https://github.com/jvo203),
+[milancurcic](https://github.com/milancurcic),
+[pirpyn](https://github.com/pirpyn),
+[rouson](https://github.com/rouson),
+[rweed](https://github.com/rweed),
+[Spnetic-5](https://github.com/Spnetic-5),
+and [scivision](https://github.com/scivision).
 
 Development of convolutional networks and Keras HDF5 adapters in
 neural-fortran was funded by a contract from NASA Goddard Space Flight Center
 to the University of Miami.
+Development of optimizers is supported by the Google Summer of Code 2023 project
+awarded to [Fortran-lang](https://github.com/fortran-lang).
+
+<img src="assets/nasa.png" alt="NASA logo">
+<img src="assets/gsoc.png" alt="GSoC logo">
 
 ## Related projects
 
@@ -270,3 +275,12 @@ supports training and inference of convolutional networks.
 is an implementation based on old (v0.1.0) neural-fortran which optimizes for
 speed and running on GPUs the memory layout and forward and backward passes of
 dense layers.
+* [Inference Engine](https://github.com/BerkeleyLab/inference-engine) developed
+at the Berkeley Lab by the Computer Languages and Systems Software (CLaSS)
+group.
+
+## Impact
+
+Neural-fortran has been used successfully in over a dozen published studies.
+See all papers that cite it
+[here](https://scholar.google.com/scholar?cites=7315840714744905948).
