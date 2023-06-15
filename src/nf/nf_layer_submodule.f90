@@ -383,12 +383,14 @@ contains
 
 
   impure elemental module subroutine update(self, learning_rate)
-    implicit none
     class(layer), intent(in out) :: self
     real, intent(in) :: learning_rate
 
-    select type(this_layer => self % p); type is(dense_layer)
-      call this_layer % update(learning_rate)
+    select type(this_layer => self % p)
+      type is(dense_layer)
+        call this_layer % update(learning_rate)
+      type is(conv2d_layer)
+        call this_layer % update(learning_rate)
     end select
 
   end subroutine update
