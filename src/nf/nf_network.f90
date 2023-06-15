@@ -198,7 +198,7 @@ module nf_network
         !! and it will be made to be a more general optimizer type.
     end subroutine train
 
-    module subroutine update(self, learning_rate)
+    module subroutine update(self, optimizer, batch_size)
       !! Update the weights and biases on all layers using the stored
       !! gradients (from backward passes) on those layers, and flush those
       !! same stored gradients to zero.
@@ -207,8 +207,12 @@ module nf_network
       !! but can be invoked by the user when creating custom optimizers.
       class(network), intent(in out) :: self
         !! Network instance
-      real, intent(in) :: learning_rate
-        !! Learning rate to use; must be > 0.
+      class(optimizer_base_type), intent(in) :: optimizer
+        !! Optimizer instance to use
+      integer, intent(in), optional :: batch_size
+        !! Batch size to use.
+        !! Set to 1 for a pure stochastic gradient descent (default).
+        !! Set to `size(input_data, dim=2)` for a batch gradient descent.
     end subroutine update
 
   end interface

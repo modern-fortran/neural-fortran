@@ -8,6 +8,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_optimizers, only: optimizer_base_type
 
 contains
 
@@ -382,13 +383,15 @@ contains
   end subroutine set_params
 
 
-  impure elemental module subroutine update(self, learning_rate)
-    implicit none
+  impure elemental module subroutine update(self, optimizer, batch_size)
     class(layer), intent(in out) :: self
-    real, intent(in) :: learning_rate
+    class(optimizer_base_type), intent(in) :: optimizer
+    integer, intent(in), optional :: batch_size
+
+    ! TODO set default value for batch size
 
     select type(this_layer => self % p); type is(dense_layer)
-      call this_layer % update(learning_rate)
+      call this_layer % update(optimizer % learning_rate / batch_size)
     end select
 
   end subroutine update

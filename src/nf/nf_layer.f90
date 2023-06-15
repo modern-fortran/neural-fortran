@@ -4,6 +4,7 @@ module nf_layer
   !! user-facing API.
 
   use nf_base_layer, only: base_layer
+  use nf_optimizers, only: optimizer_base_type
 
   implicit none
 
@@ -144,7 +145,7 @@ module nf_layer
         !! Parameters of this layer
     end subroutine set_params
 
-    impure elemental module subroutine update(self, learning_rate)
+    impure elemental module subroutine update(self, optimizer, batch_size)
       !! Update the weights and biases on the layer using the stored
       !! gradients (from backward passes), and flush those same stored
       !! gradients to zero.
@@ -152,8 +153,10 @@ module nf_layer
       !! Typically used only internally from the `network % update` method.
       class(layer), intent(in out) :: self
         !! Layer instance
-      real, intent(in) :: learning_rate
-        !! Learning rate to use; must be > 0.
+      class(optimizer_base_type), intent(in) :: optimizer
+        !! Optimizer instance to use
+      integer, intent(in), optional :: batch_size
+        !! Batch size (default 1)
     end subroutine update
 
   end interface

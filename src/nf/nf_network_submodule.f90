@@ -550,8 +550,7 @@ contains
 
         select type (optimizer)
           type is (sgd)
-            ! TODO Pass network parameters and gradients to optimizer
-            call self % update(optimizer % learning_rate / batch_size)
+            call self % update(optimizer, batch_size)
           class default
             error stop 'Unsupported optimizer'
         end select
@@ -562,10 +561,11 @@ contains
   end subroutine train
 
 
-  module subroutine update(self, learning_rate)
+  module subroutine update(self, optimizer, batch_size)
     class(network), intent(in out) :: self
-    real, intent(in) :: learning_rate
-    call self % layers % update(learning_rate)
+    class(optimizer_base_type), intent(in) :: optimizer
+    integer, intent(in), optional :: batch_size
+    call self % layers % update(optimizer, batch_size)
   end subroutine update
 
 end submodule nf_network_submodule
