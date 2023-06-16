@@ -25,7 +25,8 @@ submodule(nf_network) nf_network_submodule
                            softmax, &
                            softplus, &
                            step, &
-                           tanhf
+                           tanhf, &
+                           celu
 
   implicit none
 
@@ -268,10 +269,13 @@ contains
     case('tanh')
       allocate ( res, source = tanhf() )
 
+    case('celu')
+      allocate ( res, source = celu() )
+
     case default
         error stop 'activation_name must be one of: ' // &
           '"elu", "exponential", "gaussian", "linear", "relu", ' // &
-          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", or "tanh".'
+          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", "tanh" or "celu".'
     end select
 
   end function get_activation_by_name
