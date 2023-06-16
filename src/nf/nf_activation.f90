@@ -18,6 +18,7 @@ module nf_activation
   public :: softplus
   public :: step
   public :: tanhf
+  public :: celu
 
   type, abstract :: activation_function
   contains
@@ -139,6 +140,15 @@ module nf_activation
     procedure :: eval_3d       => eval_3d_tanh
     procedure :: eval_3d_prime => eval_3d_tanh_prime
   end type tanhf
+
+  type, extends(activation_function) :: celu
+    real:: alpha = 1.0 ! Pytorch default
+  contains
+    procedure :: eval_1d       => eval_1d_celu
+    procedure :: eval_1d_prime => eval_1d_celu_prime
+    procedure :: eval_3d       => eval_3d_celu
+    procedure :: eval_3d_prime => eval_3d_celu_prime
+  end type celu
 
 contains
 
@@ -522,6 +532,54 @@ contains
     res = 1 - tanh(x)**2
   end function eval_3d_tanh_prime
 
+  pure function eval_1d_celu(self, x) result(res)
+    ! Celu activation function.
+    class(celu), intent(in) :: self
+    real, intent(in) :: x(:)
+    real :: res(size(x))
+    where (x >= 0.0)
+        res = x
+    else where
+        res = self % alpha * (exp(x / self % alpha) - 1.0)
+    end where
+  end function
+
+  pure function eval_1d_celu_prime(self, x) result(res)
+    ! Celu activation function.
+    class(celu), intent(in) :: self
+    real, intent(in) :: x(:)
+    real :: res(size(x))
+    where (x >= 0.0)
+        res = 1.0
+    else where
+        res = exp(x / self % alpha)
+    end where
+  end function
+
+  pure function eval_3d_celu(self, x) result(res)
+    ! Celu activation function.
+    class(celu), intent(in) :: self
+    real, intent(in) :: x(:,:,:)
+    real :: res(size(x,1),size(x,2),size(x,3))
+    where (x >= 0.0)
+        res = x
+    else where
+        res = self % alpha * (exp(x / self % alpha) - 1.0)
+    end where
+  end function
+
+  pure function eval_3d_celu_prime(self, x) result(res)
+    ! Celu activation function.
+    class(celu), intent(in) :: self
+    real, intent(in) :: x(:,:,:)
+    real :: res(size(x,1),size(x,2),size(x,3))
+    where (x >= 0.0)
+        res = 1.0
+    else where
+        res = exp(x / self % alpha)
+    end where
+  end function
+
   pure function get_name(self) result(name)
     !! Return the name of the activation function.
     !!
@@ -556,6 +614,8 @@ contains
       name = 'step'
     class is (tanhf)
       name = 'tanh'
+    class is (celu)
+      name = 'celu'
     class default
       error stop 'Unknown activation function type.'
     end select
