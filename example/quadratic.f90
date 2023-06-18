@@ -176,7 +176,7 @@ subroutine rmsprop_optimizer(net, x, y, learning_rate, num_epochs, decay_rate)
   real, intent(in) :: learning_rate, decay_rate
   integer, intent(in) :: num_epochs
   integer :: i, j, n, num_layers
-  real :: epsilon
+  real, parameter :: epsilon = 1e-8 ! Small constant to avoid division by zero
   real, allocatable :: rms_weights(:,:), rms_gradients(:,:)
   real, allocatable :: weights(:,:), gradients(:,:)
   real, allocatable :: biases(:), bias_gradients(:) 
@@ -193,7 +193,6 @@ subroutine rmsprop_optimizer(net, x, y, learning_rate, num_epochs, decay_rate)
   rms_gradients = 0.0
   biases = 0.0
   bias_gradients = 0.0
-  epsilon = 1e-8  ! Small constant to avoid division by zero
 
   do n = 1, num_epochs
     do i = 1, size(x)
@@ -208,13 +207,12 @@ subroutine rmsprop_optimizer(net, x, y, learning_rate, num_epochs, decay_rate)
           gradients = this_layer % dw
           biases = this_layer % biases
           bias_gradients = this_layer % db
-          biases = reshape(biases, shape(bias_gradients))
           rms_weights = decay_rate * rms_weights + (1.0 - decay_rate) * (weights*weights)
           rms_gradients = decay_rate * rms_gradients + (1.0 - decay_rate) * (gradients*gradients)
           ! Update weights using RMSprop update rule
-          weights = weights - (learning_rate / sqrt(rms_weights + epsilon)) * gradients
+          weights = weights - (learning_rate / sqrt(rms_gradients + epsilon)) * gradients
           ! Update biases using RMSprop update rule
-          biases = biases - reshape((learning_rate / sqrt(rms_weights + epsilon)), shape(bias_gradients)) * bias_gradients
+          biases = biases - reshape((learning_rate / sqrt(rms_gradients + epsilon)), shape(bias_gradients)) * bias_gradients
         end select
       end do
     end do
