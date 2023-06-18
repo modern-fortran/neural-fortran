@@ -169,47 +169,58 @@ contains
     end do
   end subroutine minibatch_gd_optimizer
 
-  subroutine rmsprop_optimizer(net, x, y, learning_rate, num_epochs, decay_rate)
-    ! RMSprop optimizer for updating weights using root mean square
-    type(network), intent(inout) :: net
-    real, intent(in) :: x(:), y(:)
-    real, intent(in) :: learning_rate, decay_rate
-    integer, intent(in) :: num_epochs
-    integer :: i, j, n
-    real :: epsilon
-    real, allocatable :: rms_weights(:,:), rms_gradients(:,:)
-    real, allocatable :: weights(:,:), gradients(:,:) 
+subroutine rmsprop_optimizer(net, x, y, learning_rate, num_epochs, decay_rate)
+  ! RMSprop optimizer for updating weights using root mean square
+  type(network), intent(inout) :: net
+  real, intent(in) :: x(:), y(:)
+  real, intent(in) :: learning_rate, decay_rate
+  integer, intent(in) :: num_epochs
+  integer :: i, j, n, num_layers
+  real :: epsilon
+  real, allocatable :: rms_weights(:,:), rms_gradients(:,:)
+  real, allocatable :: weights(:,:), gradients(:,:)
+  real, allocatable :: biases(:), bias_gradients(:) 
 
-    print *, "Running RMSprop optimizer..."
+  print *, "Running RMSprop optimizer..."
 
-    ! Initialize rms_weights and rms_gradients arrays
-    allocate(rms_weights(3,1), rms_gradients(3,1))
+  num_layers = size(net % layers)
 
-    rms_weights = 0.0
-    rms_gradients = 0.0
-    epsilon = 1e-8  ! Small constant to avoid division by zero
+  ! Initialize rms_weights, rms_gradients, biases, and bias_gradients arrays
+  allocate(rms_weights(num_layers,1), rms_gradients(num_layers,1))
+  allocate(biases(num_layers), bias_gradients(num_layers))
 
-    do n = 1, num_epochs
-      do i = 1, size(x)
-        call net % forward([x(i)])
-        call net % backward([y(i)])
+  rms_weights = 0.0
+  rms_gradients = 0.0
+  biases = 0.0
+  bias_gradients = 0.0
+  epsilon = 1e-8  ! Small constant to avoid division by zero
 
-        ! Update rms_weights and rms_gradients
-        do j = 1, size(net % layers)
-          select type (this_layer => net % layers(j) % p)
-          type is (dense_layer)   
-            weights = this_layer % weights
-            gradients = this_layer % dw
-            rms_weights = decay_rate * rms_weights + (1.0 - decay_rate) * (weights*weights)
-            rms_gradients = decay_rate * rms_gradients + (1.0 - decay_rate) * (gradients*gradients)
-            ! Update weights using RMSprop update rule
-            weights = weights - (learning_rate / sqrt(rms_weights + epsilon)) * gradients
-          end select
-        end do
+  do n = 1, num_epochs
+    do i = 1, size(x)
+      call net % forward([x(i)])
+      call net % backward([y(i)])
+
+      ! Update rms_weights, rms_gradients, biases, and bias_gradients
+      do j = 1, num_layers
+        select type (this_layer => net % layers(j) % p)
+        type is (dense_layer)   
+          weights = this_layer % weights
+          gradients = this_layer % dw
+          biases = this_layer % biases
+          bias_gradients = this_layer % db
+          biases = reshape(biases, shape(bias_gradients))
+          rms_weights = decay_rate * rms_weights + (1.0 - decay_rate) * (weights*weights)
+          rms_gradients = decay_rate * rms_gradients + (1.0 - decay_rate) * (gradients*gradients)
+          ! Update weights using RMSprop update rule
+          weights = weights - (learning_rate / sqrt(rms_weights + epsilon)) * gradients
+          ! Update biases using RMSprop update rule
+          biases = biases - reshape((learning_rate / sqrt(rms_weights + epsilon)), shape(bias_gradients)) * bias_gradients
+        end select
       end do
     end do
+  end do
 
-  end subroutine rmsprop_optimizer
+end subroutine rmsprop_optimizer
 
 
   subroutine shuffle(arr)
