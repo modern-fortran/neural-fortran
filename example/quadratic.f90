@@ -68,7 +68,7 @@ program quadratic_fit
   ypred_rms_prop = [(net_rms_prop % predict([xtest(i)]), i = 1, test_size)]
 
   ! Print the mean squared error
-  print '(" Stochastic gradient descent MSE:", f9.6)', sum((ypred_sgd - ytest)**2) / size(ytest)
+  print '("Stochastic gradient descent MSE:", f9.6)', sum((ypred_sgd - ytest)**2) / size(ytest)
   print '("     Batch gradient descent MSE: ", f9.6)', sum((ypred_batch_sgd - ytest)**2) / size(ytest)
   print '(" Minibatch gradient descent MSE: ", f9.6)', sum((ypred_minibatch_sgd - ytest)**2) / size(ytest)
   print '("                    RMSProp MSE: ", f9.6)', sum((ypred_rms_prop - ytest)**2) / size(ytest)
@@ -169,57 +169,76 @@ contains
     end do
   end subroutine minibatch_gd_optimizer
 
-subroutine rmsprop_optimizer(net, x, y, learning_rate, num_epochs, decay_rate)
-  ! RMSprop optimizer for updating weights using root mean square
-  type(network), intent(inout) :: net
-  real, intent(in) :: x(:), y(:)
-  real, intent(in) :: learning_rate, decay_rate
-  integer, intent(in) :: num_epochs
-  integer :: i, j, n, num_layers
-  real, parameter :: epsilon = 1e-8 ! Small constant to avoid division by zero
-  real, allocatable :: rms_weights(:,:), rms_gradients(:,:)
-  real, allocatable :: weights(:,:), gradients(:,:)
-  real, allocatable :: biases(:), bias_gradients(:) 
+  subroutine rmsprop_optimizer(net, x, y, learning_rate, num_epochs, decay_rate)
+    ! RMSprop optimizer for updating weights using root mean square
+    type(network), intent(inout) :: net
+    real, intent(in) :: x(:), y(:)
+    real, intent(in) :: learning_rate, decay_rate
+    integer, intent(in) :: num_epochs
+    integer :: i, j, n
+    real, parameter :: epsilon = 1e-8 ! Small constant to avoid division by zero
 
-  print *, "Running RMSprop optimizer..."
+    ! Define a dedicated type to store the RMSprop gradients.
+    ! This is needed because array sizes vary between layers and we need to
+    ! keep track of gradients for each layer over time.
+    ! For now this works only for dense layers.
+    ! We will need to define a similar type for conv2d layers.
+    type :: rms_gradient_dense
+      real, allocatable :: dw(:,:)
+      real, allocatable :: db(:)
+    end type rms_gradient_dense
 
-  num_layers = size(net % layers)
+    type(rms_gradient_dense), allocatable :: rms(:)
 
-  ! Initialize rms_weights, rms_gradients, biases, and bias_gradients arrays
-  allocate(rms_weights(num_layers,1), rms_gradients(num_layers,1))
-  allocate(biases(num_layers), bias_gradients(num_layers))
+    print *, "Running RMSprop optimizer..."
 
-  rms_weights = 0.0
-  rms_gradients = 0.0
-  biases = 0.0
-  bias_gradients = 0.0
+    ! Here we allocate the array or RMS gradient derived types.
+    ! We need one for each dense layer, however we will allocate it to the
+    ! length of all layers as it will make housekeeping easier.
+    allocate(rms(size(net % layers)))
 
-  do n = 1, num_epochs
-    do i = 1, size(x)
-      call net % forward([x(i)])
-      call net % backward([y(i)])
+    do n = 1, num_epochs
 
-      ! Update rms_weights, rms_gradients, biases, and bias_gradients
-      do j = 1, num_layers
+      do i = 1, size(x)
+        call net % forward([x(i)])
+        call net % backward([y(i)])
+      end do
+
+      ! RMSprop update rule
+      do j = 1, size(net % layers)
         select type (this_layer => net % layers(j) % p)
-        type is (dense_layer)   
-          weights = this_layer % weights
-          gradients = this_layer % dw
-          biases = this_layer % biases
-          bias_gradients = this_layer % db
-          rms_weights = decay_rate * rms_weights + (1.0 - decay_rate) * (weights*weights)
-          rms_gradients = decay_rate * rms_gradients + (1.0 - decay_rate) * (gradients*gradients)
-          ! Update weights using RMSprop update rule
-          weights = weights - (learning_rate / sqrt(rms_gradients + epsilon)) * gradients
-          ! Update biases using RMSprop update rule
-          biases = biases - reshape((learning_rate / sqrt(rms_gradients + epsilon)), shape(bias_gradients)) * bias_gradients
+          type is (dense_layer)
+
+            ! If this is our first time here for this layer, allocate the
+            ! internal RMS gradient arrays and initialize them to zero.
+            if (.not. allocated(rms(j) % dw)) then
+              allocate(rms(j) % dw, mold=this_layer % dw)
+              allocate(rms(j) % db, mold=this_layer % db)
+              rms(j) % dw = 0
+              rms(j) % db = 0
+            end if
+
+            ! Update the RMS gradients using the RMSprop moving average rule
+            rms(j) % dw = decay_rate * rms(j) % dw + (1 - decay_rate) * this_layer % dw**2
+            rms(j) % db = decay_rate * rms(j) % db + (1 - decay_rate) * this_layer % db**2
+
+            ! Update weights and biases using the RMSprop update rule
+            this_layer % weights = this_layer % weights - learning_rate &
+              / sqrt(rms(j) % dw + epsilon) * this_layer % dw
+            this_layer % biases = this_layer % biases - learning_rate &
+              / sqrt(rms(j) % db + epsilon) * this_layer % db
+
+            ! We have updated the weights and biases, so we need to reset the
+            ! gradients to zero for the next epoch.
+            this_layer % dw = 0
+            this_layer % db = 0
+
         end select
       end do
+
     end do
-  end do
 
-end subroutine rmsprop_optimizer
-
+  end subroutine rmsprop_optimizer
 
   subroutine shuffle(arr)
     ! Shuffle an array using the Fisher-Yates algorithm.
