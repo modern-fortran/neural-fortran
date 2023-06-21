@@ -1,5 +1,6 @@
 program get_set_network_params
   use nf, only: dense, input, network
+  use nf_optimizers, only: sgd
   implicit none
   type(network) :: net1, net2
   real :: x(1), y(1)
@@ -37,7 +38,7 @@ program get_set_network_params
 
     call net1 % forward(x)
     call net1 % backward(y)
-    call net1 % update(1.)
+    call net1 % update(sgd(learning_rate=1.))
 
     if (mod(n, 10000) == 0) then
       ypred1 = [(net1 % predict([xtest(i)]), i=1, test_size)]
