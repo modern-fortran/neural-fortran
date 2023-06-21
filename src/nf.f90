@@ -8,5 +8,6 @@ module nf
   use nf_optimizers, only: sgd
   use nf_activation, only: activation_function, elu, exponential,  &
                            gaussian, linear, relu, leaky_relu,     &
-                           sigmoid, softmax, softplus, step, tanhf
+                           sigmoid, softmax, softplus, step, tanhf, &
+                           celu
 end module nf
