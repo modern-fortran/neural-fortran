@@ -1,6 +1,14 @@
 module nf_optimizers
 
-  !! This module provides optimizer types to pass to the network constructor.
+  !! This module provides optimizer types to pass to the network train or update
+  !! methods. The implementation is based on an abstract optimizer base type
+  !! which has a required minimize method. The minimize method is an elemental
+  !! subroutine to allow operating in-place on arrays of network parameters
+  !! (weights/kernels and biases) of arbitrary ranks. An implementation of a new
+  !! optimizer thus requires writing a concrete optimizer type that extends the
+  !! abstract optimizer base type, and that implements a concrete minimize
+  !! method that accepts a scalar or array of network parameters to update and
+  !! the corresponding loss gradients.
 
   implicit none
 
@@ -8,23 +16,22 @@ module nf_optimizers
   public :: optimizer_base_type, sgd
 
   type, abstract :: optimizer_base_type
-    character(:), allocatable :: name
+    real :: learning_rate = 1
   contains
-    procedure(minimize_interface), deferred :: minimize
+    procedure(minimize), deferred :: minimize
   end type optimizer_base_type
 
   abstract interface
-    elemental subroutine minimize_interface(self, weight, gradient)
+    elemental subroutine minimize(self, param, gradient)
       import :: optimizer_base_type
       class(optimizer_base_type), intent(in) :: self
-      real, intent(inout) :: weight
+      real, intent(inout) :: param
       real, intent(in) :: gradient
-    end subroutine minimize_interface
+    end subroutine minimize
   end interface
 
   type, extends(optimizer_base_type) :: sgd
     !! Stochastic Gradient Descent optimizer
-    real :: learning_rate
     real :: momentum = 0 !TODO
     logical :: nesterov = .false. !TODO
   contains
@@ -33,11 +40,18 @@ module nf_optimizers
 
 contains
 
-  elemental subroutine minimize_sgd(self, weight, gradient)
+  elemental subroutine minimize_sgd(self, param, gradient)
+    !! Concrete implementation of a stochastic gradient descent optimizer
+    !! update rule.
     class(sgd), intent(in) :: self
-    real, intent(inout) :: weight
+      !! Optimizer instance
+    real, intent(inout) :: param
+      !! Network parameter (i.e. weight or bias) to update
     real, intent(in) :: gradient
-    weight = weight - self % learning_rate * gradient
+      !! Loss gradient with respect to the parameter (dL/dw or dL/db)
+    ! TODO Implement momentum and Nesterov options
+    ! TODO (see https://keras.io/api/optimizers/sgd/)
+    param = param - self % learning_rate * gradient
   end subroutine minimize_sgd
 
 end module nf_optimizers

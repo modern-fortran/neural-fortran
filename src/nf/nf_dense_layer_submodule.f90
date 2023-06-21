@@ -128,19 +128,4 @@ contains
 
   end subroutine init
 
-  module subroutine update(self, learning_rate)
-    class(dense_layer), intent(in out) :: self
-    real, intent(in) :: learning_rate
-
-    ! Sum weight and bias gradients across images, if any
-    call co_sum(self % dw)
-    call co_sum(self % db)
-
-    self % weights = self % weights - learning_rate * self % dw
-    self % biases = self % biases - learning_rate * self % db
-    self % dw = 0
-    self % db = 0
-
-  end subroutine update
-
 end submodule nf_dense_layer_submodule

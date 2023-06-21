@@ -387,11 +387,34 @@ contains
     class(layer), intent(in out) :: self
     class(optimizer_base_type), intent(in) :: optimizer
     integer, intent(in), optional :: batch_size
+    integer :: batch_size_
 
-    ! TODO set default value for batch size
+    batch_size_ = 1
+    if (present(batch_size)) batch_size_ = batch_size
 
-    select type(this_layer => self % p); type is(dense_layer)
-      call this_layer % update(optimizer % learning_rate / batch_size)
+    select type (this_layer => self % p)
+      type is (dense_layer)
+
+        ! Sum weight and bias gradients across images, if any
+        call co_sum(this_layer % dw)
+        call co_sum(this_layer % db)
+
+        call optimizer % minimize( &
+          this_layer % weights, &
+          this_layer % dw / batch_size_ &
+        )
+        call optimizer % minimize( &
+          this_layer % biases, &
+          this_layer % db / batch_size_ &
+        )
+
+        ! Reset gradients.
+        this_layer % dw = 0
+        this_layer % db = 0
+
+      type is (conv2d_layer)
+        error stop "Optimizer step for conv2d layers not implemented."
+
     end select
 
   end subroutine update
