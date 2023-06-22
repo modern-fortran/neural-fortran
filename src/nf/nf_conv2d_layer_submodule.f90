@@ -225,20 +225,4 @@ contains
 
   end subroutine set_params
 
-
-  module subroutine update(self, learning_rate)
-    class(conv2d_layer), intent(in out) :: self
-    real, intent(in) :: learning_rate
-
-    ! Sum weight and bias gradients across images, if any
-    call co_sum(self % dw)
-    call co_sum(self % db)
-
-    self % kernel = self % kernel - learning_rate * self % dw
-    self % biases = self % biases - learning_rate * self % db
-    self % dw = 0
-    self % db = 0
-
-  end subroutine update
-
 end submodule nf_conv2d_layer_submodule
