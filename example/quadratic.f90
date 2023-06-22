@@ -52,6 +52,7 @@ program quadratic_fit
 
   ! SGD optimizer
   call sgd_optimizer(net_sgd, x, y, learning_rate, num_epochs)
+  ! call sgd_optimizer(net, x, y, learning_rate, num_epochs, momentum=0.9, nesterov=.true.)
 
   ! Batch SGD optimizer
   call batch_gd_optimizer(net_batch_sgd, x, y, learning_rate, num_epochs)
@@ -82,7 +83,7 @@ contains
     y = (x**2 / 2 + x / 2 + 1) / 2
   end function quadratic
 
-  subroutine sgd_optimizer(net, x, y, learning_rate, num_epochs)
+  subroutine sgd_optimizer(net, x, y, learning_rate, num_epochs, momentum, nesterov)
     ! In the stochastic gradient descent (SGD) optimizer, we run the forward
     ! and backward passes and update the weights for each training sample,
     ! one at a time.
@@ -90,7 +91,13 @@ contains
     real, intent(in) :: x(:), y(:)
     real, intent(in) :: learning_rate
     integer, intent(in) :: num_epochs
+    real, intent(in), optional :: momentum
+    logical, intent(in), optional :: nesterov
     integer :: i, n
+
+    ! Set default values for momentum and nesterov
+    if (.not. present(momentum)) momentum = 0.0
+    if (.not. present(nesterov)) nesterov = .false.
 
     print *, "Running SGD optimizer..."
 
@@ -98,7 +105,7 @@ contains
       do i = 1, size(x)
         call net % forward([x(i)])
         call net % backward([y(i)])
-        call net % update(sgd(learning_rate=learning_rate))
+        call net % update(sgd(learning_rate=learning_rate, momentum=momentum, nesterov=nesterov))
       end do
     end do
 

@@ -32,26 +32,38 @@ module nf_optimizers
 
   type, extends(optimizer_base_type) :: sgd
     !! Stochastic Gradient Descent optimizer
-    real :: momentum = 0 !TODO
-    logical :: nesterov = .false. !TODO
+    real :: momentum = 0
+    logical :: nesterov = .false.
   contains
     procedure :: minimize => minimize_sgd
   end type sgd
 
 contains
 
-  elemental subroutine minimize_sgd(self, param, gradient)
-    !! Concrete implementation of a stochastic gradient descent optimizer
-    !! update rule.
-    class(sgd), intent(in) :: self
-      !! Optimizer instance
-    real, intent(inout) :: param
-      !! Network parameter (i.e. weight or bias) to update
-    real, intent(in) :: gradient
-      !! Loss gradient with respect to the parameter (dL/dw or dL/db)
-    ! TODO Implement momentum and Nesterov options
-    ! TODO (see https://keras.io/api/optimizers/sgd/)
+elemental subroutine minimize_sgd(self, param, gradient)
+  !! Concrete implementation of a stochastic gradient descent optimizer
+  !! update rule.
+  class(sgd), intent(in) :: self
+  real, intent(inout) :: param
+  real, intent(in) :: gradient
+  real :: velocity
+
+  if (self % momentum > 0) then
+    ! Apply momentum update
+    velocity = self % momentum * param - self % learning_rate * gradient
+    param = param - self % learning_rate * velocity
+  else
+    ! Apply regular update
     param = param - self % learning_rate * gradient
-  end subroutine minimize_sgd
+  end if
+
+  if (self % nesterov) then
+    ! Apply Nesterov update
+    param = param - self % momentum * self % learning_rate * gradient
+    param = param * (1 - self % momentum) + self % momentum * param
+  end if
+
+end subroutine minimize_sgd
+
 
 end module nf_optimizers
