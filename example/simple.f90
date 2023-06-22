@@ -24,7 +24,7 @@ program simple
 
     call net % forward(x)
     call net % backward(y)
-    call net % update(1.)
+    call net % update()
 
     if (mod(n, 50) == 0) &
       print '(i4,2(3x,f8.6))', n, net % predict(x)

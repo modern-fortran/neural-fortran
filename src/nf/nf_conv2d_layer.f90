@@ -36,7 +36,6 @@ module nf_conv2d_layer
     procedure :: get_num_params
     procedure :: get_params
     procedure :: set_params
-    procedure :: update
 
   end type conv2d_layer
 
@@ -104,14 +103,6 @@ module nf_conv2d_layer
       real, intent(in) :: params(:)
         !! Parameters to set
     end subroutine set_params
-
-    module subroutine update(self, learning_rate)
-      !! Update the weights and biases.
-      class(conv2d_layer), intent(in out) :: self
-        !! Dense layer instance
-      real, intent(in) :: learning_rate
-        !! Learning rate (must be > 0)
-    end subroutine update
 
   end interface
 

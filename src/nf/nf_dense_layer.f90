@@ -37,7 +37,6 @@ module nf_dense_layer
     procedure :: get_params
     procedure :: set_params
     procedure :: init
-    procedure :: update
 
   end type dense_layer
 
@@ -114,14 +113,6 @@ module nf_dense_layer
       integer, intent(in) :: input_shape(:)
         !! Shape of the input layer
     end subroutine init
-
-    module subroutine update(self, learning_rate)
-      !! Update the weights and biases.
-      class(dense_layer), intent(in out) :: self
-        !! Dense layer instance
-      real, intent(in) :: learning_rate
-        !! Learning rate (must be > 0)
-    end subroutine update
 
   end interface
 

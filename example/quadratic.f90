@@ -4,6 +4,7 @@ program quadratic_fit
   ! descent.
   use nf, only: dense, input, network
   use nf_dense_layer, only: dense_layer
+  use nf_optimizers, only: sgd
 
   implicit none
   type(network) :: net_sgd, net_batch_sgd, net_minibatch_sgd, net_rms_prop
@@ -97,7 +98,7 @@ contains
       do i = 1, size(x)
         call net % forward([x(i)])
         call net % backward([y(i)])
-        call net % update(learning_rate)
+        call net % update(sgd(learning_rate=learning_rate))
       end do
     end do
 
@@ -120,7 +121,7 @@ contains
         call net % forward([x(i)])
         call net % backward([y(i)])
       end do
-      call net % update(learning_rate / size(x))
+      call net % update(sgd(learning_rate=learning_rate / size(x)))
     end do
 
   end subroutine batch_gd_optimizer
@@ -164,7 +165,7 @@ contains
           call net % backward([y(i)])
         end do
 
-        call net % update(learning_rate / batch_size)
+        call net % update(sgd(learning_rate=learning_rate / batch_size))
       end do
     end do
   end subroutine minibatch_gd_optimizer
