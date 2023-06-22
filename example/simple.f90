@@ -1,6 +1,5 @@
 program simple
   use nf, only: dense, input, network
-  use nf_optimizers, only: sgd
   implicit none
   type(network) :: net
   real, allocatable :: x(:), y(:)
@@ -25,7 +24,7 @@ program simple
 
     call net % forward(x)
     call net % backward(y)
-    call net % update(sgd(learning_rate=1.))
+    call net % update()
 
     if (mod(n, 50) == 0) &
       print '(i4,2(3x,f8.6))', n, net % predict(x)

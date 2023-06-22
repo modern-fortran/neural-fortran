@@ -1,6 +1,5 @@
 program sine
   use nf, only: dense, input, network
-  use nf_optimizers, only: sgd
   implicit none
   type(network) :: net
   real :: x(1), y(1)
@@ -32,7 +31,7 @@ program sine
 
     call net % forward(x)
     call net % backward(y)
-    call net % update(sgd(learning_rate=1.))
+    call net % update()
 
     if (mod(n, 10000) == 0) then
       ypred = [(net % predict([xtest(i)]), i = 1, test_size)]

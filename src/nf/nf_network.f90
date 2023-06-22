@@ -193,9 +193,8 @@ module nf_network
         !! Set to `size(input_data, dim=2)` for a batch gradient descent.
       integer, intent(in) :: epochs
         !! Number of epochs to run
-      class(optimizer_base_type), intent(in) :: optimizer
-        !! Optimizer instance; currently this is an `sgd` optimizer type
-        !! and it will be made to be a more general optimizer type.
+      class(optimizer_base_type), intent(in), optional :: optimizer
+        !! Optimizer instance to use. If not provided, the default is sgd().
     end subroutine train
 
     module subroutine update(self, optimizer, batch_size)
@@ -207,7 +206,7 @@ module nf_network
       !! but can be invoked by the user when creating custom optimizers.
       class(network), intent(in out) :: self
         !! Network instance
-      class(optimizer_base_type), intent(in) :: optimizer
+      class(optimizer_base_type), intent(in), optional :: optimizer
         !! Optimizer instance to use
       integer, intent(in), optional :: batch_size
         !! Batch size to use.

@@ -520,13 +520,22 @@ contains
     real, intent(in) :: output_data(:,:)
     integer, intent(in) :: batch_size
     integer, intent(in) :: epochs
-    class(optimizer_base_type), intent(in) :: optimizer
+    class(optimizer_base_type), intent(in), optional :: optimizer
+    class(optimizer_base_type), allocatable :: optimizer_
 
     real :: pos
     integer :: dataset_size
     integer :: batch_start, batch_end
     integer :: i, j, n
     integer :: istart, iend, indices(2)
+
+    ! Passing the optimizer instance is optional.
+    ! If not provided, we default to SGD with its default settings.
+    if (present(optimizer)) then
+      optimizer_ = optimizer
+    else
+      optimizer_ = sgd()
+    end if
 
     dataset_size = size(output_data, dim=2)
 
@@ -552,9 +561,9 @@ contains
           call self % backward(output_data(:,j))
         end do
 
-        select type (optimizer)
+        select type (optimizer_)
           type is (sgd)
-            call self % update(optimizer, batch_size)
+            call self % update(optimizer_, batch_size)
           class default
             error stop 'Unsupported optimizer'
         end select
@@ -567,9 +576,20 @@ contains
 
   module subroutine update(self, optimizer, batch_size)
     class(network), intent(in out) :: self
-    class(optimizer_base_type), intent(in) :: optimizer
+    class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
-    call self % layers % update(optimizer, batch_size)
+    class(optimizer_base_type), allocatable :: optimizer_
+
+    ! Passing the optimizer instance is optional.
+    ! If not provided, we default to SGD with its default settings.
+    if (present(optimizer)) then
+      optimizer_ = optimizer
+    else
+      optimizer_ = sgd()
+    end if
+
+    call self % layers % update(optimizer_, batch_size)
+
   end subroutine update
 
 end submodule nf_network_submodule
