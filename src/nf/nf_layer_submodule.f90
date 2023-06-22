@@ -8,6 +8,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_optimizers, only: optimizer_base_type
 
 contains
 
@@ -382,15 +383,54 @@ contains
   end subroutine set_params
 
 
-  impure elemental module subroutine update(self, learning_rate)
+  impure elemental module subroutine update(self, optimizer, batch_size)
     class(layer), intent(in out) :: self
-    real, intent(in) :: learning_rate
+    class(optimizer_base_type), intent(in) :: optimizer
+    integer, intent(in), optional :: batch_size
+    integer :: batch_size_
 
-    select type(this_layer => self % p)
-      type is(dense_layer)
-        call this_layer % update(learning_rate)
-      type is(conv2d_layer)
-        call this_layer % update(learning_rate)
+    batch_size_ = 1
+    if (present(batch_size)) batch_size_ = batch_size
+
+    select type (this_layer => self % p)
+      type is (dense_layer)
+
+        ! Sum weight and bias gradients across images, if any
+        call co_sum(this_layer % dw)
+        call co_sum(this_layer % db)
+
+        call optimizer % minimize( &
+          this_layer % weights, &
+          this_layer % dw / batch_size_ &
+        )
+        call optimizer % minimize( &
+          this_layer % biases, &
+          this_layer % db / batch_size_ &
+        )
+
+        ! Reset gradients.
+        this_layer % dw = 0
+        this_layer % db = 0
+
+      type is (conv2d_layer)
+
+        ! Sum weight and bias gradients across images, if any
+        call co_sum(this_layer % dw)
+        call co_sum(this_layer % db)
+
+        call optimizer % minimize( &
+          this_layer % kernel, &
+          this_layer % dw / batch_size_ &
+        )
+        call optimizer % minimize( &
+          this_layer % biases, &
+          this_layer % db / batch_size_ &
+        )
+
+        ! Reset gradients.
+        this_layer % dw = 0
+        this_layer % db = 0
+
     end select
 
   end subroutine update

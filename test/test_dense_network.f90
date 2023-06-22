@@ -1,6 +1,7 @@
 program test_dense_network
   use iso_fortran_env, only: stderr => error_unit
   use nf, only: dense, input, network
+  use nf_optimizers, only: sgd
   implicit none
   type(network) :: net
   logical :: ok = .true.
@@ -34,7 +35,7 @@ program test_dense_network
     do n = 1, num_iterations
       call net % forward(x)
       call net % backward(y)
-      call net % update(1.)
+      call net % update(sgd(learning_rate=1.))
       if (all(abs(net % predict(x) - y) < tolerance)) exit
     end do
 

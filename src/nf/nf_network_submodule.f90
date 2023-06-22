@@ -25,7 +25,8 @@ submodule(nf_network) nf_network_submodule
                            softmax, &
                            softplus, &
                            step, &
-                           tanhf
+                           tanhf, &
+                           celu
 
   implicit none
 
@@ -268,10 +269,13 @@ contains
     case('tanh')
       allocate ( res, source = tanhf() )
 
+    case('celu')
+      allocate ( res, source = celu() )
+
     case default
         error stop 'activation_name must be one of: ' // &
           '"elu", "exponential", "gaussian", "linear", "relu", ' // &
-          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", or "tanh".'
+          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", "tanh" or "celu".'
     end select
 
   end function get_activation_by_name
@@ -522,13 +526,22 @@ contains
     real, intent(in) :: output_data(:,:)
     integer, intent(in) :: batch_size
     integer, intent(in) :: epochs
-    class(optimizer_base_type), intent(in) :: optimizer
+    class(optimizer_base_type), intent(in), optional :: optimizer
+    class(optimizer_base_type), allocatable :: optimizer_
 
     real :: pos
     integer :: dataset_size
     integer :: batch_start, batch_end
     integer :: i, j, n
     integer :: istart, iend, indices(2)
+
+    ! Passing the optimizer instance is optional.
+    ! If not provided, we default to SGD with its default settings.
+    if (present(optimizer)) then
+      optimizer_ = optimizer
+    else
+      optimizer_ = sgd()
+    end if
 
     dataset_size = size(output_data, dim=2)
 
@@ -554,9 +567,9 @@ contains
           call self % backward(output_data(:,j))
         end do
 
-        select type (optimizer)
+        select type (optimizer_)
           type is (sgd)
-            call self % update(optimizer % learning_rate / batch_size)
+            call self % update(optimizer_, batch_size)
           class default
             error stop 'Unsupported optimizer'
         end select
@@ -567,10 +580,22 @@ contains
   end subroutine train
 
 
-  module subroutine update(self, learning_rate)
+  module subroutine update(self, optimizer, batch_size)
     class(network), intent(in out) :: self
-    real, intent(in) :: learning_rate
-    call self % layers % update(learning_rate)
+    class(optimizer_base_type), intent(in), optional :: optimizer
+    integer, intent(in), optional :: batch_size
+    class(optimizer_base_type), allocatable :: optimizer_
+
+    ! Passing the optimizer instance is optional.
+    ! If not provided, we default to SGD with its default settings.
+    if (present(optimizer)) then
+      optimizer_ = optimizer
+    else
+      optimizer_ = sgd()
+    end if
+
+    call self % layers % update(optimizer_, batch_size)
+
   end subroutine update
 
 end submodule nf_network_submodule

@@ -4,6 +4,7 @@ foreach(execid
   dense_mnist
   dense_from_keras
   get_set_network_params
+  network_parameters
   simple
   sine
   quadratic

@@ -31,7 +31,7 @@ program sine
 
     call net % forward(x)
     call net % backward(y)
-    call net % update(1.)
+    call net % update()
 
     if (mod(n, 10000) == 0) then
       ypred = [(net % predict([xtest(i)]), i = 1, test_size)]
