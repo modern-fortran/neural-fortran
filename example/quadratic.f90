@@ -95,10 +95,6 @@ contains
     logical, intent(in), optional :: nesterov
     integer :: i, n
 
-    ! Set default values for momentum and nesterov
-    if (.not. present(momentum)) momentum = 0.0
-    if (.not. present(nesterov)) nesterov = .false.
-
     print *, "Running SGD optimizer..."
 
     do n = 1, num_epochs
