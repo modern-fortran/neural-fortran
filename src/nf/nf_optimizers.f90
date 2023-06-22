@@ -51,7 +51,7 @@ elemental subroutine minimize_sgd(self, param, gradient)
   if (self % momentum > 0) then
     ! Apply momentum update
     velocity = self % momentum * param - self % learning_rate * gradient
-    param = param - self % learning_rate * velocity
+    param = param + velocity
   else
     ! Apply regular update
     param = param - self % learning_rate * gradient
@@ -59,8 +59,8 @@ elemental subroutine minimize_sgd(self, param, gradient)
 
   if (self % nesterov) then
     ! Apply Nesterov update
-    param = param - self % momentum * self % learning_rate * gradient
-    param = param * (1 - self % momentum) + self % momentum * param
+    velocity = self % momentum * velocity - self % learning_rate * gradient
+    param = param + self % momentum * velocity - self % learning_rate * gradient
   end if
 
 end subroutine minimize_sgd
