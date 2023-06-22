@@ -283,7 +283,6 @@ contains
   pure module subroutine backward(self, output)
     class(network), intent(in out) :: self
     real, intent(in) :: output(:)
-    real, allocatable :: gradient(:)
     integer :: n, num_layers
 
     num_layers = size(self % layers)
@@ -296,17 +295,24 @@ contains
         ! Output layer; apply the loss function
         select type(this_layer => self % layers(n) % p)
           type is(dense_layer)
-            gradient = quadratic_derivative(output, this_layer % output)
+            call self % layers(n) % backward( &
+              self % layers(n - 1), &
+              quadratic_derivative(output, this_layer % output) &
+            )
         end select
       else
         ! Hidden layer; take the gradient from the next layer
         select type(next_layer => self % layers(n + 1) % p)
           type is(dense_layer)
-            gradient = next_layer % gradient
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(flatten_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(conv2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(maxpool2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if
-
-      call self % layers(n) % backward(self % layers(n - 1), gradient)
 
     end do
 
