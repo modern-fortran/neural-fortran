@@ -51,8 +51,8 @@ program quadratic_fit
   call net_sgd % print_info()
 
   ! SGD optimizer
-  call sgd_optimizer(net_sgd, x, y, learning_rate, num_epochs)
-  ! call sgd_optimizer(net, x, y, learning_rate, num_epochs, momentum=0.9, nesterov=.true.)
+  call sgd_optimizer(net_sgd, x, y, learning_rate, num_epochs, momentum=0.9, nesterov=.true.)
+  ! call sgd_optimizer(net_sgd, x, y, learning_rate, num_epochs)
 
   ! Batch SGD optimizer
   call batch_gd_optimizer(net_batch_sgd, x, y, learning_rate, num_epochs)
@@ -93,7 +93,22 @@ contains
     integer, intent(in) :: num_epochs
     real, intent(in), optional :: momentum
     logical, intent(in), optional :: nesterov
+    real :: momentum_value
+    logical :: nesterov_value
     integer :: i, n
+
+    ! Set default values for momentum and nesterov
+    if (.not. present(momentum)) then
+      momentum_value = 0.0
+    else
+      momentum_value = momentum
+    end if
+
+    if (.not. present(nesterov)) then
+      nesterov_value = .false.
+    else
+      nesterov_value = nesterov
+    end if
 
     print *, "Running SGD optimizer..."
 
@@ -101,7 +116,7 @@ contains
       do i = 1, size(x)
         call net % forward([x(i)])
         call net % backward([y(i)])
-        call net % update(sgd(learning_rate=learning_rate, momentum=momentum, nesterov=nesterov))
+        call net % update(sgd(learning_rate=learning_rate, momentum=momentum_value, nesterov=nesterov_value))
       end do
     end do
 

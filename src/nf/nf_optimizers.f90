@@ -46,11 +46,17 @@ elemental subroutine minimize_sgd(self, param, gradient)
   class(sgd), intent(in) :: self
   real, intent(inout) :: param
   real, intent(in) :: gradient
-  real :: velocity
+  real, allocatable :: velocity
+
+  if (.not. allocated(velocity)) then
+    ! Set initial velocity to zero
+    allocate(velocity, mold=param)
+    velocity = 0.0
+  end if
 
   if (self % momentum > 0) then
     ! Apply momentum update
-    velocity = self % momentum * param - self % learning_rate * gradient
+    velocity = self % momentum * velocity - self % learning_rate * gradient
     param = param + velocity
   else
     ! Apply regular update
