@@ -13,7 +13,7 @@ module nf_optimizers
   implicit none
 
   private
-  public :: optimizer_base_type, sgd
+  public :: optimizer_base_type, sgd, rms
 
   type, abstract :: optimizer_base_type
     real :: learning_rate = 1
@@ -38,38 +38,65 @@ module nf_optimizers
     procedure :: minimize => minimize_sgd
   end type sgd
 
-contains
+  type, extends(optimizer_base_type) :: rms
+    !! RMSProp optimizer
+    real :: decay_rate = 0.9
+    real :: epsilon = 1e-8
+  contains
+    procedure :: minimize => rmsprop_optimizer
+  end type rms
 
-elemental subroutine minimize_sgd(self, param, gradient)
-  !! Concrete implementation of a stochastic gradient descent optimizer
-  !! update rule.
-  class(sgd), intent(in) :: self
-  real, intent(inout) :: param
-  real, intent(in) :: gradient
-  real, allocatable :: velocity
+  contains
 
-  if (.not. allocated(velocity)) then
-    ! Set initial velocity to zero
-    allocate(velocity, mold=param)
-    velocity = 0.0
-  end if
+  elemental subroutine minimize_sgd(self, param, gradient)
+    !! Concrete implementation of a stochastic gradient descent optimizer
+    !! update rule.
+    class(sgd), intent(in) :: self
+    real, intent(inout) :: param
+    real, intent(in) :: gradient
+    real, allocatable :: velocity
 
-  if (self % momentum > 0) then
-    ! Apply momentum update
-    velocity = self % momentum * velocity - self % learning_rate * gradient
-    param = param + velocity
-  else
-    ! Apply regular update
-    param = param - self % learning_rate * gradient
-  end if
+    if (.not. allocated(velocity)) then
+      ! Set initial velocity to zero
+      allocate(velocity, mold=param)
+      velocity = 0.0
+    end if
 
-  if (self % nesterov) then
-    ! Apply Nesterov update
-    velocity = self % momentum * velocity - self % learning_rate * gradient
-    param = param + self % momentum * velocity - self % learning_rate * gradient
-  end if
+    if (self % momentum > 0) then
+      ! Apply momentum update
+      velocity = self % momentum * velocity - self % learning_rate * gradient
+      param = param + velocity
+    else
+      ! Apply regular update
+      param = param - self % learning_rate * gradient
+    end if
 
-end subroutine minimize_sgd
+    if (self % nesterov) then
+      ! Apply Nesterov update
+      velocity = self % momentum * velocity - self % learning_rate * gradient
+      param = param + self % momentum * velocity - self % learning_rate * gradient
+    end if
 
+  end subroutine minimize_sgd
+
+  elemental subroutine rmsprop_optimizer(self, param, gradient)
+    !! Concrete implementation of a RMSProp optimizer
+    !! update rule.
+    class(rms), intent(in) :: self
+    real, intent(inout) :: param
+    real, intent(in) :: gradient
+    real, allocatable :: rms_gradient
+
+    if (.not. allocated(rms_gradient)) then
+      ! Set initial gradients to zero
+      allocate(rms_gradient, mold=gradient)
+      rms_gradient = 0.0
+    end if
+
+    ! Update weights and gradients by RMSProp rule
+    rms_gradient = self % decay_rate * rms_gradient + (1 - self % decay_rate) * gradient**2
+    param = param - self % learning_rate / sqrt(rms_gradient + self % epsilon) * gradient
+
+  end subroutine rmsprop_optimizer
 
 end module nf_optimizers
