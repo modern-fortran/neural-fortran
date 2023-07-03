@@ -7,13 +7,13 @@ program quadratic_fit
   use nf_optimizers, only: sgd
 
   implicit none
-  type(network) :: net_sgd, net_batch_sgd, net_minibatch_sgd, net_rms_prop
+  type(network) :: net(6)
 
   ! Training parameters
   integer, parameter :: num_epochs = 1000
   integer, parameter :: train_size = 1000
-  integer, parameter :: test_size = 30
-  integer, parameter :: batch_size = 10
+  integer, parameter :: test_size = 100
+  integer, parameter :: batch_size = 100
   real, parameter :: learning_rate = 0.01
   real, parameter :: decay_rate = 0.9
 
@@ -41,27 +41,30 @@ program quadratic_fit
   end do
   y = quadratic(x)
 
-  ! Instantiate a separate network for each optimization method.
-  net_sgd = network([input(1), dense(3), dense(1)])
-  net_batch_sgd = network([input(1), dense(3), dense(1)])
-  net_minibatch_sgd = network([input(1), dense(3), dense(1)])
-  net_rms_prop = network([input(1), dense(3), dense(1)])
+  ! Instantiate a network and copy an instance to the rest of the array
+  net(1) = network([input(1), dense(3), dense(1)])
+  net(2:) = net(1)
 
   ! Print network info to stdout; this will be the same for all three networks.
-  call net_sgd % print_info()
+  call net(1) % print_info()
 
-  ! SGD optimizer
-  call sgd_optimizer(net_sgd, x, y, xtest, ytest, learning_rate, num_epochs, momentum=0.9, nesterov=.true.)
-  ! call sgd_optimizer(net_sgd, x, y, learning_rate, num_epochs)
+  ! SGD, no momentum
+  call sgd_optimizer(net(1), x, y, xtest, ytest, learning_rate, num_epochs)
+
+  ! SGD, momentum
+  call sgd_optimizer(net(2), x, y, xtest, ytest, learning_rate, num_epochs, momentum=0.9)
+
+  ! SGD, momentum with Nesterov
+  call sgd_optimizer(net(3), x, y, xtest, ytest, learning_rate, num_epochs, momentum=0.9, nesterov=.true.)
 
   ! Batch SGD optimizer
-  call batch_gd_optimizer(net_batch_sgd, x, y, xtest, ytest, learning_rate, num_epochs)
+  call batch_gd_optimizer(net(4), x, y, xtest, ytest, learning_rate, num_epochs)
 
   ! Mini-batch SGD optimizer
-  call minibatch_gd_optimizer(net_minibatch_sgd, x, y, xtest, ytest, learning_rate, num_epochs, batch_size)
+  call minibatch_gd_optimizer(net(5), x, y, xtest, ytest, learning_rate, num_epochs, batch_size)
 
   ! RMSProp optimizer
-  call rmsprop_optimizer(net_rms_prop, x, y, xtest, ytest, learning_rate, num_epochs, decay_rate)
+  call rmsprop_optimizer(net(6), x, y, xtest, ytest, learning_rate, num_epochs, decay_rate)
 
 contains
 
