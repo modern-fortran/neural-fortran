@@ -543,6 +543,8 @@ contains
       optimizer_ = sgd()
     end if
 
+    call optimizer_ % init(self % get_num_params())
+
     dataset_size = size(output_data, dim=2)
 
     epoch_loop: do n = 1, epochs
@@ -582,19 +584,35 @@ contains
 
   module subroutine update(self, optimizer, batch_size)
     class(network), intent(in out) :: self
-    class(optimizer_base_type), intent(in), optional :: optimizer
+    class(optimizer_base_type), intent(in out), optional :: optimizer
     integer, intent(in), optional :: batch_size
     class(optimizer_base_type), allocatable :: optimizer_
+    real, allocatable :: params(:)
 
-    ! Passing the optimizer instance is optional.
-    ! If not provided, we default to SGD with its default settings.
+    ! Passing the optimizer instance is optional. If not provided, we default to
+    ! SGD with its default settings. The instantiation and initialization below
+    ! of the optimizer is normally done at the beginning of the
+    ! network % train() method. However, if the user wants to call
+    ! network % update() directly, for example if they use their own custom
+    ! mini-batching routine, we initialize the optimizer here as well. If it's
+    ! initialized already, this step is a cheap no-op.
     if (present(optimizer)) then
       optimizer_ = optimizer
     else
       optimizer_ = sgd()
     end if
 
-    call self % layers % update(optimizer_, batch_size)
+    call optimizer_ % init(self % get_num_params())
+
+    !call self % layers % update(optimizer_, batch_size)
+
+    ! TODO: Sync gradients across images if running in parallel.
+
+    params = self % get_params()
+    ! TODO: network % get_gradients() not implemented
+    call optimizer_ % minimize(params, self % get_gradients() / batch_size)
+    call self % set_params(params)
+    ! TODO: Flush network gradients to zero
 
   end subroutine update
 

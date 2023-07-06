@@ -18,56 +18,77 @@ module nf_optimizers
   type, abstract :: optimizer_base_type
     real :: learning_rate = 0.01
   contains
+    procedure(init), deferred :: init
     procedure(minimize), deferred :: minimize
   end type optimizer_base_type
 
   abstract interface
-    elemental subroutine minimize(self, param, gradient)
+
+    impure elemental subroutine init(self, num_params)
       import :: optimizer_base_type
-      class(optimizer_base_type), intent(in) :: self
-      real, intent(inout) :: param
-      real, intent(in) :: gradient
+      class(optimizer_base_type), intent(inout) :: self
+      integer, intent(in) :: num_params
+    end subroutine init
+
+    pure subroutine minimize(self, param, gradient)
+      import :: optimizer_base_type
+      class(optimizer_base_type), intent(inout) :: self
+      real, intent(inout) :: param(:)
+      real, intent(in) :: gradient(:)
     end subroutine minimize
+
   end interface
 
   type, extends(optimizer_base_type) :: sgd
     !! Stochastic Gradient Descent optimizer
     real :: momentum = 0
     logical :: nesterov = .false.
-    type(gradients_dense), allocatable :: velocity_dense(:)
-    type(gradients_conv2d), allocatable :: velocity_conv2d(:)
+    real, allocatable :: velocity(:)
   contains
+    procedure :: init => init_sgd
     procedure :: minimize => minimize_sgd
   end type sgd
 
-  type :: gradients_dense
-    real, allocatable :: dw(:,:)
-    real, allocatable :: db(:)
-  end type gradients_dense
+  !type :: gradients_dense
+  !  real, allocatable :: dw(:,:)
+  !  real, allocatable :: db(:)
+  !end type gradients_dense
 
-  type :: gradients_conv2d
-    real, allocatable :: dw(:,:,:,:)
-    real, allocatable :: db(:)
-  end type gradients_conv2d
+  !type :: gradients_conv2d
+  !  real, allocatable :: dw(:,:,:,:)
+  !  real, allocatable :: db(:)
+  !end type gradients_conv2d
 
   type, extends(optimizer_base_type) :: rmsprop
     !! RMSProp optimizer
     real :: decay_rate = 0.9
     real :: epsilon = 1e-8
-    type(gradients_dense), allocatable :: rms_dense(:)
-    type(gradients_conv2d), allocatable :: rms_conv2d(:)
+    real, allocatable :: rms_gradient(:)
+    !type(gradients_dense), allocatable :: rms_dense(:)
+    !type(gradients_conv2d), allocatable :: rms_conv2d(:)
   contains
-    procedure :: minimize => rmsprop_optimizer
+    procedure :: init => init_rmsprop
+    procedure :: minimize => minimize_rmsprop
   end type rmsprop
 
 contains
 
-  elemental subroutine minimize_sgd(self, param, gradient)
+  impure elemental subroutine init_sgd(self, num_params)
+    class(sgd), intent(inout) :: self
+    integer, intent(in) :: num_params
+    if (self % momentum > 0 .and. .not. allocated(self % velocity)) then
+      allocate(self % velocity(num_params))
+      self % velocity = 0
+    end if
+  end subroutine init_sgd
+
+
+  pure subroutine minimize_sgd(self, param, gradient)
     !! Concrete implementation of a stochastic gradient descent optimizer
     !! update rule.
-    class(sgd), intent(in) :: self
-    real, intent(inout) :: param
-    real, intent(in) :: gradient
+    class(sgd), intent(inout) :: self
+    real, intent(inout) :: param(:)
+    real, intent(in) :: gradient(:)
 
     if (self % momentum > 0) then
       ! Apply momentum update
@@ -85,24 +106,31 @@ contains
 
   end subroutine minimize_sgd
 
-  elemental subroutine rmsprop_optimizer(self, param, gradient)
-    !! Concrete implementation of a RMSProp optimizer
-    !! update rule.
-    class(rmsprop), intent(in) :: self
-    real, intent(inout) :: param
-    real, intent(in) :: gradient
-    real, allocatable :: rms_gradient
 
-    if (.not. allocated(rms_gradient)) then
-      ! Set initial gradients to zero
-      allocate(rms_gradient, mold=gradient)
-      rms_gradient = 0.0
+  impure elemental subroutine init_rmsprop(self, num_params)
+    class(rmsprop), intent(inout) :: self
+    integer, intent(in) :: num_params
+    if (.not. allocated(self % rms_gradient)) then
+      allocate(self % rms_gradient(num_params))
+      self % rms_gradient = 0
     end if
+  end subroutine init_rmsprop
 
-    ! Update weights and gradients by RMSProp rule
-    rms_gradient = self % decay_rate * rms_gradient + (1 - self % decay_rate) * gradient**2
-    param = param - self % learning_rate / sqrt(rms_gradient + self % epsilon) * gradient
 
-  end subroutine rmsprop_optimizer
+  pure subroutine minimize_rmsprop(self, param, gradient)
+    !! Concrete implementation of a RMSProp optimizer update rule.
+    class(rmsprop), intent(inout) :: self
+    real, intent(inout) :: param(:)
+    real, intent(in) :: gradient(:)
+
+    ! Compute the RMS of the gradient using the RMSProp rule
+    self % rms_gradient = self % decay_rate * self % rms_gradient &
+      + (1 - self % decay_rate) * gradient**2
+
+    ! Update the network parameters based on the new RMS of the gradient
+    param = param - self % learning_rate &
+      / sqrt(self % rms_gradient + self % epsilon) * gradient
+
+  end subroutine minimize_rmsprop
 
 end module nf_optimizers
