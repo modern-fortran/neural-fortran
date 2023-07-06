@@ -298,7 +298,6 @@ contains
 
   end function get_num_params
 
-
   pure module function get_params(self) result(params)
     class(layer), intent(in) :: self
     real, allocatable :: params(:)
@@ -324,6 +323,30 @@ contains
 
   end function get_params
 
+  pure module function get_gradients(self) result(gradients)
+    class(layer), intent(in) :: self
+    real, allocatable :: gradients(:)
+
+    select type (this_layer => self % p)
+      type is (input1d_layer)
+        ! No gradients to get.
+      type is (input3d_layer)
+        ! No gradients to get.
+      type is (dense_layer)
+        gradients = this_layer % get_gradients()
+      type is (conv2d_layer)
+        gradients = this_layer % get_gradients()
+      type is (maxpool2d_layer)
+        ! No gradients to get.
+      type is (flatten_layer)
+        ! No gradients to get.
+      type is (reshape3d_layer)
+        ! No gradients to get.
+      class default
+        error stop 'Unknown layer type.'
+    end select
+
+  end function get_gradients
 
   module subroutine set_params(self, params)
     class(layer), intent(in out) :: self

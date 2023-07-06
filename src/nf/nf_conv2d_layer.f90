@@ -36,6 +36,7 @@ module nf_conv2d_layer
     procedure :: get_num_params
     procedure :: get_params
     procedure :: set_params
+    procedure :: get_gradients
 
   end type conv2d_layer
 
@@ -95,6 +96,14 @@ module nf_conv2d_layer
       real, allocatable :: params(:)
         !! Parameters to get
     end function get_params
+
+    pure module function get_gradients(self) result(gradients)
+      !! Get the gradients of the layer.
+      class(conv2d_layer), intent(in) :: self
+        !! A `conv2d_layer` instance
+      real, allocatable :: gradients(:)
+        !! Gradients to get
+    end function get_gradients
 
     module subroutine set_params(self, params)
       !! Set the parameters of the layer.

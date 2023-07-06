@@ -36,6 +36,7 @@ module nf_dense_layer
     procedure :: get_num_params
     procedure :: get_params
     procedure :: set_params
+    procedure :: get_gradients
     procedure :: init
 
   end type dense_layer
@@ -94,6 +95,14 @@ module nf_dense_layer
       real, allocatable :: params(:)
         !! Parameters of this layer
     end function get_params
+
+    pure module function get_gradients(self) result(gradients)
+      !! Return the gradients
+      class(dense_layer), intent(in) :: self
+        !! Dense layer instance
+      real, allocatable :: gradients(:)
+        !! Gradients of this layer
+    end function get_gradients
 
     module subroutine set_params(self, params)
       !! Set the parameters of this layer.

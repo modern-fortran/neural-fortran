@@ -19,6 +19,7 @@ module nf_network
     procedure :: backward
     procedure :: get_num_params
     procedure :: get_params
+    procedure :: get_gradients
     procedure :: set_params
     procedure :: print_info
     procedure :: train
@@ -160,6 +161,13 @@ module nf_network
       real, allocatable :: params(:)
         !! Network parameters to get
     end function get_params
+
+    pure module function get_gradients(self) result(gradients)
+      class(network), intent(in) :: self
+        !! Network instance
+      real, allocatable :: gradients(:)
+        !! Network gradients to set
+    end function get_gradients
 
     module subroutine set_params(self, params)
       !! Set the network parameters (weights and biases).
