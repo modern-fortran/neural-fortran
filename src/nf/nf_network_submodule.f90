@@ -608,6 +608,7 @@ contains
     integer, intent(in), optional :: batch_size
     class(optimizer_base_type), allocatable :: optimizer_
     real, allocatable :: params(:)
+    integer :: n
 
     ! Passing the optimizer instance is optional. If not provided, we default to
     ! SGD with its default settings. The instantiation and initialization below
@@ -629,10 +630,20 @@ contains
     ! TODO: Sync gradients across images if running in parallel.
 
     params = self % get_params()
-    ! TODO: network % get_gradients() not implemented
     call optimizer_ % minimize(params, self % get_gradients() / batch_size)
     call self % set_params(params)
-    ! TODO: Flush network gradients to zero
+
+    ! Flush network gradients to zero.
+    do concurrent(n = 2:size(self % layers))
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(conv2d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+      end select
+    end do
 
   end subroutine update
 
