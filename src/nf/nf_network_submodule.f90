@@ -497,32 +497,26 @@ contains
 
   end function get_params
 
+
   pure module function get_gradients(self) result(gradients)
     class(network), intent(in) :: self
     real, allocatable :: gradients(:)
-    integer :: n_layers, n_params, i_start, i_end, i
-    integer, dimension(:), allocatable :: param_sizes
-    type(layer), allocatable :: layers(:)
-    real, allocatable :: layer_gradients(:)
+    integer :: n, nstart, nend
 
-    n_layers = size(self % layers)
-    param_sizes = self % get_num_params()
+    allocate(gradients(self % get_num_params()))
 
-    ! Determine the total number of parameters across all layers
-    n_params = sum(param_sizes)
+    nstart = 1
+    do n = 1, size(self % layers)
 
-    allocate(gradients(n_params))
+      if (self % layers(n) % get_num_params() < 1) cycle
 
-    ! Loop over each layer, retrieve the gradients, and store them in the result array
-    i_start = 1
-    do i = 1, n_layers
-      layers = self % layers
-      layer_gradients = layers(i) % get_gradients()
-      i_end = i_start + size(layer_gradients) - 1
-      gradients(i_start:i_end) = layer_gradients
-      i_start = i_end + 1
+      nend = nstart + self % layers(n) % get_num_params() - 1
+      gradients(nstart:nend) = self % layers(n) % get_gradients()
+      nstart = nend + 1
     end do
+
   end function get_gradients
+
 
   module subroutine set_params(self, params)
     class(network), intent(in out) :: self

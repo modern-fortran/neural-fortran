@@ -17,11 +17,11 @@ module nf_network
   contains
 
     procedure :: backward
+    procedure :: get_gradients
     procedure :: get_num_params
     procedure :: get_params
-    procedure :: get_gradients
-    procedure :: set_params
     procedure :: print_info
+    procedure :: set_params
     procedure :: train
     procedure :: update
 

@@ -68,6 +68,7 @@ contains
 
   end function get_params
 
+
   pure module function get_gradients(self) result(gradients)
     class(dense_layer), intent(in) :: self
     real, allocatable :: gradients(:)

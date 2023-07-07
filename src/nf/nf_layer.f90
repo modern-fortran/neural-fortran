@@ -139,6 +139,7 @@ module nf_layer
     end function get_params
 
     pure module function get_gradients(self) result(gradients)
+      !! Returns the gradients of this layer.
       class(layer), intent(in) :: self
         !! Layer instance
       real, allocatable :: gradients(:)
