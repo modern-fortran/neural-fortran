@@ -49,23 +49,11 @@ module nf_optimizers
     procedure :: minimize => minimize_sgd
   end type sgd
 
-  !type :: gradients_dense
-  !  real, allocatable :: dw(:,:)
-  !  real, allocatable :: db(:)
-  !end type gradients_dense
-
-  !type :: gradients_conv2d
-  !  real, allocatable :: dw(:,:,:,:)
-  !  real, allocatable :: db(:)
-  !end type gradients_conv2d
-
   type, extends(optimizer_base_type) :: rmsprop
     !! RMSProp optimizer
     real :: decay_rate = 0.9
     real :: epsilon = 1e-8
     real, allocatable :: rms_gradient(:)
-    !type(gradients_dense), allocatable :: rms_dense(:)
-    !type(gradients_conv2d), allocatable :: rms_conv2d(:)
   contains
     procedure :: init => init_rmsprop
     procedure :: minimize => minimize_rmsprop
@@ -92,10 +80,12 @@ contains
 
     if (self % momentum > 0) then
       ! Apply momentum update
-      self % velocity = self % momentum * self % velocity - self % learning_rate * gradient
+      self % velocity = self % momentum * self % velocity &
+        - self % learning_rate * gradient
       if (self % nesterov) then
         ! Apply Nesterov update
-        param = param + self % momentum * self % velocity - self % learning_rate * gradient
+        param = param + self % momentum * self % velocity &
+          - self % learning_rate * gradient
       else
         param = param + self % velocity
       end if

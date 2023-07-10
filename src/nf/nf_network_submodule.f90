@@ -607,6 +607,7 @@ contains
     class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
     class(optimizer_base_type), allocatable :: optimizer_
+    integer :: batch_size_
     real, allocatable :: params(:)
     integer :: n
 
@@ -623,14 +624,28 @@ contains
       optimizer_ = sgd()
     end if
 
+    if (present(batch_size)) then
+      batch_size_ = batch_size
+    else
+      batch_size_ = 1
+    end if
+
     call optimizer_ % init(self % get_num_params())
 
-    !call self % layers % update(optimizer_, batch_size)
-
-    ! TODO: Sync gradients across images if running in parallel.
+    ! Sum weight and bias gradients across images, if any
+    do n = 2, size(self % layers)
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
+        type is(conv2d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
+      end select
+    end do
 
     params = self % get_params()
-    call optimizer_ % minimize(params, self % get_gradients() / batch_size)
+    call optimizer_ % minimize(params, self % get_gradients() / batch_size_)
     call self % set_params(params)
 
     ! Flush network gradients to zero.
