@@ -13,6 +13,7 @@ module nf_network
   type :: network
 
     type(layer), allocatable :: layers(:)
+    class(optimizer_base_type), allocatable :: optimizer
 
   contains
 

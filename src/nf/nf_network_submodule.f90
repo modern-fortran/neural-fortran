@@ -558,12 +558,13 @@ contains
     ! Passing the optimizer instance is optional.
     ! If not provided, we default to SGD with its default settings.
     if (present(optimizer)) then
-      optimizer_ = optimizer
+      self % optimizer = optimizer
     else
-      optimizer_ = sgd()
+      self % optimizer = sgd()
     end if
 
-    call optimizer_ % init(self % get_num_params())
+    !call optimizer_ % init(self % get_num_params())
+    call self % optimizer % init(self % get_num_params())
 
     dataset_size = size(output_data, dim=2)
 
@@ -589,12 +590,7 @@ contains
           call self % backward(output_data(:,j))
         end do
 
-        select type (optimizer_)
-          type is (sgd)
-            call self % update(optimizer_, batch_size)
-          class default
-            error stop 'Unsupported optimizer'
-        end select
+        call self % update(batch_size=batch_size)
 
       end do batch_loop
     end do epoch_loop
@@ -611,17 +607,20 @@ contains
     real, allocatable :: params(:)
     integer :: n
 
-    ! Passing the optimizer instance is optional. If not provided, we default to
-    ! SGD with its default settings. The instantiation and initialization below
-    ! of the optimizer is normally done at the beginning of the
-    ! network % train() method. However, if the user wants to call
-    ! network % update() directly, for example if they use their own custom
-    ! mini-batching routine, we initialize the optimizer here as well. If it's
-    ! initialized already, this step is a cheap no-op.
-    if (present(optimizer)) then
-      optimizer_ = optimizer
-    else
-      optimizer_ = sgd()
+    ! Passing the optimizer instance is optional. If not provided, and if the
+    ! optimizer has not already been set, we default to the default SGD. The
+    ! instantiation and initialization below of the optimizer is normally done
+    ! at the beginning of the network % train() method. However, if the user
+    ! wants to call network % update() directly, for example if they use their
+    ! own custom mini-batching routine, we initialize the optimizer here as
+    ! well. If it's initialized already, this step is a cheap no-op.
+    if (.not. allocated(self % optimizer)) then
+      if (present(optimizer)) then
+        self % optimizer = optimizer
+      else
+        self % optimizer = sgd()
+      end if
+      call self % optimizer % init(self % get_num_params())
     end if
 
     if (present(batch_size)) then
@@ -629,8 +628,6 @@ contains
     else
       batch_size_ = 1
     end if
-
-    call optimizer_ % init(self % get_num_params())
 
     ! Sum weight and bias gradients across images, if any
     do n = 2, size(self % layers)
@@ -645,7 +642,7 @@ contains
     end do
 
     params = self % get_params()
-    call optimizer_ % minimize(params, self % get_gradients() / batch_size_)
+    call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
     call self % set_params(params)
 
     ! Flush network gradients to zero.
