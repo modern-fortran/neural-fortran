@@ -10,18 +10,12 @@ program test_optimizers
   integer :: n
   logical :: ok_sgd = .true., ok_momentum = .true., ok_nesterov = .true., ok_rmsprop = .true.
 
-  print '("Testing Optimizers")'
-  print '(25("-"))'
-
   ! Network with SGD optimizer
   net_sgd = network([ &
     input(3), &
     dense(5), &
     dense(2) &
   ])
-
-  print '("SGD Optimizer")'
-  print '(20("-"))'
 
   x = [0.2, 0.4, 0.6]
   y = [0.123456, 0.246802]
@@ -34,7 +28,7 @@ program test_optimizers
 
     if (.not. n <= num_iterations) then
       write(stderr, '(a)') &
-      'sgd should converge in simple training.. failed'
+        'sgd should converge in simple training.. failed'
       ok_sgd = .false.
     end if
 
@@ -47,9 +41,6 @@ program test_optimizers
     dense(2) &
   ])
 
-  print '("SGD Optimizer with Classic Momentum")'
-  print '(40("-"))'
-
   do n = 0, num_iterations
 
     call net_momentum % forward(x)
@@ -58,7 +49,7 @@ program test_optimizers
 
     if (.not. n <= num_iterations) then
       write(stderr, '(a)') &
-      'sgd with classic momentum should converge in simple training.. failed'
+        'sgd with classic momentum should converge in simple training.. failed'
       ok_momentum = .false.
     end if
 
@@ -71,9 +62,6 @@ program test_optimizers
     dense(2) &
   ])
 
-  print '("SGD Optimizer with Momentum + Nesterov")'
-  print '(43("-"))'
-
   do n = 0, num_iterations
 
     call net_nesterov % forward(x)
@@ -82,7 +70,7 @@ program test_optimizers
 
     if (.not. n <= num_iterations) then
       write(stderr, '(a)') &
-      'sgd with momentum + Nesterov should converge in simple training.. failed'
+        'sgd with momentum + Nesterov should converge in simple training.. failed'
       ok_nesterov = .false.
     end if
 
@@ -95,9 +83,6 @@ program test_optimizers
     dense(2) &
   ])
 
-  print '("RMSProp Optimizer")'
-  print '(25("-"))'
-
   do n = 0, num_iterations
 
     call net_rmsprop % forward(x)
@@ -106,7 +91,7 @@ program test_optimizers
 
     if (.not. n <= num_iterations) then
       write(stderr, '(a)') &
-      'RMSProp optimizer should converge in simple training.. failed'
+        'RMSProp optimizer should converge in simple training.. failed'
       ok_rmsprop = .false.
     end if
 
