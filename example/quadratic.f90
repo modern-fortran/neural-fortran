@@ -20,7 +20,6 @@ program quadratic_fit
   ! Input and output data
   real, allocatable :: x(:), y(:) ! training data
   real, allocatable :: xtest(:), ytest(:) ! testing data
-  real, allocatable :: ypred_sgd(:), ypred_batch_sgd(:), ypred_minibatch_sgd(:), ypred_rms_prop(:)
 
   integer :: i, n
 
