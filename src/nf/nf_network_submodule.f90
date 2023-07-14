@@ -563,7 +563,6 @@ contains
       self % optimizer = sgd()
     end if
 
-    !call optimizer_ % init(self % get_num_params())
     call self % optimizer % init(self % get_num_params())
 
     dataset_size = size(output_data, dim=2)
