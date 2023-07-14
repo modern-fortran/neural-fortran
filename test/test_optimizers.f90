@@ -1,15 +1,15 @@
 program test_optimizers
-  use nf, only: dense, input, network
-  use nf_loss, only: quadratic
+
+  use nf, only: dense, input, network, rmsprop, sgd
   use iso_fortran_env, only: stderr => error_unit
-  use nf_optimizers, only: sgd, rmsprop
+
   implicit none
-  type(network) :: net(5)
+  type(network) :: net(4)
   real, allocatable :: x(:), y(:)
   real, allocatable :: ypred(:)
   integer, parameter :: num_iterations = 1000
   integer :: n, i
-  logical :: ok_sgd = .true., ok_momentum = .true., ok_nesterov = .true., ok_rmsprop = .true.
+  logical :: ok = .true.
   logical :: converged = .false.
 
   ! Instantiate a network and copy an instance to the rest of the array
@@ -25,23 +25,17 @@ program test_optimizers
     call net(1) % backward(y)
     call net(1) % update(optimizer=sgd(learning_rate=1.))
 
-    if (mod(n, 10) == 0) then
-      ypred = net(1) % predict(x)
-      converged = check_convergence(y, ypred)
-      if (converged) then
-        exit
-      end if
-    end if
+    ypred = net(1) % predict(x)
+    converged = check_convergence(y, ypred)
+    if (converged) exit
 
   end do
 
   if (.not. converged) then
-    write(stderr, '(a)') &
-      'sgd should converge in simple training.. failed'
-    ok_sgd = .false.
+    write(stderr, '(a)') 'sgd should converge in simple training.. failed'
+    ok = .false.
   end if
 
-  ! Resetting convergence flag
   converged = .false.
 
   do n = 0, num_iterations
@@ -50,23 +44,18 @@ program test_optimizers
     call net(2) % backward(y)
     call net(2) % update(optimizer=sgd(learning_rate=1., momentum=0.9))
 
-    if (mod(n, 10) == 0) then
-      ypred = net(2) % predict(x)
-      converged = check_convergence(y, ypred)
-      if (converged) then
-        exit
-      end if
-    end if
+    ypred = net(2) % predict(x)
+    converged = check_convergence(y, ypred)
+    if (converged) exit
 
   end do
 
   if (.not. converged) then
     write(stderr, '(a)') &
       'sgd(momentum) should converge in simple training.. failed'
-    ok_momentum = .false.
+    ok = .false.
   end if
 
-  ! Resetting convergence flag
   converged = .false.
 
   do n = 0, num_iterations
@@ -75,20 +64,16 @@ program test_optimizers
     call net(3) % backward(y)
     call net(3) % update(optimizer=sgd(learning_rate=1., momentum=0.9, nesterov=.true.))
 
-    if (mod(n, 10) == 0) then
-      ypred = net(3) % predict(x)
-      converged = check_convergence(y, ypred)
-      if (converged) then
-        exit
-      end if
-    end if
+    ypred = net(3) % predict(x)
+    converged = check_convergence(y, ypred)
+    if (converged) exit
 
   end do
 
   if (.not. converged) then
     write(stderr, '(a)') &
       'sgd(nesterov) should converge in simple training.. failed'
-    ok_nesterov = .false.
+    ok = .false.
   end if
 
   ! Resetting convergence flag
@@ -100,23 +85,18 @@ program test_optimizers
     call net(4) % backward(y)
     call net(4) % update(optimizer=rmsprop(learning_rate=0.01, decay_rate=0.9))
 
-    if (mod(n, 10) == 0) then
-      ypred = net(4) % predict(x)
-      converged = check_convergence(y, ypred)
-      if (converged) then
-        exit
-      end if
-    end if
+    ypred = net(4) % predict(x)
+    converged = check_convergence(y, ypred)
+    if (converged) exit
 
   end do
 
   if (.not. converged) then
-    write(stderr, '(a)') &
-    'rmsprop should converge in simple training.. failed'
-    ok_rmsprop = .false.
+    write(stderr, '(a)') 'rmsprop should converge in simple training.. failed'
+    ok = .false.
   end if
 
-  if (ok_sgd .and. ok_momentum .and. ok_nesterov .and. ok_rmsprop) then
+  if (ok) then
     print '(a)', 'test_optimizers: All tests passed.'
   else
     write(stderr, '(a)') 'test_optimizers: One or more tests failed.'
@@ -126,11 +106,10 @@ program test_optimizers
   contains
 
   pure logical function check_convergence(y, ypred) result(converged)
+    ! Check convergence of ypred to y based on RMSE < tolerance.
     real, intent(in) :: y(:), ypred(:)
     real, parameter :: tolerance = 1e-3
-    ! Check convergence.
     converged = sqrt(sum((ypred - y)**2) / size(y)) < tolerance
-
   end function check_convergence
 
 end program test_optimizers
