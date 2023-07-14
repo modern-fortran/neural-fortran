@@ -8,13 +8,9 @@ program test_optimizers
   real, allocatable :: x(:), y(:)
   real, allocatable :: ypred(:)
   integer, parameter :: num_iterations = 1000
-  real :: tolerance = 1e-3
   integer :: n, i
   logical :: ok_sgd = .true., ok_momentum = .true., ok_nesterov = .true., ok_rmsprop = .true.
   logical :: converged = .false.
-  ! Initialize loss and prev_loss
-  real :: loss, prev_loss
-  prev_loss = 0.0
 
   ! Instantiate a network and copy an instance to the rest of the array
   net(1) = network([input(3), dense(5), dense(2)])
@@ -31,11 +27,10 @@ program test_optimizers
 
     if (mod(n, 10) == 0) then
       ypred = net(1) % predict(x)
-      converged = check_convergence(ypred, y, prev_loss)
+      converged = check_convergence(y, ypred)
       if (converged) then
         exit
       end if
-      prev_loss = loss
     end if
 
   end do
@@ -46,9 +41,8 @@ program test_optimizers
     ok_sgd = .false.
   end if
 
-  ! Resetting loss and convergence flag
+  ! Resetting convergence flag
   converged = .false.
-  prev_loss = 0.0
 
   do n = 0, num_iterations
 
@@ -58,11 +52,10 @@ program test_optimizers
 
     if (mod(n, 10) == 0) then
       ypred = net(2) % predict(x)
-      converged = check_convergence(ypred, y, prev_loss)
+      converged = check_convergence(y, ypred)
       if (converged) then
         exit
       end if
-      prev_loss = loss
     end if
 
   end do
@@ -73,9 +66,8 @@ program test_optimizers
     ok_momentum = .false.
   end if
 
-  ! Resetting loss and convergence flag
+  ! Resetting convergence flag
   converged = .false.
-  prev_loss = 0.0
 
   do n = 0, num_iterations
 
@@ -85,11 +77,10 @@ program test_optimizers
 
     if (mod(n, 10) == 0) then
       ypred = net(3) % predict(x)
-      converged = check_convergence(ypred, y, prev_loss)
+      converged = check_convergence(y, ypred)
       if (converged) then
         exit
       end if
-      prev_loss = loss
     end if
 
   end do
@@ -100,9 +91,8 @@ program test_optimizers
     ok_nesterov = .false.
   end if
 
-  ! Resetting loss and convergence flag
+  ! Resetting convergence flag
   converged = .false.
-  prev_loss = 0.0
 
   do n = 0, num_iterations
 
@@ -112,11 +102,10 @@ program test_optimizers
 
     if (mod(n, 10) == 0) then
       ypred = net(4) % predict(x)
-      converged = check_convergence(ypred, y, prev_loss)
+      converged = check_convergence(y, ypred)
       if (converged) then
         exit
       end if
-      prev_loss = loss
     end if
 
   end do
@@ -136,14 +125,11 @@ program test_optimizers
 
   contains
 
- logical function check_convergence(ypred, y, prev_loss) result(converged)
-    real, intent(in) :: ypred(:), y(:), prev_loss
-
-    loss = sqrt(sum((ypred - y)**2) / size(y))
+  pure logical function check_convergence(y, ypred) result(converged)
+    real, intent(in) :: y(:), ypred(:)
+    real, parameter :: tolerance = 1e-3
     ! Check convergence.
-    if (abs(loss - prev_loss) < tolerance) then
-      converged = .true.
-    end if
+    converged = sqrt(sum((ypred - y)**2) / size(y)) < tolerance
 
   end function check_convergence
 
