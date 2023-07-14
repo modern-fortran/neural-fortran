@@ -17,10 +17,11 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 * Training and inference of dense (fully connected) and convolutional neural
   networks
+* Stochastic gradient descent optimizers: Classic, momentum, Nesterov momentum,
+  and RMSProp
+* More than a dozen activation functions and their derivatives
 * Loading dense and convolutional models from Keras HDF5 (.h5) files
-* Stochastic and mini-batch gradient descent for back-propagation
 * Data-based parallelism
-* Several activation functions and their derivatives
 
 ### Available layers
 
@@ -28,10 +29,13 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 |------------|------------------|------------------------|----------------------|--------------|---------------|
 | Input | `input` | n/a | 1, 3 | n/a | n/a |
 | Dense (fully-connected) | `dense` | `input1d`, `flatten` | 1 | ✅ | ✅ |
-| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
+| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ❌ |
 | Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
 | Flatten | `flatten` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
 | Reshape (1-d to 3-d) | `reshape` | `input1d`, `dense`, `flatten` | 3 | ✅ | ✅ |
+
+**Note:** The training of convolutional layers has been discovered to be broken
+as of release 0.13.0. This will be fixed in a future (hopefully next) release.
 
 ## Getting started
 

@@ -202,6 +202,18 @@ contains
   end function get_params
 
 
+  pure module function get_gradients(self) result(gradients)
+    class(conv2d_layer), intent(in) :: self
+    real, allocatable :: gradients(:)
+
+    gradients = [ &
+      pack(self % dw, .true.), &
+      pack(self % db, .true.) &
+    ]
+
+  end function get_gradients
+
+
   module subroutine set_params(self, params)
     class(conv2d_layer), intent(in out) :: self
     real, intent(in) :: params(:)

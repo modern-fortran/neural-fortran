@@ -298,7 +298,6 @@ contains
 
   end function get_num_params
 
-
   pure module function get_params(self) result(params)
     class(layer), intent(in) :: self
     real, allocatable :: params(:)
@@ -324,6 +323,30 @@ contains
 
   end function get_params
 
+  pure module function get_gradients(self) result(gradients)
+    class(layer), intent(in) :: self
+    real, allocatable :: gradients(:)
+
+    select type (this_layer => self % p)
+      type is (input1d_layer)
+        ! No gradients to get.
+      type is (input3d_layer)
+        ! No gradients to get.
+      type is (dense_layer)
+        gradients = this_layer % get_gradients()
+      type is (conv2d_layer)
+        gradients = this_layer % get_gradients()
+      type is (maxpool2d_layer)
+        ! No gradients to get.
+      type is (flatten_layer)
+        ! No gradients to get.
+      type is (reshape3d_layer)
+        ! No gradients to get.
+      class default
+        error stop 'Unknown layer type.'
+    end select
+
+  end function get_gradients
 
   module subroutine set_params(self, params)
     class(layer), intent(in out) :: self
@@ -381,58 +404,5 @@ contains
     end select
 
   end subroutine set_params
-
-
-  impure elemental module subroutine update(self, optimizer, batch_size)
-    class(layer), intent(in out) :: self
-    class(optimizer_base_type), intent(in) :: optimizer
-    integer, intent(in), optional :: batch_size
-    integer :: batch_size_
-
-    batch_size_ = 1
-    if (present(batch_size)) batch_size_ = batch_size
-
-    select type (this_layer => self % p)
-      type is (dense_layer)
-
-        ! Sum weight and bias gradients across images, if any
-        call co_sum(this_layer % dw)
-        call co_sum(this_layer % db)
-
-        call optimizer % minimize( &
-          this_layer % weights, &
-          this_layer % dw / batch_size_ &
-        )
-        call optimizer % minimize( &
-          this_layer % biases, &
-          this_layer % db / batch_size_ &
-        )
-
-        ! Reset gradients.
-        this_layer % dw = 0
-        this_layer % db = 0
-
-      type is (conv2d_layer)
-
-        ! Sum weight and bias gradients across images, if any
-        call co_sum(this_layer % dw)
-        call co_sum(this_layer % db)
-
-        call optimizer % minimize( &
-          this_layer % kernel, &
-          this_layer % dw / batch_size_ &
-        )
-        call optimizer % minimize( &
-          this_layer % biases, &
-          this_layer % db / batch_size_ &
-        )
-
-        ! Reset gradients.
-        this_layer % dw = 0
-        this_layer % db = 0
-
-    end select
-
-  end subroutine update
 
 end submodule nf_layer_submodule

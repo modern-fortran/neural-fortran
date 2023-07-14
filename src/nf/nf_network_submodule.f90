@@ -498,6 +498,26 @@ contains
   end function get_params
 
 
+  pure module function get_gradients(self) result(gradients)
+    class(network), intent(in) :: self
+    real, allocatable :: gradients(:)
+    integer :: n, nstart, nend
+
+    allocate(gradients(self % get_num_params()))
+
+    nstart = 1
+    do n = 1, size(self % layers)
+
+      if (self % layers(n) % get_num_params() < 1) cycle
+
+      nend = nstart + self % layers(n) % get_num_params() - 1
+      gradients(nstart:nend) = self % layers(n) % get_gradients()
+      nstart = nend + 1
+    end do
+
+  end function get_gradients
+
+
   module subroutine set_params(self, params)
     class(network), intent(in out) :: self
     real, intent(in) :: params(:)
@@ -538,10 +558,12 @@ contains
     ! Passing the optimizer instance is optional.
     ! If not provided, we default to SGD with its default settings.
     if (present(optimizer)) then
-      optimizer_ = optimizer
+      self % optimizer = optimizer
     else
-      optimizer_ = sgd()
+      self % optimizer = sgd()
     end if
+
+    call self % optimizer % init(self % get_num_params())
 
     dataset_size = size(output_data, dim=2)
 
@@ -567,12 +589,7 @@ contains
           call self % backward(output_data(:,j))
         end do
 
-        select type (optimizer_)
-          type is (sgd)
-            call self % update(optimizer_, batch_size)
-          class default
-            error stop 'Unsupported optimizer'
-        end select
+        call self % update(batch_size=batch_size)
 
       end do batch_loop
     end do epoch_loop
@@ -585,16 +602,59 @@ contains
     class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
     class(optimizer_base_type), allocatable :: optimizer_
+    integer :: batch_size_
+    real, allocatable :: params(:)
+    integer :: n
 
-    ! Passing the optimizer instance is optional.
-    ! If not provided, we default to SGD with its default settings.
-    if (present(optimizer)) then
-      optimizer_ = optimizer
-    else
-      optimizer_ = sgd()
+    ! Passing the optimizer instance is optional. If not provided, and if the
+    ! optimizer has not already been set, we default to the default SGD. The
+    ! instantiation and initialization below of the optimizer is normally done
+    ! at the beginning of the network % train() method. However, if the user
+    ! wants to call network % update() directly, for example if they use their
+    ! own custom mini-batching routine, we initialize the optimizer here as
+    ! well. If it's initialized already, this step is a cheap no-op.
+    if (.not. allocated(self % optimizer)) then
+      if (present(optimizer)) then
+        self % optimizer = optimizer
+      else
+        self % optimizer = sgd()
+      end if
+      call self % optimizer % init(self % get_num_params())
     end if
 
-    call self % layers % update(optimizer_, batch_size)
+    if (present(batch_size)) then
+      batch_size_ = batch_size
+    else
+      batch_size_ = 1
+    end if
+
+    ! Sum weight and bias gradients across images, if any
+    do n = 2, size(self % layers)
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
+        type is(conv2d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
+      end select
+    end do
+
+    params = self % get_params()
+    call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
+    call self % set_params(params)
+
+    ! Flush network gradients to zero.
+    do concurrent(n = 2:size(self % layers))
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(conv2d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+      end select
+    end do
 
   end subroutine update
 

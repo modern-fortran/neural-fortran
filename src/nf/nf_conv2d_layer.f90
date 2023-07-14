@@ -30,11 +30,12 @@ module nf_conv2d_layer
 
   contains
 
-    procedure :: init
     procedure :: forward
     procedure :: backward
+    procedure :: get_gradients
     procedure :: get_num_params
     procedure :: get_params
+    procedure :: init
     procedure :: set_params
 
   end type conv2d_layer
@@ -89,12 +90,22 @@ module nf_conv2d_layer
     end function get_num_params
 
     pure module function get_params(self) result(params)
-      !! Get the parameters of the layer.
+      !! Return the parameters (weights and biases) of this layer.
+      !! The parameters are ordered as weights first, biases second.
       class(conv2d_layer), intent(in) :: self
         !! A `conv2d_layer` instance
       real, allocatable :: params(:)
         !! Parameters to get
     end function get_params
+
+    pure module function get_gradients(self) result(gradients)
+      !! Return the gradients of this layer.
+      !! The gradients are ordered as weights first, biases second.
+      class(conv2d_layer), intent(in) :: self
+        !! A `conv2d_layer` instance
+      real, allocatable :: gradients(:)
+        !! Gradients to get
+    end function get_gradients
 
     module subroutine set_params(self, params)
       !! Set the parameters of the layer.

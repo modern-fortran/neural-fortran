@@ -28,10 +28,10 @@ module nf_layer
     procedure :: forward
     procedure :: get_num_params
     procedure :: get_params
+    procedure :: get_gradients
     procedure :: set_params
     procedure :: init
     procedure :: print_info
-    procedure :: update
 
     ! Specific subroutines for different array ranks
     procedure, private :: backward_1d
@@ -137,6 +137,14 @@ module nf_layer
         !! Parameters of this layer
     end function get_params
 
+    pure module function get_gradients(self) result(gradients)
+      !! Returns the gradients of this layer.
+      class(layer), intent(in) :: self
+        !! Layer instance
+      real, allocatable :: gradients(:)
+        !! Gradients of this layer
+    end function get_gradients
+
     module subroutine set_params(self, params)
       !! Returns the parameters of this layer.
       class(layer), intent(in out) :: self
@@ -144,20 +152,6 @@ module nf_layer
       real, intent(in) :: params(:)
         !! Parameters of this layer
     end subroutine set_params
-
-    impure elemental module subroutine update(self, optimizer, batch_size)
-      !! Update the weights and biases on the layer using the stored
-      !! gradients (from backward passes), and flush those same stored
-      !! gradients to zero.
-      !! This changes the state of the layer.
-      !! Typically used only internally from the `network % update` method.
-      class(layer), intent(in out) :: self
-        !! Layer instance
-      class(optimizer_base_type), intent(in) :: optimizer
-        !! Optimizer instance to use
-      integer, intent(in), optional :: batch_size
-        !! Batch size (default 1)
-    end subroutine update
 
   end interface
 
