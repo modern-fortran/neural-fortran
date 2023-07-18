@@ -4,7 +4,7 @@ program quadratic_fit
   ! descent.
   use nf, only: dense, input, network
   use nf_dense_layer, only: dense_layer
-  use nf_optimizers, only: sgd
+  use nf_optimizers, only: sgd, adam
 
   implicit none
   type(network) :: net(6)
@@ -16,6 +16,9 @@ program quadratic_fit
   integer, parameter :: batch_size = 100
   real, parameter :: learning_rate = 0.01
   real, parameter :: decay_rate = 0.9
+  real, parameter :: beta1 = 0.9
+  real, parameter :: beta2 = 0.999
+  real, parameter :: epsilon = 1e-8
 
   ! Input and output data
   real, allocatable :: x(:), y(:) ! training data
@@ -64,6 +67,9 @@ program quadratic_fit
 
   ! RMSProp optimizer
   call rmsprop_optimizer(net(6), x, y, xtest, ytest, learning_rate, num_epochs, decay_rate)
+
+  ! Adam optimizer
+  call adam_optimizer(net(6), x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon)
 
 contains
 
@@ -292,6 +298,37 @@ contains
     print *, ''
 
   end subroutine rmsprop_optimizer
+
+  subroutine adam_optimizer(net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon)
+    ! Adam optimizer
+    type(network), intent(inout) :: net
+    real, intent(in) :: x(:), y(:)
+    real, intent(in) :: xtest(:), ytest(:)
+    real, intent(in) :: learning_rate, beta1, beta2, epsilon
+    integer, intent(in) :: num_epochs
+    real, allocatable :: ypred(:)
+    integer :: i, n
+
+    print '(a)', 'Adam optimizer'
+    print '(34("-"))'
+
+    do n = 1, num_epochs
+      do i = 1, size(x)
+        call net % forward([x(i)])
+        call net % backward([y(i)])
+      end do
+
+      call net % update(adam(learning_rate=learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon))
+
+      if (mod(n, num_epochs / 10) == 0) then
+        ypred = [(net % predict([xtest(i)]), i = 1, size(xtest))]
+        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
+      end if
+    end do
+
+    print *, ''
+
+  end subroutine adam_optimizer
 
   subroutine shuffle(arr)
     ! Shuffle an array using the Fisher-Yates algorithm.

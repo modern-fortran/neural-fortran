@@ -13,7 +13,7 @@ module nf_optimizers
   implicit none
 
   private
-  public :: optimizer_base_type, sgd, rmsprop
+  public :: optimizer_base_type, sgd, rmsprop, adam
 
   type, abstract :: optimizer_base_type
     real :: learning_rate = 0.01
@@ -58,6 +58,18 @@ module nf_optimizers
     procedure :: init => init_rmsprop
     procedure :: minimize => minimize_rmsprop
   end type rmsprop
+
+  type, extends(optimizer_base_type) :: adam
+    !! Adam optimizer
+    real :: beta1 = 0.9
+    real :: beta2 = 0.999
+    real :: epsilon = 1e-8
+    real, allocatable :: m(:), v(:)
+    integer :: t = 0
+  contains
+    procedure :: init => init_adam
+    procedure :: minimize => minimize_adam
+  end type adam
 
 contains
 
@@ -122,5 +134,48 @@ contains
       / sqrt(self % rms_gradient + self % epsilon) * gradient
 
   end subroutine minimize_rmsprop
+
+
+  impure elemental subroutine init_adam(self, num_params)
+    class(adam), intent(inout) :: self
+    integer, intent(in) :: num_params
+    if (.not. allocated(self % m)) then
+      allocate(self % m(num_params))
+      self % m = 0
+    end if
+    if (.not. allocated(self % v)) then
+      allocate(self % v(num_params))
+      self % v = 0
+    end if
+  end subroutine init_adam
+
+
+  pure subroutine minimize_adam(self, param, gradient)
+    !! Concrete implementation of an Adam optimizer update rule.
+    class(adam), intent(inout) :: self
+    real, intent(inout) :: param(:)
+    real, intent(in) :: gradient(:)
+    real, allocatable :: m_hat(:), v_hat(:)
+
+    self % t = self % t + 1
+
+    ! Update biased first moment estimate
+    self % m = self % beta1 * self % m + (1 - self % beta1) * gradient
+
+    ! Update biased second raw moment estimate
+    self % v = self % beta2 * self % v + (1 - self % beta2) * gradient**2
+
+    allocate(m_hat(size(self % m)))
+    allocate(v_hat(size(self % v)))
+
+    ! Compute bias-corrected first and second moment estimates
+    m_hat = self % m / (1 - self % beta1**self % t)
+    v_hat = self % v / (1 - self % beta2**self % t)
+
+    ! Update parameters
+    param = param - self % learning_rate &
+      * m_hat / (sqrt(v_hat) + self % epsilon)
+
+  end subroutine minimize_adam
 
 end module nf_optimizers
