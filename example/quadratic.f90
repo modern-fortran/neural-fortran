@@ -4,7 +4,7 @@ program quadratic_fit
   ! descent.
   use nf, only: dense, input, network
   use nf_dense_layer, only: dense_layer
-  use nf_optimizers, only: sgd, adam
+  use nf_optimizers, only: sgd, rmsprop, adam
 
   implicit none
   type(network) :: net(6)
@@ -256,37 +256,7 @@ contains
         call net % backward([y(i)])
       end do
 
-      ! RMSprop update rule
-      do j = 1, size(net % layers)
-        select type (this_layer => net % layers(j) % p)
-          type is (dense_layer)
-
-            ! If this is our first time here for this layer, allocate the
-            ! internal RMS gradient arrays and initialize them to zero.
-            if (.not. allocated(rms(j) % dw)) then
-              allocate(rms(j) % dw, mold=this_layer % dw)
-              allocate(rms(j) % db, mold=this_layer % db)
-              rms(j) % dw = 0
-              rms(j) % db = 0
-            end if
-
-            ! Update the RMS gradients using the RMSprop moving average rule
-            rms(j) % dw = decay_rate * rms(j) % dw + (1 - decay_rate) * this_layer % dw**2
-            rms(j) % db = decay_rate * rms(j) % db + (1 - decay_rate) * this_layer % db**2
-
-            ! Update weights and biases using the RMSprop update rule
-            this_layer % weights = this_layer % weights - learning_rate &
-              / sqrt(rms(j) % dw + epsilon) * this_layer % dw
-            this_layer % biases = this_layer % biases - learning_rate &
-              / sqrt(rms(j) % db + epsilon) * this_layer % db
-
-            ! We have updated the weights and biases, so we need to reset the
-            ! gradients to zero for the next epoch.
-            this_layer % dw = 0
-            this_layer % db = 0
-
-        end select
-      end do
+      call net % update(rmsprop(learning_rate=learning_rate, decay_rate=decay_rate))
 
       if (mod(n, num_epochs / 10) == 0) then
         ypred = [(net % predict([xtest(i)]), i = 1, size(xtest))]
