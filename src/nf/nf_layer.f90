@@ -4,6 +4,7 @@ module nf_layer
   !! user-facing API.
 
   use nf_base_layer, only: base_layer
+  use nf_initializers, only: initializer_type
   use nf_optimizers, only: optimizer_base_type
 
   implicit none
@@ -17,6 +18,7 @@ module nf_layer
     !! nf_layer_constructors.f90 to create `layer` instances.
 
     class(base_layer), allocatable :: p
+    class(initializer_type), allocatable :: initializer
     character(:), allocatable :: name
     character(:), allocatable :: activation
     integer, allocatable :: layer_shape(:)
