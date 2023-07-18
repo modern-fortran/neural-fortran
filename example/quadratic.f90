@@ -7,7 +7,7 @@ program quadratic_fit
   use nf_optimizers, only: sgd, rmsprop, adam
 
   implicit none
-  type(network) :: net(6)
+  type(network) :: net(7)
 
   ! Training parameters
   integer, parameter :: num_epochs = 1000
@@ -16,8 +16,8 @@ program quadratic_fit
   integer, parameter :: batch_size = 100
   real, parameter :: learning_rate = 0.01
   real, parameter :: decay_rate = 0.9
-  real, parameter :: beta1 = 0.9
-  real, parameter :: beta2 = 0.999
+  real, parameter :: beta1 = 0.85
+  real, parameter :: beta2 = 0.95
   real, parameter :: epsilon = 1e-8
 
   ! Input and output data
@@ -69,7 +69,7 @@ program quadratic_fit
   call rmsprop_optimizer(net(6), x, y, xtest, ytest, learning_rate, num_epochs, decay_rate)
 
   ! Adam optimizer
-  call adam_optimizer(net(6), x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon)
+  call adam_optimizer(net(7), x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon)
 
 contains
 
