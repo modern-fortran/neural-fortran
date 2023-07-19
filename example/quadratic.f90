@@ -54,22 +54,34 @@ program quadratic_fit
   call sgd_optimizer(net(1), x, y, xtest, ytest, learning_rate, num_epochs)
 
   ! SGD, momentum
-  call sgd_optimizer(net(2), x, y, xtest, ytest, learning_rate, num_epochs, momentum=0.9)
+  call sgd_optimizer( &
+    net(2), x, y, xtest, ytest, learning_rate, num_epochs, momentum=0.9 &
+  )
 
   ! SGD, momentum with Nesterov
-  call sgd_optimizer(net(3), x, y, xtest, ytest, learning_rate, num_epochs, momentum=0.9, nesterov=.true.)
+  call sgd_optimizer( &
+    net(3), x, y, xtest, ytest, learning_rate, num_epochs, &
+    momentum=0.9, nesterov=.true. &
+  )
 
   ! Batch SGD optimizer
   call batch_gd_optimizer(net(4), x, y, xtest, ytest, learning_rate, num_epochs)
 
   ! Mini-batch SGD optimizer
-  call minibatch_gd_optimizer(net(5), x, y, xtest, ytest, learning_rate, num_epochs, batch_size)
+  call minibatch_gd_optimizer( &
+    net(5), x, y, xtest, ytest, learning_rate, num_epochs, batch_size &
+  )
 
   ! RMSProp optimizer
-  call rmsprop_optimizer(net(6), x, y, xtest, ytest, learning_rate, num_epochs, decay_rate)
+  call rmsprop_optimizer( &
+    net(6), x, y, xtest, ytest, learning_rate, num_epochs, decay_rate &
+  )
 
   ! Adam optimizer
-  call adam_optimizer(net(7), x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon)
+  call adam_optimizer( &
+    net(7), x, y, xtest, ytest, learning_rate, num_epochs, &
+    beta1, beta2, epsilon &
+  )
 
 contains
 
@@ -79,7 +91,9 @@ contains
     y = (x**2 / 2 + x / 2 + 1) / 2
   end function quadratic
 
-  subroutine sgd_optimizer(net, x, y, xtest, ytest, learning_rate, num_epochs, momentum, nesterov)
+  subroutine sgd_optimizer( &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, momentum, nesterov &
+  )
     ! In the stochastic gradient descent (SGD) optimizer, we run the forward
     ! and backward passes and update the weights for each training sample,
     ! one at a time.
@@ -115,12 +129,19 @@ contains
       do i = 1, size(x)
         call net % forward([x(i)])
         call net % backward([y(i)])
-        call net % update(sgd(learning_rate=learning_rate, momentum=momentum_value, nesterov=nesterov_value))
+        call net % update( &
+          sgd( &
+            learning_rate=learning_rate, &
+            momentum=momentum_value, &
+            nesterov=nesterov_value &
+          ) &
+        )
       end do
 
       if (mod(n, num_epochs / 10) == 0) then
         ypred = [(net % predict([xtest(i)]), i = 1, size(xtest))]
-        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
+        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', &
+          n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
       end if
 
     end do
@@ -129,7 +150,9 @@ contains
 
   end subroutine sgd_optimizer
 
-  subroutine batch_gd_optimizer(net, x, y, xtest, ytest, learning_rate, num_epochs)
+  subroutine batch_gd_optimizer( &
+    net, x, y, xtest, ytest, learning_rate, num_epochs &
+  )
     ! Like the stochastic gradient descent (SGD) optimizer, except that here we
     ! accumulate the weight gradients for all training samples and update the
     ! weights once per epoch.
@@ -153,7 +176,8 @@ contains
 
       if (mod(n, num_epochs / 10) == 0) then
         ypred = [(net % predict([xtest(i)]), i = 1, size(xtest))]
-        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
+        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', &
+          n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
       end if
 
     end do
@@ -162,7 +186,9 @@ contains
 
   end subroutine batch_gd_optimizer
 
-  subroutine minibatch_gd_optimizer(net, x, y, xtest, ytest, learning_rate, num_epochs, batch_size)
+  subroutine minibatch_gd_optimizer( &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, batch_size &
+  )
     ! Like the batch SGD optimizer, except that here we accumulate the weight
     ! over a number of mini batches and update the weights once per mini batch.
     !
@@ -209,7 +235,8 @@ contains
 
       if (mod(n, num_epochs / 10) == 0) then
         ypred = [(net % predict([xtest(i)]), i = 1, size(xtest))]
-        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
+        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', &
+          n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
       end if
 
     end do
@@ -218,7 +245,9 @@ contains
 
   end subroutine minibatch_gd_optimizer
 
-  subroutine rmsprop_optimizer(net, x, y, xtest, ytest, learning_rate, num_epochs, decay_rate)
+  subroutine rmsprop_optimizer( &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, decay_rate &
+  )
     ! RMSprop optimizer for updating weights using root mean square
     type(network), intent(inout) :: net
     real, intent(in) :: x(:), y(:)
@@ -226,28 +255,10 @@ contains
     real, intent(in) :: learning_rate, decay_rate
     integer, intent(in) :: num_epochs
     integer :: i, j, n
-    real, parameter :: epsilon = 1e-8 ! Small constant to avoid division by zero
     real, allocatable :: ypred(:)
-
-    ! Define a dedicated type to store the RMSprop gradients.
-    ! This is needed because array sizes vary between layers and we need to
-    ! keep track of gradients for each layer over time.
-    ! For now this works only for dense layers.
-    ! We will need to define a similar type for conv2d layers.
-    type :: rms_gradient_dense
-      real, allocatable :: dw(:,:)
-      real, allocatable :: db(:)
-    end type rms_gradient_dense
-
-    type(rms_gradient_dense), allocatable :: rms(:)
 
     print '(a)', 'RMSProp optimizer'
     print '(34("-"))'
-
-    ! Here we allocate the array or RMS gradient derived types.
-    ! We need one for each dense layer, however we will allocate it to the
-    ! length of all layers as it will make housekeeping easier.
-    allocate(rms(size(net % layers)))
 
     do n = 1, num_epochs
 
@@ -256,11 +267,14 @@ contains
         call net % backward([y(i)])
       end do
 
-      call net % update(rmsprop(learning_rate=learning_rate, decay_rate=decay_rate))
+      call net % update( &
+        rmsprop(learning_rate=learning_rate, decay_rate=decay_rate) &
+      )
 
       if (mod(n, num_epochs / 10) == 0) then
         ypred = [(net % predict([xtest(i)]), i = 1, size(xtest))]
-        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
+        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', &
+          n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
       end if
 
     end do
@@ -269,7 +283,9 @@ contains
 
   end subroutine rmsprop_optimizer
 
-  subroutine adam_optimizer(net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon)
+  subroutine adam_optimizer( &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon &
+  )
     ! Adam optimizer
     type(network), intent(inout) :: net
     real, intent(in) :: x(:), y(:)
@@ -288,12 +304,21 @@ contains
         call net % backward([y(i)])
       end do
 
-      call net % update(adam(learning_rate=learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon))
+      call net % update( &
+        adam( &
+          learning_rate=learning_rate, &
+          beta1=beta1, &
+          beta2=beta2, &
+          epsilon=epsilon &
+        ) &
+      )
 
       if (mod(n, num_epochs / 10) == 0) then
         ypred = [(net % predict([xtest(i)]), i = 1, size(xtest))]
-        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
+        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', &
+          n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
       end if
+
     end do
 
     print *, ''
