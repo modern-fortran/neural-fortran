@@ -50,7 +50,12 @@ module nf_optimizers
   end type sgd
 
   type, extends(optimizer_base_type) :: rmsprop
-    !! RMSProp optimizer
+    !! RMSProp optimizer by Hinton et al. (2012)
+    !!
+    !! Hinton, G., Srivastava, N. and Swersky, K., 2012. Neural networks for
+    !! machine learning lecture 6a overview of mini-batch gradient descent.
+    !! Cited on 2023-07-19, 14(8), p.2. Available at:
+    !! http://www.cs.toronto.edu/~hinton/coursera/lecture6/lec6.pdf
     real :: decay_rate = 0.9
     real :: epsilon = 1e-8
     real, allocatable :: rms_gradient(:)
@@ -60,9 +65,11 @@ module nf_optimizers
   end type rmsprop
 
   type, extends(optimizer_base_type) :: adam
-    !! Adam optimizer
-    !! [Reference Paper]: Kingma, Diederik P., and Jimmy Ba. "Adam: A method for stochastic optimization."
-    ! [Paper Link]: https://arxiv.org/abs/1412.6980
+    !! Adam optimizer by Kingma and Ba (2014)
+    !!
+    !! Kingma, D.P. and Ba, J., 2014. Adam: A method for stochastic
+    !! optimization. arXiv preprint arXiv:1412.6980.
+    !! https://arxiv.org/abs/1412.6980
     real :: beta1 = 0.9
     real :: beta2 = 0.999
     real :: epsilon = 1e-8
@@ -154,26 +161,26 @@ contains
     class(adam), intent(inout) :: self
     real, intent(inout) :: param(:)
     real, intent(in) :: gradient(:)
-    real, allocatable :: m_hat(:), v_hat(:)
 
     self % t = self % t + 1
 
-    ! Update biased first moment estimate
+    ! Update biased first moment estimate.
     self % m = self % beta1 * self % m + (1 - self % beta1) * gradient
 
-    ! Update biased second raw moment estimate
+    ! Update biased second raw moment estimate.
     self % v = self % beta2 * self % v + (1 - self % beta2) * gradient**2
 
-    allocate(m_hat(size(self % m)))
-    allocate(v_hat(size(self % v)))
+    ! Compute bias-corrected first and second moment estimates.
+    associate( &
+      m_hat => self % m / (1 - self % beta1**self % t), &
+      v_hat => self % v / (1 - self % beta2**self % t) &
+    )
 
-    ! Compute bias-corrected first and second moment estimates
-    m_hat = self % m / (1 - self % beta1**self % t)
-    v_hat = self % v / (1 - self % beta2**self % t)
+      ! Update parameters.
+      param = param - self % learning_rate &
+        * m_hat / (sqrt(v_hat) + self % epsilon)
 
-    ! Update parameters
-    param = param - self % learning_rate &
-      * m_hat / (sqrt(v_hat) + self % epsilon)
+    end associate
 
   end subroutine minimize_adam
 
