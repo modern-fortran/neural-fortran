@@ -61,6 +61,8 @@ module nf_optimizers
 
   type, extends(optimizer_base_type) :: adam
     !! Adam optimizer
+    !! [Reference Paper]: Kingma, Diederik P., and Jimmy Ba. "Adam: A method for stochastic optimization."
+    ! [Paper Link]: https://arxiv.org/abs/1412.6980
     real :: beta1 = 0.9
     real :: beta2 = 0.999
     real :: epsilon = 1e-8
@@ -140,11 +142,8 @@ contains
     class(adam), intent(inout) :: self
     integer, intent(in) :: num_params
     if (.not. allocated(self % m)) then
-      allocate(self % m(num_params))
+      allocate(self % m(num_params), self % v(num_params))
       self % m = 0
-    end if
-    if (.not. allocated(self % v)) then
-      allocate(self % v(num_params))
       self % v = 0
     end if
   end subroutine init_adam
