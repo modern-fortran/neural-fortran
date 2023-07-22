@@ -58,7 +58,7 @@ module nf_optimizers
     !! http://www.cs.toronto.edu/~hinton/coursera/lecture6/lec6.pdf
     real :: decay_rate = 0.9
     real :: epsilon = 1e-8
-    real, allocatable :: rms_gradient(:)
+    real, allocatable, private :: rms_gradient(:)
   contains
     procedure :: init => init_rmsprop
     procedure :: minimize => minimize_rmsprop
@@ -73,7 +73,7 @@ module nf_optimizers
     real :: beta1 = 0.9
     real :: beta2 = 0.999
     real :: epsilon = 1e-8
-    real, allocatable :: m(:), v(:)
+    real, allocatable, private :: m(:), v(:)
     integer :: t = 0
   contains
     procedure :: init => init_adam
