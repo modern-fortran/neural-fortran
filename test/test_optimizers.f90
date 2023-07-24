@@ -103,7 +103,7 @@ program test_optimizers
 
     call net(5) % forward(x)
     call net(5) % backward(y)
-    call net(5) % update(optimizer=adam(learning_rate=0.01, beta1=0.9, beta2=0.999, weight_decay=0.001))
+    call net(5) % update(optimizer=adam(learning_rate=0.01, beta1=0.9, beta2=0.999))
 
     ypred = net(5) % predict(x)
     converged = check_convergence(y, ypred)
