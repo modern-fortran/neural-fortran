@@ -7,7 +7,7 @@ program quadratic_fit
   use nf_optimizers, only: sgd, rmsprop, adam
 
   implicit none
-  type(network) :: net(7)
+  type(network) :: net(8)
 
   ! Training parameters
   integer, parameter :: num_epochs = 1000
@@ -19,7 +19,6 @@ program quadratic_fit
   real, parameter :: beta1 = 0.85
   real, parameter :: beta2 = 0.95
   real, parameter :: epsilon = 1e-8
-  real, parameter :: weight_decay = 0.001
 
   ! Input and output data
   real, allocatable :: x(:), y(:) ! training data
@@ -82,6 +81,12 @@ program quadratic_fit
   call adam_optimizer( &
     net(7), x, y, xtest, ytest, learning_rate, num_epochs, &
     beta1, beta2, epsilon &
+  )
+
+    ! Adam optimizer with weight decay regularization
+  call adam_optimizer( &
+    net(8), x, y, xtest, ytest, learning_rate, num_epochs, &
+    beta1, beta2, epsilon, weight_decay = 0.0001 &
   )
 
 contains
@@ -285,16 +290,25 @@ contains
   end subroutine rmsprop_optimizer
 
   subroutine adam_optimizer( &
-    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon, weight_decay &
   )
     ! Adam optimizer
     type(network), intent(inout) :: net
     real, intent(in) :: x(:), y(:)
     real, intent(in) :: xtest(:), ytest(:)
     real, intent(in) :: learning_rate, beta1, beta2, epsilon
+    real, intent(in), optional :: weight_decay
     integer, intent(in) :: num_epochs
     real, allocatable :: ypred(:)
     integer :: i, n
+    real :: weight_decay_val
+
+    ! Set default values for weight_decay
+    if (.not. present(weight_decay)) then
+      weight_decay_val = 0.0
+    else
+      weight_decay_val = weight_decay
+    end if
 
     print '(a)', 'Adam optimizer'
     print '(34("-"))'
@@ -311,7 +325,7 @@ contains
           beta1=beta1, &
           beta2=beta2, &
           epsilon=epsilon, &
-          weight_decay=weight_decay &
+          weight_decay=weight_decay_val &
         ) &
       )
 
