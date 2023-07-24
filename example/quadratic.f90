@@ -19,6 +19,7 @@ program quadratic_fit
   real, parameter :: beta1 = 0.85
   real, parameter :: beta2 = 0.95
   real, parameter :: epsilon = 1e-8
+  real, parameter :: weight_decay = 0.001
 
   ! Input and output data
   real, allocatable :: x(:), y(:) ! training data
@@ -309,7 +310,8 @@ contains
           learning_rate=learning_rate, &
           beta1=beta1, &
           beta2=beta2, &
-          epsilon=epsilon &
+          epsilon=epsilon, &
+          weight_decay=weight_decay &
         ) &
       )
 

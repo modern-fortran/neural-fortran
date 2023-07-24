@@ -70,9 +70,14 @@ module nf_optimizers
     !! Kingma, D.P. and Ba, J., 2014. Adam: A method for stochastic
     !! optimization. arXiv preprint arXiv:1412.6980.
     !! https://arxiv.org/abs/1412.6980
+    !!
+    !! Decoupled Weight Decay Regularization' by Loshchilov, Hutter et al., 2019.
+    !! https://arxiv.org/pdf/1711.05101.pdf
+
     real :: beta1 = 0.9
     real :: beta2 = 0.999
     real :: epsilon = 1e-8
+    real :: weight_decay = 0.0  ! The weight decay rate (L2 regularization)
     real, allocatable, private :: m(:), v(:)
     integer :: t = 0
   contains
@@ -161,8 +166,16 @@ contains
     class(adam), intent(inout) :: self
     real, intent(inout) :: param(:)
     real, intent(in) :: gradient(:)
+    real, allocatable :: reg_gradient(:)
+    allocate(reg_gradient(size(param)))
+
 
     self % t = self % t + 1
+
+    if (self % weight_decay > 0) then
+      ! Apply weight decay (L2 regularization) to the gradient
+      reg_gradient = gradient + 2.0 * self % weight_decay * param
+    end if
 
     ! Update biased first moment estimate.
     self % m = self % beta1 * self % m + (1 - self % beta1) * gradient
