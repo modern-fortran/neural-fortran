@@ -185,8 +185,9 @@ contains
     )
 
     ! Update parameters.
-    param = param - self % learning_rate &
-      * m_hat / (sqrt(v_hat) + self % epsilon) - self % weight_decay_decoupled * param
+    param = param &
+      - self % learning_rate * m_hat / (sqrt(v_hat) + self % epsilon) &
+      - self % weight_decay_decoupled * param
 
     end associate
 

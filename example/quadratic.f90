@@ -83,16 +83,16 @@ program quadratic_fit
     beta1, beta2, epsilon &
   )
 
-    ! Adam optimizer with weight decay regularization
+  ! Adam optimizer with L2 regularization
   call adam_optimizer( &
     net(8), x, y, xtest, ytest, learning_rate, num_epochs, &
-    beta1, beta2, epsilon, weight_decay_l2 = 1e-4 &
+    beta1, beta2, epsilon, weight_decay_l2=1e-4 &
   )
 
-    ! Adam optimizer with weight decay regularization
+  ! Adam optimizer with decoupled weight decay regularization
   call adam_optimizer( &
     net(9), x, y, xtest, ytest, learning_rate, num_epochs, &
-    beta1, beta2, epsilon, weight_decay_decoupled = 1e-5 &
+    beta1, beta2, epsilon, weight_decay_decoupled=1e-5 &
   )
 
 contains
@@ -296,7 +296,8 @@ contains
   end subroutine rmsprop_optimizer
 
   subroutine adam_optimizer( &
-    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon, weight_decay_l2, weight_decay_decoupled &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon, &
+    weight_decay_l2, weight_decay_decoupled &
   )
     ! Adam optimizer
     type(network), intent(inout) :: net
