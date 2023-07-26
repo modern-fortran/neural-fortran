@@ -7,7 +7,7 @@ program quadratic_fit
   use nf_optimizers, only: sgd, rmsprop, adam
 
   implicit none
-  type(network) :: net(8)
+  type(network) :: net(9)
 
   ! Training parameters
   integer, parameter :: num_epochs = 1000
@@ -86,7 +86,13 @@ program quadratic_fit
     ! Adam optimizer with weight decay regularization
   call adam_optimizer( &
     net(8), x, y, xtest, ytest, learning_rate, num_epochs, &
-    beta1, beta2, epsilon, weight_decay = 0.0001 &
+    beta1, beta2, epsilon, weight_decay_l2 = 1e-4 &
+  )
+
+    ! Adam optimizer with weight decay regularization
+  call adam_optimizer( &
+    net(9), x, y, xtest, ytest, learning_rate, num_epochs, &
+    beta1, beta2, epsilon, weight_decay_decoupled = 1e-5 &
   )
 
 contains
@@ -290,24 +296,33 @@ contains
   end subroutine rmsprop_optimizer
 
   subroutine adam_optimizer( &
-    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon, weight_decay &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon, weight_decay_l2, weight_decay_decoupled &
   )
     ! Adam optimizer
     type(network), intent(inout) :: net
     real, intent(in) :: x(:), y(:)
     real, intent(in) :: xtest(:), ytest(:)
     real, intent(in) :: learning_rate, beta1, beta2, epsilon
-    real, intent(in), optional :: weight_decay
+    real, intent(in), optional :: weight_decay_l2
+    real, intent(in), optional :: weight_decay_decoupled
     integer, intent(in) :: num_epochs
     real, allocatable :: ypred(:)
     integer :: i, n
-    real :: weight_decay_val
+    real :: weight_decay_l2_val
+    real :: weight_decay_decoupled_val
 
-    ! Set default values for weight_decay
-    if (.not. present(weight_decay)) then
-      weight_decay_val = 0.0
+    ! Set default values for weight_decay_l2
+    if (.not. present(weight_decay_l2)) then
+      weight_decay_l2_val = 0.0
     else
-      weight_decay_val = weight_decay
+      weight_decay_l2_val = weight_decay_l2
+    end if
+
+    ! Set default values for weight_decay_decoupled
+    if (.not. present(weight_decay_decoupled)) then
+      weight_decay_decoupled_val = 0.0
+    else
+      weight_decay_decoupled_val = weight_decay_decoupled
     end if
 
     print '(a)', 'Adam optimizer'
@@ -325,7 +340,8 @@ contains
           beta1=beta1, &
           beta2=beta2, &
           epsilon=epsilon, &
-          weight_decay=weight_decay_val &
+          weight_decay_l2=weight_decay_l2_val, &
+          weight_decay_decoupled=weight_decay_decoupled_val &
         ) &
       )
 

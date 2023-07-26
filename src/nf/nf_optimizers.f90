@@ -78,7 +78,8 @@ module nf_optimizers
     real :: beta1 = 0.9
     real :: beta2 = 0.999
     real :: epsilon = 1e-8
-    real :: weight_decay = 0
+    real :: weight_decay_l2 = 0  ! L2 regularization (Adam)
+    real :: weight_decay_decoupled = 0 ! decoupled weight decay regularization (AdamW)
     real, allocatable, private :: m(:), v(:)
     integer, private :: t = 0
   contains
@@ -170,9 +171,9 @@ contains
 
     self % t = self % t + 1
 
-    ! If weight_decay > 0, use L2 regularization;
+    ! If weight_decay_l2 > 0, use L2 regularization;
     ! otherwise, default to regular Adam.
-    associate(g => gradient + 2 * self % weight_decay * param)
+    associate(g => gradient + self % weight_decay_l2 * param)
       self % m = self % beta1 * self % m + (1 - self % beta1) * g
       self % v = self % beta2 * self % v + (1 - self % beta2) * g**2
     end associate
@@ -185,7 +186,7 @@ contains
 
     ! Update parameters.
     param = param - self % learning_rate &
-      * m_hat / (sqrt(v_hat) + self % epsilon) - self % weight_decay * param
+      * m_hat / (sqrt(v_hat) + self % epsilon) - self % weight_decay_decoupled * param
 
     end associate
 
