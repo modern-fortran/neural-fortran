@@ -166,23 +166,14 @@ contains
     class(adam), intent(inout) :: self
     real, intent(inout) :: param(:)
     real, intent(in) :: gradient(:)
-    real, allocatable :: reg_gradient(:)
 
     self % t = self % t + 1
 
-    if (self % weight_decay > 0.0) then
-      ! Compute the modified gradient with weight decay regularization
-      allocate(reg_gradient(size(param)))
-      reg_gradient = gradient + 2.0 * self % weight_decay * param
-      ! Update biased first moment estimate.
-      self % m = self % beta1 * self % m + (1 - self % beta1) * reg_gradient
-      ! Update biased second raw moment estimate.
-      self % v = self % beta2 * self % v + (1 - self % beta2) * reg_gradient**2
-    else
-      self % m = self % beta1 * self % m + (1 - self % beta1) * gradient
-      ! Update biased second raw moment estimate.
-      self % v = self % beta2 * self % v + (1 - self % beta2) * gradient**2
-    end if
+    ! Update biased first moment estimate.
+    self % m = self % beta1 * self % m + (1 - self % beta1) * gradient
+
+    ! Update biased second raw moment estimate.
+    self % v = self % beta2 * self % v + (1 - self % beta2) * gradient**2
 
     ! Compute bias-corrected first and second moment estimates.
     associate( &
@@ -190,9 +181,9 @@ contains
       v_hat => self % v / (1 - self % beta2**self % t) &
     )
 
-      ! Update parameters.
-      param = param - self % learning_rate &
-        * m_hat / (sqrt(v_hat) + self % epsilon)
+    ! Update parameters.
+    param = param - self % learning_rate &
+      * m_hat / (sqrt(v_hat) + self % epsilon) - self % weight_decay * param
 
     end associate
 
