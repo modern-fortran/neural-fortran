@@ -43,7 +43,7 @@ module nf_optimizers
     !! Stochastic Gradient Descent optimizer
     real :: momentum = 0
     logical :: nesterov = .false.
-    real, allocatable :: velocity(:)
+    real, allocatable, private :: velocity(:)
   contains
     procedure :: init => init_sgd
     procedure :: minimize => minimize_sgd
@@ -65,21 +65,22 @@ module nf_optimizers
   end type rmsprop
 
   type, extends(optimizer_base_type) :: adam
-    !! Adam optimizer by Kingma and Ba (2014)
+    !! Adam optimizer by Kingma and Ba (2014), with optional decoupled weight
+    !! decay regularization (AdamW) by Loshchilov and Hutter (2017).
     !!
     !! Kingma, D.P. and Ba, J., 2014. Adam: A method for stochastic
     !! optimization. arXiv preprint arXiv:1412.6980.
     !! https://arxiv.org/abs/1412.6980
     !!
-    !! Decoupled Weight Decay Regularization' by Loshchilov, Hutter et al., 2019.
-    !! https://arxiv.org/pdf/1711.05101.pdf
-
+    !! Loshchilov, I. and Hutter, F., 2017. Decoupled weight decay
+    !! regularization. arXiv preprint arXiv:1711.05101.
+    !! https://arxiv.org/abs/1711.05101
     real :: beta1 = 0.9
     real :: beta2 = 0.999
     real :: epsilon = 1e-8
-    real :: weight_decay = 0.0  ! The weight decay rate (L2 regularization)
+    real :: weight_decay = 0
     real, allocatable, private :: m(:), v(:)
-    integer :: t = 0
+    integer, private :: t = 0
   contains
     procedure :: init => init_adam
     procedure :: minimize => minimize_adam
@@ -169,11 +170,12 @@ contains
 
     self % t = self % t + 1
 
-    ! Update biased first moment estimate.
-    self % m = self % beta1 * self % m + (1 - self % beta1) * gradient
-
-    ! Update biased second raw moment estimate.
-    self % v = self % beta2 * self % v + (1 - self % beta2) * gradient**2
+    ! If weight_decay > 0, use L2 regularization;
+    ! otherwise, default to regular Adam.
+    associate(g => gradient + 2 * self % weight_decay * param)
+      self % m = self % beta1 * self % m + (1 - self % beta1) * g
+      self % v = self % beta2 * self % v + (1 - self % beta2) * g**2
+    end associate
 
     ! Compute bias-corrected first and second moment estimates.
     associate( &
