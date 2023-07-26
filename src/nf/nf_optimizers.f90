@@ -13,7 +13,7 @@ module nf_optimizers
   implicit none
 
   private
-  public :: optimizer_base_type, sgd, rmsprop
+  public :: optimizer_base_type, sgd, rmsprop, adam
 
   type, abstract :: optimizer_base_type
     real :: learning_rate = 0.01
@@ -43,21 +43,49 @@ module nf_optimizers
     !! Stochastic Gradient Descent optimizer
     real :: momentum = 0
     logical :: nesterov = .false.
-    real, allocatable :: velocity(:)
+    real, allocatable, private :: velocity(:)
   contains
     procedure :: init => init_sgd
     procedure :: minimize => minimize_sgd
   end type sgd
 
   type, extends(optimizer_base_type) :: rmsprop
-    !! RMSProp optimizer
+    !! RMSProp optimizer by Hinton et al. (2012)
+    !!
+    !! Hinton, G., Srivastava, N. and Swersky, K., 2012. Neural networks for
+    !! machine learning lecture 6a overview of mini-batch gradient descent.
+    !! Cited on 2023-07-19, 14(8), p.2. Available at:
+    !! http://www.cs.toronto.edu/~hinton/coursera/lecture6/lec6.pdf
     real :: decay_rate = 0.9
     real :: epsilon = 1e-8
-    real, allocatable :: rms_gradient(:)
+    real, allocatable, private :: rms_gradient(:)
   contains
     procedure :: init => init_rmsprop
     procedure :: minimize => minimize_rmsprop
   end type rmsprop
+
+  type, extends(optimizer_base_type) :: adam
+    !! Adam optimizer by Kingma and Ba (2014), with optional decoupled weight
+    !! decay regularization (AdamW) by Loshchilov and Hutter (2017).
+    !!
+    !! Kingma, D.P. and Ba, J., 2014. Adam: A method for stochastic
+    !! optimization. arXiv preprint arXiv:1412.6980.
+    !! https://arxiv.org/abs/1412.6980
+    !!
+    !! Loshchilov, I. and Hutter, F., 2017. Decoupled weight decay
+    !! regularization. arXiv preprint arXiv:1711.05101.
+    !! https://arxiv.org/abs/1711.05101
+    real :: beta1 = 0.9
+    real :: beta2 = 0.999
+    real :: epsilon = 1e-8
+    real :: weight_decay_l2 = 0  ! L2 regularization (Adam)
+    real :: weight_decay_decoupled = 0 ! decoupled weight decay regularization (AdamW)
+    real, allocatable, private :: m(:), v(:)
+    integer, private :: t = 0
+  contains
+    procedure :: init => init_adam
+    procedure :: minimize => minimize_adam
+  end type adam
 
 contains
 
@@ -122,5 +150,47 @@ contains
       / sqrt(self % rms_gradient + self % epsilon) * gradient
 
   end subroutine minimize_rmsprop
+
+
+  impure elemental subroutine init_adam(self, num_params)
+    class(adam), intent(inout) :: self
+    integer, intent(in) :: num_params
+    if (.not. allocated(self % m)) then
+      allocate(self % m(num_params), self % v(num_params))
+      self % m = 0
+      self % v = 0
+    end if
+  end subroutine init_adam
+
+
+  pure subroutine minimize_adam(self, param, gradient)
+    !! Concrete implementation of an Adam optimizer update rule.
+    class(adam), intent(inout) :: self
+    real, intent(inout) :: param(:)
+    real, intent(in) :: gradient(:)
+
+    self % t = self % t + 1
+
+    ! If weight_decay_l2 > 0, use L2 regularization;
+    ! otherwise, default to regular Adam.
+    associate(g => gradient + self % weight_decay_l2 * param)
+      self % m = self % beta1 * self % m + (1 - self % beta1) * g
+      self % v = self % beta2 * self % v + (1 - self % beta2) * g**2
+    end associate
+
+    ! Compute bias-corrected first and second moment estimates.
+    associate( &
+      m_hat => self % m / (1 - self % beta1**self % t), &
+      v_hat => self % v / (1 - self % beta2**self % t) &
+    )
+
+    ! Update parameters.
+    param = param &
+      - self % learning_rate * m_hat / (sqrt(v_hat) + self % epsilon) &
+      - self % weight_decay_decoupled * param
+
+    end associate
+
+  end subroutine minimize_adam
 
 end module nf_optimizers
