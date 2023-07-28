@@ -199,8 +199,9 @@ contains
     )
 
     ! Update parameters.
-    param = param - self % learning_rate &
-      * m_hat / (sqrt(v_hat) + self % epsilon) - self % learning_rate * self % weight_decay_decoupled * param
+    param = param &
+      - self % learning_rate * m_hat / (sqrt(v_hat) + self % epsilon) &
+      - self % learning_rate * self % weight_decay_decoupled * param
 
     end associate
 
@@ -225,8 +226,8 @@ contains
     self % sum_squared_gradient = self % sum_squared_gradient + gradient**2
 
     ! Update the network parameters based on the new sum of squared gradients
-    param = param - self % learning_rate &
-      / sqrt(self % sum_squared_gradient + self % epsilon) * gradient
+    param = param - self % learning_rate & 
+      / (sqrt(self % sum_squared_gradient) + self % epsilon) * gradient
 
   end subroutine minimize_adagrad
 

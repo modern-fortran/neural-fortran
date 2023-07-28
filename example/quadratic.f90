@@ -4,10 +4,10 @@ program quadratic_fit
   ! descent.
   use nf, only: dense, input, network
   use nf_dense_layer, only: dense_layer
-  use nf_optimizers, only: sgd, rmsprop, adam
+  use nf_optimizers, only: sgd, rmsprop, adam, adagrad
 
   implicit none
-  type(network) :: net(9)
+  type(network) :: net(10)
 
   ! Training parameters
   integer, parameter :: num_epochs = 1000
@@ -83,16 +83,21 @@ program quadratic_fit
     beta1, beta2, epsilon &
   )
 
-    ! Adam optimizer with weight decay regularization
+  ! Adam optimizer with L2 regularization
   call adam_optimizer( &
     net(8), x, y, xtest, ytest, learning_rate, num_epochs, &
-    beta1, beta2, epsilon, weight_decay_l2 = 1e-4 &
+    beta1, beta2, epsilon, weight_decay_l2=1e-4 &
   )
 
-    ! Adam optimizer with weight decay regularization
+  ! Adam optimizer with decoupled weight decay regularization
   call adam_optimizer( &
     net(9), x, y, xtest, ytest, learning_rate, num_epochs, &
-    beta1, beta2, epsilon, weight_decay_decoupled = 1e-5 &
+    beta1, beta2, epsilon, weight_decay_decoupled=1e-5 &
+  )
+
+  ! Adagrad optimizer
+  call adagrad_optimizer( &
+    net(10), x, y, xtest, ytest, learning_rate, num_epochs, epsilon &
   )
 
 contains
@@ -296,7 +301,8 @@ contains
   end subroutine rmsprop_optimizer
 
   subroutine adam_optimizer( &
-    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon, weight_decay_l2, weight_decay_decoupled &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, beta1, beta2, epsilon, &
+    weight_decay_l2, weight_decay_decoupled &
   )
     ! Adam optimizer
     type(network), intent(inout) :: net
@@ -356,6 +362,44 @@ contains
     print *, ''
 
   end subroutine adam_optimizer
+
+  subroutine adagrad_optimizer( &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, epsilon &
+  )
+    ! Adagrad optimizer for updating weights using adaptive gradient algorithm
+    type(network), intent(inout) :: net
+    real, intent(in) :: x(:), y(:)
+    real, intent(in) :: xtest(:), ytest(:)
+    real, intent(in) :: learning_rate, epsilon
+    integer, intent(in) :: num_epochs
+    integer :: i, n
+    real, allocatable :: ypred(:)
+
+    print '(a)', 'Adagrad optimizer'
+    print '(34("-"))'
+
+    do n = 1, num_epochs
+
+      do i = 1, size(x)
+        call net % forward([x(i)])
+        call net % backward([y(i)])
+      end do
+
+      call net % update( &
+        adagrad(learning_rate=learning_rate, epsilon=epsilon) &
+      )
+
+      if (mod(n, num_epochs / 10) == 0) then
+        ypred = [(net % predict([xtest(i)]), i = 1, size(xtest))]
+        print '("Epoch: ", i4,"/",i4,", RMSE = ", f9.6)', &
+          n, num_epochs, sum((ypred - ytest)**2) / size(ytest)
+      end if
+
+    end do
+
+    print *, ''
+
+  end subroutine adagrad_optimizer
 
   subroutine shuffle(arr)
     ! Shuffle an array using the Fisher-Yates algorithm.
