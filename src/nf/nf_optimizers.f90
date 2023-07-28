@@ -13,7 +13,7 @@ module nf_optimizers
   implicit none
 
   private
-  public :: optimizer_base_type, sgd, rmsprop, adam
+  public :: optimizer_base_type, sgd, rmsprop, adam, adagrad
 
   type, abstract :: optimizer_base_type
     real :: learning_rate = 0.01
@@ -86,6 +86,20 @@ module nf_optimizers
     procedure :: init => init_adam
     procedure :: minimize => minimize_adam
   end type adam
+
+  type, extends(optimizer_base_type) :: adagrad
+    !! Adagrad optimizer by Duchi et al. (2011)
+    !!
+    !! Duchi, J., Hazan, E. and Singer, Y., 2011. Adaptive subgradient
+    !! methods for online learning and stochastic optimization. Journal
+    !! of Machine Learning Research, 12(Jul), pp.2121-2159.
+    !! http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
+    real :: epsilon = 1e-8
+    real, allocatable, private :: sum_squared_gradient(:)
+  contains
+    procedure :: init => init_adagrad
+    procedure :: minimize => minimize_adagrad
+  end type adagrad
 
 contains
 
@@ -186,10 +200,34 @@ contains
 
     ! Update parameters.
     param = param - self % learning_rate &
-      * m_hat / (sqrt(v_hat) + self % epsilon) - self % weight_decay_decoupled * param
+      * m_hat / (sqrt(v_hat) + self % epsilon) - self % learning_rate * self % weight_decay_decoupled * param
 
     end associate
 
   end subroutine minimize_adam
+
+  impure elemental subroutine init_adagrad(self, num_params)
+    class(adagrad), intent(inout) :: self
+    integer, intent(in) :: num_params
+    if (.not. allocated(self % sum_squared_gradient)) then
+      allocate(self % sum_squared_gradient(num_params))
+      self % sum_squared_gradient = 0
+    end if
+  end subroutine init_adagrad
+
+  pure subroutine minimize_adagrad(self, param, gradient)
+    !! Concrete implementation of an Adagrad optimizer update rule.
+    class(adagrad), intent(inout) :: self
+    real, intent(inout) :: param(:)
+    real, intent(in) :: gradient(:)
+
+    ! Update the sum of squared gradients using the Adagrad rule
+    self % sum_squared_gradient = self % sum_squared_gradient + gradient**2
+
+    ! Update the network parameters based on the new sum of squared gradients
+    param = param - self % learning_rate &
+      / sqrt(self % sum_squared_gradient + self % epsilon) * gradient
+
+  end subroutine minimize_adagrad
 
 end module nf_optimizers
