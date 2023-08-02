@@ -96,6 +96,9 @@ module nf_optimizers
     !! http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
     real :: epsilon = 1e-8
     real, allocatable, private :: sum_squared_gradient(:)
+    real :: weight_decay_l2 = 0
+    real :: learning_rate_decay = 0
+    integer, private :: t = 0
   contains
     procedure :: init => init_adagrad
     procedure :: minimize => minimize_adagrad
@@ -200,8 +203,8 @@ contains
 
     ! Update parameters.
     param = param &
-      - self % learning_rate * m_hat / (sqrt(v_hat) + self % epsilon) &
-      - self % learning_rate * self % weight_decay_decoupled * param
+      - self % learning_rate * (m_hat / (sqrt(v_hat) + self % epsilon) &
+      + self % weight_decay_decoupled * param)
 
     end associate
 
@@ -222,12 +225,22 @@ contains
     real, intent(inout) :: param(:)
     real, intent(in) :: gradient(:)
 
+    ! Update the current time step
+    self % t = self % t + 1
+
     ! Update the sum of squared gradients using the Adagrad rule
     self % sum_squared_gradient = self % sum_squared_gradient + gradient**2
 
-    ! Update the network parameters based on the new sum of squared gradients
-    param = param - self % learning_rate &
-      / (sqrt(self % sum_squared_gradient) + self % epsilon) * gradient
+    ! Update the learning rate with each time step
+    self % learning_rate = self % learning_rate &
+      / (1.0 + (self % t - 1) * self % learning_rate_decay)
+
+    ! Apply weight decay (L2 regularization) to the gradients
+    associate(g => gradient + self % weight_decay_l2 * param)
+        ! Update the network parameters based on the new squared gradients
+        param = param - self % learning_rate &
+          / (sqrt(self % sum_squared_gradient) + self % epsilon) * g
+    end associate
 
   end subroutine minimize_adagrad
 

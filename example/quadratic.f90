@@ -7,7 +7,7 @@ program quadratic_fit
   use nf_optimizers, only: sgd, rmsprop, adam, adagrad
 
   implicit none
-  type(network) :: net(10)
+  type(network) :: net(11)
 
   ! Training parameters
   integer, parameter :: num_epochs = 1000
@@ -98,6 +98,12 @@ program quadratic_fit
   ! Adagrad optimizer
   call adagrad_optimizer( &
     net(10), x, y, xtest, ytest, learning_rate, num_epochs, epsilon &
+  )
+
+  ! Adagrad optimizer
+  call adagrad_optimizer( &
+    net(11), x, y, xtest, ytest, learning_rate, num_epochs, epsilon, &
+      weight_decay_l2=1e-4, learning_rate_decay=0.99 &
   )
 
 contains
@@ -364,16 +370,35 @@ contains
   end subroutine adam_optimizer
 
   subroutine adagrad_optimizer( &
-    net, x, y, xtest, ytest, learning_rate, num_epochs, epsilon &
+    net, x, y, xtest, ytest, learning_rate, num_epochs, epsilon, &
+      weight_decay_l2, learning_rate_decay &
   )
     ! Adagrad optimizer for updating weights using adaptive gradient algorithm
     type(network), intent(inout) :: net
     real, intent(in) :: x(:), y(:)
     real, intent(in) :: xtest(:), ytest(:)
     real, intent(in) :: learning_rate, epsilon
+    real, intent(in), optional :: weight_decay_l2
+    real, intent(in), optional :: learning_rate_decay
     integer, intent(in) :: num_epochs
     integer :: i, n
     real, allocatable :: ypred(:)
+    real :: weight_decay_l2_val
+    real :: learning_rate_decay_val
+
+    ! Set default values for weight_decay_l2
+    if (.not. present(weight_decay_l2)) then
+      weight_decay_l2_val = 0.0
+    else
+      weight_decay_l2_val = weight_decay_l2
+    end if
+
+    ! Set default values for learning_rate_decay
+    if (.not. present(learning_rate_decay)) then
+      learning_rate_decay_val = 0.0
+    else
+      learning_rate_decay_val = learning_rate_decay
+    end if
 
     print '(a)', 'Adagrad optimizer'
     print '(34("-"))'
@@ -386,7 +411,12 @@ contains
       end do
 
       call net % update( &
-        adagrad(learning_rate=learning_rate, epsilon=epsilon) &
+          adagrad( &
+          learning_rate=learning_rate, &
+          epsilon=epsilon, &
+          weight_decay_l2=weight_decay_l2_val, &
+          learning_rate_decay=learning_rate_decay_val &
+          ) &
       )
 
       if (mod(n, num_epochs / 10) == 0) then
