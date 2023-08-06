@@ -95,9 +95,9 @@ module nf_optimizers
     !! of Machine Learning Research, 12(Jul), pp.2121-2159.
     !! http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
     real :: epsilon = 1e-8
-    real, allocatable, private :: sum_squared_gradient(:)
     real :: weight_decay_l2 = 0
     real :: learning_rate_decay = 0
+    real, allocatable, private :: sum_squared_gradient(:)
     integer, private :: t = 0
   contains
     procedure :: init => init_adagrad
@@ -210,6 +210,7 @@ contains
 
   end subroutine minimize_adam
 
+
   impure elemental subroutine init_adagrad(self, num_params)
     class(adagrad), intent(inout) :: self
     integer, intent(in) :: num_params
@@ -218,6 +219,7 @@ contains
       self % sum_squared_gradient = 0
     end if
   end subroutine init_adagrad
+
 
   pure subroutine minimize_adagrad(self, param, gradient)
     !! Concrete implementation of an Adagrad optimizer update rule.
@@ -228,18 +230,20 @@ contains
     ! Update the current time step
     self % t = self % t + 1
 
-    ! Update the sum of squared gradients using the Adagrad rule
-    self % sum_squared_gradient = self % sum_squared_gradient + gradient**2
+    associate( &
+      ! If weight_decay_l2 > 0, use L2 regularization;
+      ! otherwise, default to regular Adagrad.
+      g => gradient + self % weight_decay_l2 * param, &
+      ! Amortize the learning rate as function of the current time step.
+      learning_rate => self % learning_rate &
+        / (1 + (self % t - 1) * self % learning_rate_decay) &
+    )
 
-    ! Update the learning rate with each time step
-    self % learning_rate = self % learning_rate &
-      / (1.0 + (self % t - 1) * self % learning_rate_decay)
+      self % sum_squared_gradient = self % sum_squared_gradient + g**2
 
-    ! Apply weight decay (L2 regularization) to the gradients
-    associate(g => gradient + self % weight_decay_l2 * param)
-        ! Update the network parameters based on the new squared gradients
-        param = param - self % learning_rate &
-          / (sqrt(self % sum_squared_gradient) + self % epsilon) * g
+      param = param - learning_rate * g / (sqrt(self % sum_squared_gradient) &
+        + self % epsilon)
+
     end associate
 
   end subroutine minimize_adagrad
