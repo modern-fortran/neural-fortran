@@ -1,10 +1,10 @@
 program test_optimizers
 
-  use nf, only: dense, input, network, rmsprop, sgd, adam
+  use nf, only: dense, input, network, rmsprop, sgd, adam, adagrad
   use iso_fortran_env, only: stderr => error_unit
 
   implicit none
-  type(network) :: net(5)
+  type(network) :: net(6)
   real, allocatable :: x(:), y(:)
   real, allocatable :: ypred(:)
   integer, parameter :: num_iterations = 1000
@@ -113,6 +113,26 @@ program test_optimizers
 
   if (.not. converged) then
     write(stderr, '(a)') 'adam should converge in simple training.. failed'
+    ok = .false.
+  end if
+
+  ! Test Adagrad optimizer
+  converged = .false.
+
+  do n = 0, num_iterations
+
+    call net(6) % forward(x)
+    call net(6) % backward(y)
+    call net(6) % update(optimizer=adagrad(learning_rate=0.01, weight_decay_l2=1e-4, learning_rate_decay=0.99))
+
+    ypred = net(5) % predict(x)
+    converged = check_convergence(y, ypred)
+    if (converged) exit
+
+  end do
+
+  if (.not. converged) then
+    write(stderr, '(a)') 'adagrad should converge in simple training.. failed'
     ok = .false.
   end if
 

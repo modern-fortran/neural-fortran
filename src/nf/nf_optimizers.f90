@@ -13,7 +13,7 @@ module nf_optimizers
   implicit none
 
   private
-  public :: optimizer_base_type, sgd, rmsprop, adam
+  public :: optimizer_base_type, sgd, rmsprop, adam, adagrad
 
   type, abstract :: optimizer_base_type
     real :: learning_rate = 0.01
@@ -86,6 +86,23 @@ module nf_optimizers
     procedure :: init => init_adam
     procedure :: minimize => minimize_adam
   end type adam
+
+  type, extends(optimizer_base_type) :: adagrad
+    !! Adagrad optimizer by Duchi et al. (2011)
+    !!
+    !! Duchi, J., Hazan, E. and Singer, Y., 2011. Adaptive subgradient
+    !! methods for online learning and stochastic optimization. Journal
+    !! of Machine Learning Research, 12(Jul), pp.2121-2159.
+    !! http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
+    real :: epsilon = 1e-8
+    real :: weight_decay_l2 = 0
+    real :: learning_rate_decay = 0
+    real, allocatable, private :: sum_squared_gradient(:)
+    integer, private :: t = 0
+  contains
+    procedure :: init => init_adagrad
+    procedure :: minimize => minimize_adagrad
+  end type adagrad
 
 contains
 
@@ -186,11 +203,49 @@ contains
 
     ! Update parameters.
     param = param &
-      - self % learning_rate * m_hat / (sqrt(v_hat) + self % epsilon) &
-      - self % weight_decay_decoupled * param
+      - self % learning_rate * (m_hat / (sqrt(v_hat) + self % epsilon) &
+      + self % weight_decay_decoupled * param)
 
     end associate
 
   end subroutine minimize_adam
+
+
+  impure elemental subroutine init_adagrad(self, num_params)
+    class(adagrad), intent(inout) :: self
+    integer, intent(in) :: num_params
+    if (.not. allocated(self % sum_squared_gradient)) then
+      allocate(self % sum_squared_gradient(num_params))
+      self % sum_squared_gradient = 0
+    end if
+  end subroutine init_adagrad
+
+
+  pure subroutine minimize_adagrad(self, param, gradient)
+    !! Concrete implementation of an Adagrad optimizer update rule.
+    class(adagrad), intent(inout) :: self
+    real, intent(inout) :: param(:)
+    real, intent(in) :: gradient(:)
+
+    ! Update the current time step
+    self % t = self % t + 1
+
+    associate( &
+      ! If weight_decay_l2 > 0, use L2 regularization;
+      ! otherwise, default to regular Adagrad.
+      g => gradient + self % weight_decay_l2 * param, &
+      ! Amortize the learning rate as function of the current time step.
+      learning_rate => self % learning_rate &
+        / (1 + (self % t - 1) * self % learning_rate_decay) &
+    )
+
+      self % sum_squared_gradient = self % sum_squared_gradient + g**2
+
+      param = param - learning_rate * g / (sqrt(self % sum_squared_gradient) &
+        + self % epsilon)
+
+    end associate
+
+  end subroutine minimize_adagrad
 
 end module nf_optimizers
