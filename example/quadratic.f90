@@ -100,7 +100,7 @@ program quadratic_fit
     net(10), x, y, xtest, ytest, learning_rate, num_epochs, epsilon &
   )
 
-  ! Adagrad optimizer
+  ! Adagrad optimizer with L2 regularization and learning rate decay
   call adagrad_optimizer( &
     net(11), x, y, xtest, ytest, learning_rate, num_epochs, epsilon, &
       weight_decay_l2=1e-4, learning_rate_decay=0.99 &
