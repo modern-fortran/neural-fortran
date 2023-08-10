@@ -49,12 +49,12 @@ contains
     self % input = input
 
     ! Calculate the normalized input
-    normalized_input = (input - reshape(self % running_mean, shape(input, 1))) * &
-                      reshape(self % gamma, shape(input, 1)) / &
-                      sqrt(reshape(self % running_var, shape(input, 1)) + 1.0e-8)
+    normalized_input = (input - reshape(self % running_mean, shape(input, 1))) / &
+                      sqrt(reshape(self % running_var, shape(input, 1)) + 1e-8)
 
     ! Batch normalization forward pass
-    self % output = normalized_input + reshape(self % beta, shape(input, 1))
+    self % output = (reshape(self % gamma, shape(input, 1)) * &
+                      normalized_input) + reshape(self % beta, shape(input, 1))
 
     ! Deallocate temporary array
     deallocate(normalized_input)
@@ -69,12 +69,12 @@ contains
 
     ! Calculate gradients for gamma, beta
     self % gamma_grad = sum(gradient * (input - reshape(self % running_mean, shape(input, 1))) / &
-                            sqrt(reshape(self % running_var, shape(input, 1)) + 1.0e-8), dim=2)
+                            sqrt(reshape(self % running_var, shape(input, 1)) + 1e-8), dim=2)
     self % beta_grad = sum(gradient, dim=2)
 
     ! Calculate gradients for input
-    self % input_grad = gradient * reshape(self % gamma, shape(gradient)) / &
-                      sqrt(reshape(self % running_var, shape(input, 1)) + 1.0e-8)
+    self % input_grad = gradient * reshape(self % gamma, shape(input, 1)) / &
+                      sqrt(reshape(self % running_var, shape(input, 1)) + 1e-8)
 
   end subroutine backward
 
