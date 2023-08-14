@@ -2,7 +2,7 @@ submodule(nf_dense_layer) nf_dense_layer_submodule
 
   use nf_activation, only: activation_function
   use nf_base_layer, only: base_layer
-  use nf_random, only: randn
+  use nf_random, only: random_normal
 
   implicit none
 
@@ -114,8 +114,8 @@ contains
     ! Weights are a 2-d array of shape previous layer size
     ! times this layer size.
     allocate(self % weights(self % input_size, self % output_size))
-    self % weights = randn(self % input_size, self % output_size) &
-                   / self % input_size
+    call random_normal(self % weights)
+    self % weights = self % weights / self % input_size
 
     ! Broadcast weights to all other images, if any.
     call co_broadcast(self % weights, 1)

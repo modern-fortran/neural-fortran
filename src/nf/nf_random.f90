@@ -6,34 +6,18 @@ module nf_random
   implicit none
 
   private
-  public :: randn
+  public :: random_normal
 
-  interface randn
+  real, parameter :: pi = 4 * atan(1.d0)
 
-    module function randn_1d(i) result(r)
-      !! Generates i random numbers with a normal distribution,
-      !! using the Box-Muller method.
-      implicit none
-      integer, intent(in) :: i
-      real :: r(i)
-    end function randn_1d
+contains
 
-    module function randn_2d(i, j) result(r)
-      !! Generates i x j random numbers with a normal distribution,
-      !! using the Box-Muller method.
-      implicit none
-      integer, intent(in) :: i, j
-      real :: r(i,j)
-    end function randn_2d
-
-    module function randn_4d(i, j, k, l) result(r)
-      !! Generates i x j x k x l random numbers with a normal distribution,
-      !! using the Box-Muller method.
-      implicit none
-      integer, intent(in) :: i, j, k, l
-      real :: r(i,j,k,l)
-    end function randn_4d
-
-  end interface randn
+  impure elemental subroutine random_normal(x)
+    real, intent(out) :: x
+    real :: u(2)
+    call random_number(u)
+    u(1) = 1.0 - u(1)
+    x = sqrt(-2.0 * log(u(1))) * cos(2.0 * pi * u(2))
+  end subroutine random_normal
 
 end module nf_random
