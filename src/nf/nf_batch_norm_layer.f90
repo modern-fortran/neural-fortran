@@ -10,7 +10,7 @@ module nf_batch_norm_layer
 
   type, extends(base_layer) :: batch_norm_layer
 
-    integer :: size
+    integer :: num_features
     real, allocatable :: gamma(:)
     real, allocatable :: beta(:)
     real, allocatable :: running_mean(:)
@@ -34,9 +34,9 @@ module nf_batch_norm_layer
   end type batch_norm_layer
 
   interface batch_norm_layer
-    pure module function batch_norm_layer_cons(size) result(res)
+    pure module function batch_norm_layer_cons(num_features) result(res)
       !! `batch_norm_layer` constructor function
-      integer, intent(in) :: size
+      integer, intent(in) :: num_features
       type(batch_norm_layer) :: res
     end function batch_norm_layer_cons
   end interface batch_norm_layer

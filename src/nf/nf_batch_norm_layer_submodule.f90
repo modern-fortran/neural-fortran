@@ -1,25 +1,24 @@
 submodule(nf_batch_norm_layer) nf_batch_norm_layer_submodule
 
-  use nf_base_layer, only: base_layer
   implicit none
 
 contains
 
-  pure module function batch_norm_layer_cons(size) result(res)
+  pure module function batch_norm_layer_cons(num_features) result(res)
     implicit none
-    integer, intent(in) :: size
+    integer, intent(in) :: num_features
     type(batch_norm_layer) :: res
 
-    res % size = size
-    allocate(res % gamma(size), source=1.0)
-    allocate(res % beta(size))
-    allocate(res % running_mean(size), source=0.0)
-    allocate(res % running_var(size), source=1.0)
-    allocate(res % input(size, size))
-    allocate(res % output(size, size))
-    allocate(res % gamma_grad(size))
-    allocate(res % beta_grad(size))
-    allocate(res % input_grad(size, size))
+    res % num_features = num_features
+    allocate(res % gamma(num_features), source=1.0)
+    allocate(res % beta(num_features))
+    allocate(res % running_mean(num_features), source=0.0)
+    allocate(res % running_var(num_features), source=1.0)
+    allocate(res % input(num_features, num_features))
+    allocate(res % output(num_features, num_features))
+    allocate(res % gamma_grad(num_features))
+    allocate(res % beta_grad(num_features))
+    allocate(res % input_grad(num_features, num_features))
 
   end function batch_norm_layer_cons
 
@@ -81,7 +80,7 @@ contains
   pure module function get_num_params(self) result(num_params)
     class(batch_norm_layer), intent(in) :: self
     integer :: num_params
-    num_params = 2 * self % size
+    num_params = 2 * self % num_features
   end function get_num_params
 
   pure module function get_params(self) result(params)
@@ -99,8 +98,8 @@ contains
   module subroutine set_params(self, params)
     class(batch_norm_layer), intent(in out) :: self
     real, intent(in) :: params(:)
-    self % gamma = params(1:self % size)
-    self % beta = params(self % size+1:2*self % size)
+    self % gamma = params(1:self % num_features)
+    self % beta = params(self % num_features+1:2*self % num_features)
   end subroutine set_params
 
 end submodule nf_batch_norm_layer_submodule
