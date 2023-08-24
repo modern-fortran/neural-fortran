@@ -42,7 +42,6 @@ contains
     implicit none
     class(batchnorm_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
-    !real, allocatable :: normalized_input(:,:)
 
     ! Store input for backward pass
     self % input = input
@@ -58,9 +57,6 @@ contains
         + reshape(self % beta, shape(input, 1))
 
     end associate
-
-    ! Deallocate temporary array
-    !deallocate(normalized_input)
 
   end subroutine forward
 
