@@ -20,6 +20,7 @@ module nf_batchnorm_layer
     real, allocatable :: gamma_grad(:)
     real, allocatable :: beta_grad(:)
     real, allocatable :: input_grad(:,:)
+    real :: epsilon = 1e-5
 
   contains
 

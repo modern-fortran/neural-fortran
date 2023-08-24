@@ -48,12 +48,12 @@ contains
     self % input = input
 
     ! Calculate the normalized input
-    normalized_input = (input - reshape(self % running_mean, shape(input, 1))) / &
-                      sqrt(reshape(self % running_var, shape(input, 1)) + 1e-8)
+    normalized_input = (input - reshape(self % running_mean, shape(input, 1))) &
+      / sqrt(reshape(self % running_var, shape(input, 1)) + self % epsilon)
 
     ! Batch normalization forward pass
-    self % output = (reshape(self % gamma, shape(input, 1)) * &
-                      normalized_input) + reshape(self % beta, shape(input, 1))
+    self % output = reshape(self % gamma, shape(input, 1)) * normalized_input &
+      + reshape(self % beta, shape(input, 1))
 
     ! Deallocate temporary array
     deallocate(normalized_input)
@@ -67,13 +67,13 @@ contains
     real, intent(in) :: gradient(:,:)
 
     ! Calculate gradients for gamma, beta
-    self % gamma_grad = sum(gradient * (input - reshape(self % running_mean, shape(input, 1))) / &
-                            sqrt(reshape(self % running_var, shape(input, 1)) + 1e-8), dim=2)
+    self % gamma_grad = sum(gradient * (input - reshape(self % running_mean, shape(input, 1))) &
+      / sqrt(reshape(self % running_var, shape(input, 1)) + self % epsilon), dim=2)
     self % beta_grad = sum(gradient, dim=2)
 
     ! Calculate gradients for input
-    self % input_grad = gradient * reshape(self % gamma, shape(input, 1)) / &
-                      sqrt(reshape(self % running_var, shape(input, 1)) + 1e-8)
+    self % input_grad = gradient * reshape(self % gamma, shape(input, 1)) &
+      / sqrt(reshape(self % running_var, shape(input, 1)) + self % epsilon)
 
   end subroutine backward
 
