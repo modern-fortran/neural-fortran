@@ -42,21 +42,25 @@ contains
     implicit none
     class(batchnorm_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
-    real, allocatable :: normalized_input(:,:)
+    !real, allocatable :: normalized_input(:,:)
 
     ! Store input for backward pass
     self % input = input
 
-    ! Calculate the normalized input
-    normalized_input = (input - reshape(self % running_mean, shape(input, 1))) &
-      / sqrt(reshape(self % running_var, shape(input, 1)) + self % epsilon)
+    associate( &
+      ! Normalize the input
+      normalized_input => (input - reshape(self % running_mean, shape(input, 1))) &
+        / sqrt(reshape(self % running_var, shape(input, 1)) + self % epsilon) &
+    )
 
-    ! Batch normalization forward pass
-    self % output = reshape(self % gamma, shape(input, 1)) * normalized_input &
-      + reshape(self % beta, shape(input, 1))
+      ! Batch normalization forward pass
+      self % output = reshape(self % gamma, shape(input, 1)) * normalized_input &
+        + reshape(self % beta, shape(input, 1))
+
+    end associate
 
     ! Deallocate temporary array
-    deallocate(normalized_input)
+    !deallocate(normalized_input)
 
   end subroutine forward
 
