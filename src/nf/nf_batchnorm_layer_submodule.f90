@@ -1,13 +1,13 @@
-submodule(nf_batch_norm_layer) nf_batch_norm_layer_submodule
+submodule(nf_batchnorm_layer) nf_batchnorm_layer_submodule
 
   implicit none
 
 contains
 
-  pure module function batch_norm_layer_cons(num_features) result(res)
+  pure module function batchnorm_layer_cons(num_features) result(res)
     implicit none
     integer, intent(in) :: num_features
-    type(batch_norm_layer) :: res
+    type(batchnorm_layer) :: res
 
     res % num_features = num_features
     allocate(res % gamma(num_features), source=1.0)
@@ -20,11 +20,11 @@ contains
     allocate(res % beta_grad(num_features))
     allocate(res % input_grad(num_features, num_features))
 
-  end function batch_norm_layer_cons
+  end function batchnorm_layer_cons
 
   module subroutine init(self, input_shape)
     implicit none
-    class(batch_norm_layer), intent(in out) :: self
+    class(batchnorm_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
     self % input = 0
@@ -40,7 +40,7 @@ contains
 
   pure module subroutine forward(self, input)
     implicit none
-    class(batch_norm_layer), intent(in out) :: self
+    class(batchnorm_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
     real, allocatable :: normalized_input(:,:)
 
@@ -62,7 +62,7 @@ contains
 
   pure module subroutine backward(self, input, gradient)
     implicit none
-    class(batch_norm_layer), intent(in out) :: self
+    class(batchnorm_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
     real, intent(in) :: gradient(:,:)
 
@@ -78,28 +78,28 @@ contains
   end subroutine backward
 
   pure module function get_num_params(self) result(num_params)
-    class(batch_norm_layer), intent(in) :: self
+    class(batchnorm_layer), intent(in) :: self
     integer :: num_params
     num_params = 2 * self % num_features
   end function get_num_params
 
   pure module function get_params(self) result(params)
-    class(batch_norm_layer), intent(in) :: self
+    class(batchnorm_layer), intent(in) :: self
     real, allocatable :: params(:)
     params = [self % gamma, self % beta]
   end function get_params
 
   pure module function get_gradients(self) result(gradients)
-    class(batch_norm_layer), intent(in) :: self
+    class(batchnorm_layer), intent(in) :: self
     real, allocatable :: gradients(:)
     gradients = [self % gamma_grad, self % beta_grad]
   end function get_gradients
 
   module subroutine set_params(self, params)
-    class(batch_norm_layer), intent(in out) :: self
+    class(batchnorm_layer), intent(in out) :: self
     real, intent(in) :: params(:)
     self % gamma = params(1:self % num_features)
     self % beta = params(self % num_features+1:2*self % num_features)
   end subroutine set_params
 
-end submodule nf_batch_norm_layer_submodule
+end submodule nf_batchnorm_layer_submodule

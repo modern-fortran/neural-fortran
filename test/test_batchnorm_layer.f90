@@ -1,9 +1,9 @@
-program test_batch_norm_layer
+program test_batchnorm_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: batch_norm, input, layer
+  use nf, only: batchnorm, input, layer
   use nf_input3d_layer, only: input3d_layer
-  use nf_batch_norm_layer, only: batch_norm_layer
+  use nf_batchnorm_layer, only: batchnorm_layer
 
   implicit none
 
@@ -17,16 +17,16 @@ program test_batch_norm_layer
   real, parameter :: tolerance = 1e-7
   logical :: ok = .true.
 
-  bn_layer = batch_norm(num_features)
+  bn_layer = batchnorm(num_features)
 
-  if (.not. bn_layer % name == 'batch_norm') then
+  if (.not. bn_layer % name == 'batchnorm') then
     ok = .false.
-    write(stderr, '(a)') 'batch_norm layer has its name set correctly.. failed'
+    write(stderr, '(a)') 'batchnorm layer has its name set correctly.. failed'
   end if
 
   if (bn_layer % initialized) then
     ok = .false.
-    write(stderr, '(a)') 'batch_norm layer should not be marked as initialized yet.. failed'
+    write(stderr, '(a)') 'batchnorm layer should not be marked as initialized yet.. failed'
   end if
 
   input_layer = input(input_shape)
@@ -34,12 +34,12 @@ program test_batch_norm_layer
 
   if (.not. bn_layer % initialized) then
     ok = .false.
-    write(stderr, '(a)') 'batch_norm layer should now be marked as initialized.. failed'
+    write(stderr, '(a)') 'batchnorm layer should now be marked as initialized.. failed'
   end if
 
   if (.not. all(bn_layer % input_layer_shape == [num_features])) then
     ok = .false.
-    write(stderr, '(a)') 'batch_norm layer input layer shape should be correct.. failed'
+    write(stderr, '(a)') 'batchnorm layer input layer shape should be correct.. failed'
   end if
 
   ! Initialize sample input and gradient
@@ -54,7 +54,7 @@ program test_batch_norm_layer
   end select
 
   ! Initialize the batch normalization layer
-  bn_layer = batch_norm(num_features)
+  bn_layer = batchnorm(num_features)
   call bn_layer % init(input_layer)
 
   ! Perform forward and backward passes
@@ -65,7 +65,7 @@ program test_batch_norm_layer
   call bn_layer % get_output(output)
   if (.not. all(abs(output - sample_input) < tolerance)) then
     ok = .false.
-    write(stderr, '(a)') 'batch_norm layer output should be close to input.. failed'
+    write(stderr, '(a)') 'batchnorm layer output should be close to input.. failed'
   end if
 
   ! Retrieve gamma and beta gradients
@@ -75,15 +75,15 @@ program test_batch_norm_layer
 
   if (.not. all(beta_grad == sum(gradient))) then
     ok = .false.
-    write(stderr, '(a)') 'batch_norm layer beta gradients are incorrect.. failed'
+    write(stderr, '(a)') 'batchnorm layer beta gradients are incorrect.. failed'
   end if
 
   ! Report test results
   if (ok) then
-    print '(a)', 'test_batch_norm_layer: All tests passed.'
+    print '(a)', 'test_batchnorm_layer: All tests passed.'
   else
-    write(stderr, '(a)') 'test_batch_norm_layer: One or more tests failed.'
+    write(stderr, '(a)') 'test_batchnorm_layer: One or more tests failed.'
     stop 1
   end if
 
-end program test_batch_norm_layer
+end program test_batchnorm_layer

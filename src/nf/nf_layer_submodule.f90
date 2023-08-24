@@ -1,7 +1,7 @@
 submodule(nf_layer) nf_layer_submodule
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf_batch_norm_layer, only: batch_norm_layer
+  use nf_batchnorm_layer, only: batchnorm_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer

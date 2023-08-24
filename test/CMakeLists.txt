@@ -16,7 +16,7 @@ foreach(execid
   cnn_from_keras
   conv2d_network
   optimizers
-  batch_norm_layer
+  batchnorm_layer
   )
   add_executable(test_${execid} test_${execid}.f90)
   target_link_libraries(test_${execid} PRIVATE neural h5fortran::h5fortran jsonfortran::jsonfortran ${LIBS})

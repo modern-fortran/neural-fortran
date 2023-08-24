@@ -26,8 +26,8 @@ add_library(neural
   src/nf.f90
   src/nf/nf_activation.f90
   src/nf/nf_base_layer.f90
-  src/nf/nf_batch_norm_layer.f90
-  src/nf/nf_batch_norm_layer_submodule.f90
+  src/nf/nf_batchnorm_layer.f90
+  src/nf/nf_batchnorm_layer_submodule.f90
   src/nf/nf_conv2d_layer.f90
   src/nf/nf_conv2d_layer_submodule.f90
   src/nf/nf_datasets.f90
