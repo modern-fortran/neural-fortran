@@ -13,11 +13,14 @@ module nf_random
 contains
 
   impure elemental subroutine random_normal(x)
+    !! Sample random numbers from a normal distribution using a Box-Muller
+    !! formula.
     real, intent(out) :: x
+      !! Scalar or array to be filled with random numbers
     real :: u(2)
     call random_number(u)
-    u(1) = 1.0 - u(1)
-    x = sqrt(-2.0 * log(u(1))) * cos(2.0 * pi * u(2))
+    u(1) = 1 - u(1)
+    x = sqrt(- 2 * log(u(1))) * cos(2 * pi * u(2))
   end subroutine random_normal
 
 end module nf_random
