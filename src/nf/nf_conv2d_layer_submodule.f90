@@ -1,7 +1,7 @@
 submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
   use nf_activation, only: activation_function
-  use nf_random, only: randn
+  use nf_random, only: random_normal
 
   implicit none
 
@@ -40,9 +40,8 @@ contains
                            self % kernel_size, self % kernel_size))
 
     ! Initialize the kernel with random values with a normal distribution.
-    self % kernel = randn(self % filters, self % channels, &
-                          self % kernel_size, self % kernel_size) &
-                  / self % kernel_size**2 !TODO kernel_width * kernel_height
+    call random_normal(self % kernel)
+    self % kernel = self % kernel / self % kernel_size**2
 
     allocate(self % biases(self % filters))
     self % biases = 0
