@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape
+  public :: batchnorm, conv2d, dense, flatten, input, maxpool2d, reshape
 
   interface input
 
@@ -105,6 +105,25 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function flatten
+
+    pure module function batchnorm(num_features) result(res)
+      !! Batch normalization layer constructor.
+      !!
+      !! This layer is for adding batch normalization to the network.
+      !! A batch normalization layer can be used after conv2d or dense layers.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: batchnorm, layer
+      !! type(layer) :: batchnorm_layer
+      !! batchnorm_layer = batchnorm(num_features = 64)
+      !! ```
+      integer, intent(in) :: num_features
+        !! Number of features in the Layer
+      type(layer) :: res
+        !! Resulting layer instance
+    end function batchnorm
 
     pure module function conv2d(filters, kernel_size, activation) result(res)
       !! 2-d convolutional layer constructor.

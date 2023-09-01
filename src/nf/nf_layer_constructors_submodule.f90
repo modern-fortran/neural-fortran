@@ -1,6 +1,7 @@
 submodule(nf_layer_constructors) nf_layer_constructors_submodule
 
   use nf_layer, only: layer
+  use nf_batchnorm_layer, only: batchnorm_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
@@ -13,6 +14,13 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   implicit none
 
 contains
+
+  pure module function batchnorm(num_features) result(res)
+    integer, intent(in) :: num_features
+    type(layer) :: res
+    res % name = 'batchnorm'
+    allocate(res % p, source=batchnorm_layer(num_features))
+  end function batchnorm
 
   pure module function conv2d(filters, kernel_size, activation) result(res)
     integer, intent(in) :: filters
