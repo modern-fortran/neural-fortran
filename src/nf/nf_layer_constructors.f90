@@ -3,7 +3,8 @@ module nf_layer_constructors
   !! This module provides the functions to instantiate specific layers.
 
   use nf_layer, only: layer
-  use nf_activation, only : activation_function
+  use nf_initializers, only: initializer_type
+  use nf_activation, only: activation_function
 
   implicit none
 
@@ -62,7 +63,7 @@ module nf_layer_constructors
 
   interface
 
-    pure module function dense(layer_size, activation) result(res)
+    pure module function dense(layer_size, activation, initializer) result(res)
       !! Dense (fully-connected) layer constructor.
       !!
       !! This layer is a building block for dense, fully-connected networks,
@@ -81,6 +82,8 @@ module nf_layer_constructors
         !! The number of neurons in a dense layer
       class(activation_function), intent(in), optional :: activation
         !! Activation function instance (default sigmoid)
+      class(initializer_type), intent(in), optional :: initializer
+        !! Algorithm to use to initialize the weights
       type(layer) :: res
         !! Resulting layer instance
     end function dense
@@ -106,7 +109,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function flatten
 
-    pure module function conv2d(filters, kernel_size, activation) result(res)
+    pure module function conv2d(filters, kernel_size, activation, initializer) result(res)
       !! 2-d convolutional layer constructor.
       !!
       !! This layer is for building 2-d convolutional network.
@@ -121,7 +124,7 @@ module nf_layer_constructors
       !! use nf, only :: conv2d, layer
       !! type(layer) :: conv2d_layer
       !! conv2d_layer = dense(filters=32, kernel_size=3)
-      !! conv2d_layer = dense(filters=32, kernel_size=3, activation='relu')
+      !! conv2d_layer = dense(filters=32, kernel_size=3, activation=relu())
       !! ```
       integer, intent(in) :: filters
         !! Number of filters in the output of the layer
@@ -129,6 +132,8 @@ module nf_layer_constructors
         !! Width of the convolution window, commonly 3 or 5
       class(activation_function), intent(in), optional :: activation
         !! Activation function (default sigmoid)
+      class(initializer_type), intent(in), optional :: initializer
+        !! Algorithm to use to initialize the weights
       type(layer) :: res
         !! Resulting layer instance
     end function conv2d

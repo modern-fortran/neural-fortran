@@ -9,15 +9,17 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_activation, only: activation_function, sigmoid
+  use nf_initializers, only: initializer_type
 
   implicit none
 
 contains
 
-  pure module function conv2d(filters, kernel_size, activation) result(res)
+  pure module function conv2d(filters, kernel_size, activation, initializer) result(res)
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in), optional :: activation
+    class(initializer_type), intent(in), optional :: initializer
     type(layer) :: res
 
     class(activation_function), allocatable :: activation_tmp
@@ -32,6 +34,8 @@ contains
 
     res % activation = activation_tmp % get_name()
 
+    if (present(initializer)) error stop 'Initializers not yet implemented'
+
     allocate( &
       res % p, &
       source=conv2d_layer(filters, kernel_size, activation_tmp) &
@@ -40,9 +44,10 @@ contains
   end function conv2d
 
 
-  pure module function dense(layer_size, activation) result(res)
+  pure module function dense(layer_size, activation, initializer) result(res)
     integer, intent(in) :: layer_size
     class(activation_function), intent(in), optional :: activation
+    class(initializer_type), intent(in), optional :: initializer
     type(layer) :: res
 
     class(activation_function), allocatable :: activation_tmp
@@ -57,6 +62,8 @@ contains
     end if
 
     res % activation = activation_tmp % get_name()
+
+    if (present(initializer)) error stop 'Initializers not yet implemented'
 
     allocate(res % p, source=dense_layer(layer_size, activation_tmp))
 
