@@ -3,6 +3,6 @@
 *.mod
 *.smod
 *.dat
+build
+doc/html
 *.h5
-/build
-/doc
