@@ -4,5 +4,5 @@
 *.smod
 *.dat
 *.h5
-/build
-/doc
+build
+doc/html
