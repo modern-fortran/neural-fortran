@@ -131,8 +131,17 @@ contains
     call random_normal(self % weights)
     self % weights = self % weights / self % input_size
 
+    ! Recurrent weights are a 2-d square array of shape this layer size.
+    ! Each neuron is adjusted by each state times a recurrent weight.
+    allocate(self % recurrent(self % output_size, self % output_size))
+    call random_normal(self % recurrent)
+    self % recurrent = self % recurrent / self % output_size
+
     ! Broadcast weights to all other images, if any.
     call co_broadcast(self % weights, 1)
+
+    allocate(self % state(self % output_size))
+    self % state = 0
 
     allocate(self % biases(self % output_size))
     self % biases = 0
