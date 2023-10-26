@@ -52,7 +52,9 @@ contains
     integer :: num_params
 
     ! Number of weigths times number of biases
-    num_params = self % input_size * self % output_size + self % output_size
+    num_params = self % input_size * self % output_size &
+                 + self % output_size * self % output_size &
+                 + self % output_size
 
   end function get_num_params
 
