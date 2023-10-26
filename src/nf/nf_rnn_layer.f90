@@ -39,7 +39,7 @@ module nf_rnn_layer
     procedure :: get_num_params
     procedure :: get_params
     procedure :: init
-    !procedure :: set_params
+    procedure :: set_params
 
   end type rnn_layer
 

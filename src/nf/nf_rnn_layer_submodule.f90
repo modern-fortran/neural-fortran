@@ -85,6 +85,7 @@ contains
   module subroutine set_params(self, params)
     class(rnn_layer), intent(in out) :: self
     real, intent(in) :: params(:)
+    integer :: first, last
 
     ! check if the number of parameters is correct
     if (size(params) /= self % get_num_params()) then
@@ -92,14 +93,24 @@ contains
     end if
 
     ! reshape the weights
+    last = self % input_size * self % output_size
     self % weights = reshape( &
-      params(:self % input_size * self % output_size), &
+      params(:last), &
       [self % input_size, self % output_size] &
     )
 
+    ! reshape the recurrent weights
+    first = last + 1
+    last = first + self % output_size * self % output_size
+    self % recurrent = reshape( &
+      params(first:last), &
+      [self % output_size, self % output_size] &
+    )
+
     ! reshape the biases
+    first = last + 1
     self % biases = reshape( &
-      params(self % input_size * self % output_size + 1:), &
+      params(first:), &
       [self % output_size] &
     )
 
