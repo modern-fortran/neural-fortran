@@ -34,7 +34,7 @@ module nf_rnn_layer
   contains
 
     !procedure :: backward
-    !procedure :: forward
+    procedure :: forward
     !procedure :: get_gradients
     procedure :: get_num_params
     procedure :: get_params

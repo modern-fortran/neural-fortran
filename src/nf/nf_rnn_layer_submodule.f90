@@ -41,8 +41,11 @@ contains
     class(rnn_layer), intent(in out) :: self
     real, intent(in) :: input(:)
 
-    self % z = matmul(input, self % weights) + self % biases
-    self % output = self % activation % eval(self % z)
+    self % z = matmul(input, self % weights) &
+               + matmul(self % state, self % recurrent) &
+               + self % biases
+    self % state = self % activation % eval(self % z)
+    self % output = self % state
 
   end subroutine forward
 
