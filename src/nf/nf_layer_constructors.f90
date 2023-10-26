@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape
+  public :: conv2d, dense, flatten, input, maxpool2d, reshape, rnn
 
   interface input
 

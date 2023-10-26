@@ -8,6 +8,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_rnn_layer, only: rnn_layer
   use nf_optimizers, only: optimizer_base_type
 
 contains
@@ -292,6 +293,8 @@ contains
         num_params = 0
       type is (reshape3d_layer)
         num_params = 0
+      type is (rnn_layer)
+        num_params = this_layer % get_num_params()
       class default
         error stop 'Unknown layer type.'
     end select
