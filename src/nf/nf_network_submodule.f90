@@ -216,6 +216,23 @@ contains
           ! Nothing to do
           continue
 
+        type is(rnn_layer)
+
+          ! Read biases from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/bias:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % biases)
+
+          ! Read weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % weights)
+
+          ! Read recurrent weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/recurrent_kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % recurrent)
+
         class default
           error stop 'Internal error in network_from_keras(); ' &
             // 'mismatch in layer types between the Keras and ' &
