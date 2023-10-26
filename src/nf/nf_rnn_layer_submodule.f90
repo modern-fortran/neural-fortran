@@ -63,6 +63,7 @@ contains
 
     params = [ &
       pack(self % weights, .true.), &
+      pack(self % recurrent, .true.), &
       pack(self % biases, .true.) &
     ]
 

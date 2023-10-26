@@ -320,6 +320,8 @@ contains
         ! No parameters to get.
       type is (reshape3d_layer)
         ! No parameters to get.
+      type is (rnn_layer)
+        params = this_layer % get_params()
       class default
         error stop 'Unknown layer type.'
     end select
