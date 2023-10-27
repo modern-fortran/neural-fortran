@@ -22,8 +22,8 @@ module nf_rnn_layer
     real, allocatable :: weights(:,:)
     real, allocatable :: recurrent(:,:)
     real, allocatable :: biases(:)
-    real, allocatable :: state(:)
     real, allocatable :: z(:) ! matmul(x, w) + b
+    real, allocatable :: state(:)
     real, allocatable :: output(:) ! activation(z)
     real, allocatable :: gradient(:) ! matmul(w, db)
     real, allocatable :: dw(:,:) ! weight gradients
@@ -33,9 +33,9 @@ module nf_rnn_layer
 
   contains
 
-    !procedure :: backward
+    procedure :: backward
     procedure :: forward
-    !procedure :: get_gradients
+    procedure :: get_gradients
     procedure :: get_num_params
     procedure :: get_params
     procedure :: init
@@ -46,14 +46,14 @@ module nf_rnn_layer
   interface rnn_layer
     elemental module function rnn_layer_cons(output_size, activation) &
       result(res)
-      !! This function returns the `dense_layer` instance.
+      !! This function returns the `rnn_layer` instance.
       integer, intent(in) :: output_size
         !! Number of neurons in this layer
       class(activation_function), intent(in) :: activation
         !! Instance of the activation_function to use;
         !! See nf_activation.f90 for available functions.
       type(rnn_layer) :: res
-        !! dense_layer instance
+        !! rnn_layer instance
     end function rnn_layer_cons
   end interface rnn_layer
 
@@ -74,7 +74,7 @@ module nf_rnn_layer
     pure module subroutine forward(self, input)
       !! Propagate forward the layer.
       !! Calling this subroutine updates the values of a few data components
-      !! of `dense_layer` that are needed for the backward pass.
+      !! of `rnn_layer` that are needed for the backward pass.
       class(rnn_layer), intent(in out) :: self
         !! Dense layer instance
       real, intent(in) :: input(:)
