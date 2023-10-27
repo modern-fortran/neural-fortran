@@ -296,7 +296,7 @@ contains
       type is (rnn_layer)
         num_params = this_layer % get_num_params()
       class default
-        error stop 'Unknown layer type.'
+        error stop 'get_num_params() with unknown layer type.'
     end select
 
   end function get_num_params
@@ -323,7 +323,7 @@ contains
       type is (rnn_layer)
         params = this_layer % get_params()
       class default
-        error stop 'Unknown layer type.'
+        error stop 'get_params() with unknown layer type.'
     end select
 
   end function get_params
@@ -348,7 +348,7 @@ contains
       type is (reshape3d_layer)
         ! No gradients to get.
       class default
-        error stop 'Unknown layer type.'
+        error stop 'get_gradients() with unknown layer type.'
     end select
 
   end function get_gradients
@@ -405,7 +405,7 @@ contains
           // 'on a zero-parameter layer; nothing to do.'
 
           class default
-        error stop 'Unknown layer type.'
+        error stop 'set_params() with unknown layer type.'
     end select
 
   end subroutine set_params
