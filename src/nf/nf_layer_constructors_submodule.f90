@@ -9,7 +9,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_rnn_layer, only: rnn_layer
-  use nf_activation, only: activation_function, relu, sigmoid
+  use nf_activation, only: activation_function, relu, sigmoid, tanhf
 
   implicit none
 
@@ -134,5 +134,28 @@ contains
     end if
 
   end function reshape
+
+  pure module function rnn(layer_size, activation) result(res)
+    integer, intent(in) :: layer_size
+    class(activation_function), intent(in), optional :: activation
+    type(layer) :: res
+
+    class(activation_function), allocatable :: activation_tmp
+
+    res % name = 'rnn'
+    res % layer_shape = [layer_size]
+
+    if (present(activation)) then
+      allocate(activation_tmp, source=activation)
+    else
+      allocate(activation_tmp, source=tanhf())
+    end if
+
+    res % activation = activation_tmp % get_name()
+
+    allocate(res % p, source=rnn_layer(layer_size, activation_tmp))
+
+  end function rnn
+
 
 end submodule nf_layer_constructors_submodule

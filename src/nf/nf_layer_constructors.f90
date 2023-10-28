@@ -166,6 +166,29 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function reshape
 
+    pure module function rnn(layer_size, activation) result(res)
+      !! Recurrent (fully-connected) layer constructor.
+      !!
+      !! This layer is a building block for recurrent, fully-connected
+      !! networks, or for an output layer of a convolutional network.
+      !! A recurrent layer must not be the first layer in the network.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: rnn, layer, relu
+      !! type(layer) :: rnn_layer
+      !! rnn_layer = rnn(10)
+      !! rnn_layer = rnn(10, activation=relu())
+      !! ```
+      integer, intent(in) :: layer_size
+        !! The number of neurons in a dense layer
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function instance (default tanh)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function rnn
+
   end interface
 
 end module nf_layer_constructors
