@@ -20,7 +20,7 @@ module nf_rnn_layer
     integer :: output_size
 
     real, allocatable :: weights(:,:)
-    real, allocatable :: recurrent(:,:)
+    real, allocatable :: recurrent(:)
     real, allocatable :: biases(:)
     real, allocatable :: z(:) ! matmul(x, w) + b
     real, allocatable :: state(:)
