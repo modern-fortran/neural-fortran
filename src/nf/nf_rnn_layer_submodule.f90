@@ -137,7 +137,7 @@ contains
     ! Broadcast weights to all other images, if any.
     call co_broadcast(self % weights, 1)
 
-    allocate(self % recurrent(self % output_size))
+    allocate(self % recurrent(self % output_size, self % output_size))
     call random_normal(self % recurrent)
     self % recurrent = self % recurrent / self % input_size
 
