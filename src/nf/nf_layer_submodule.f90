@@ -228,6 +228,8 @@ contains
         allocate(output, source=this_layer % output)
       type is(flatten_layer)
         allocate(output, source=this_layer % output)
+      type is(rnn_layer)
+        allocate(output, source=this_layer % output)
       class default
         error stop '1-d output can only be read from an input1d, dense, or flatten layer.'
 
