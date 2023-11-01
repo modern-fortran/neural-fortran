@@ -197,6 +197,19 @@ contains
             call this_layer % forward(prev_layer % output)
         end select
 
+      type is(rnn_layer)
+
+        ! Upstream layers permitted: input1d, dense, rnn
+        select type(prev_layer => input % p)
+          type is(input1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(dense_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(rnn_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+
     end select
 
   end subroutine forward
