@@ -114,8 +114,9 @@ contains
 
     ! reshape the biases
     first = last + 1
+    last = first + self % output_size
     self % biases = reshape( &
-      params(first:), &
+      params(first:last), &
       [self % output_size] &
     )
 
