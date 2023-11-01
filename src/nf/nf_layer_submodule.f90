@@ -442,4 +442,14 @@ contains
 
   end subroutine set_params
 
+  module subroutine reset(self)
+    class(layer), intent(in out) :: self
+
+    select type (this_layer => self % p)
+      type is (rnn_layer)
+        call this_layer % reset()
+    end select
+
+  end subroutine reset
+
 end submodule nf_layer_submodule

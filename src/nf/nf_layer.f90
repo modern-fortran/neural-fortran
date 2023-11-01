@@ -32,6 +32,7 @@ module nf_layer
     procedure :: set_params
     procedure :: init
     procedure :: print_info
+    procedure :: reset
 
     ! Specific subroutines for different array ranks
     procedure, private :: backward_1d
@@ -152,6 +153,10 @@ module nf_layer
       real, intent(in) :: params(:)
         !! Parameters of this layer
     end subroutine set_params
+
+    module subroutine reset(self)
+      class(layer), intent(in out) :: self
+    end subroutine reset
 
   end interface
 

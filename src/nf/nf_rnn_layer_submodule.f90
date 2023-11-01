@@ -166,4 +166,11 @@ contains
 
   end subroutine init
 
+  module subroutine reset(self)
+    class(rnn_layer), intent(in out) :: self
+
+    self % state = 0
+
+  end subroutine reset
+
 end submodule nf_rnn_layer_submodule

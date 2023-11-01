@@ -738,4 +738,18 @@ contains
 
   end subroutine update
 
+  module subroutine reset(self)
+    class(network), intent(in out) :: self
+    integer :: n, num_layers
+
+    num_layers = size(self % layers)
+    do n = 2, num_layers
+      select type(this_layer => self % layers(n) % p)
+        type is(rnn_layer)
+          call self % layers(n) % reset()
+      end select
+    end do
+
+  end subroutine reset
+
 end submodule nf_network_submodule
