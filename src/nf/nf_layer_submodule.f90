@@ -33,6 +33,8 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(flatten_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(rnn_layer)
+            call this_layer % backward(prev_layer % output, gradient)
         end select
 
       type is(flatten_layer)
