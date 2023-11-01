@@ -333,6 +333,11 @@ contains
               self % layers(n - 1), &
               self % loss % derivative(output, this_layer % output) &
             )
+          type is(rnn_layer)
+            call self % layers(n) % backward( &
+              self % layers(n - 1), &
+              quadratic_derivative(output, this_layer % output) &
+            )
         end select
       else
         ! Hidden layer; take the gradient from the next layer
