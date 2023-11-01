@@ -139,6 +139,8 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(flatten_layer)
             call this_layer % forward(prev_layer % output)
+          type is(rnn_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(conv2d_layer)
