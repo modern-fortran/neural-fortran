@@ -40,6 +40,7 @@ module nf_rnn_layer
     procedure :: get_params
     procedure :: init
     procedure :: set_params
+    procedure :: reset
 
   end type rnn_layer
 
@@ -125,6 +126,14 @@ module nf_rnn_layer
       integer, intent(in) :: input_shape(:)
         !! Shape of the input layer
     end subroutine init
+
+    module subroutine reset(self)
+      !! Reset layer state
+      !!
+      !! Currently reset state to zero but might be worth reconsidering it
+      !! in the future.
+      class(rnn_layer), intent(in out) :: self
+    end subroutine reset
 
   end interface
 
