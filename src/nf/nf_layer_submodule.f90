@@ -442,14 +442,18 @@ contains
 
   end subroutine set_params
 
-  module subroutine reset(self)
-    class(layer), intent(in out) :: self
+  module subroutine set_state(self, state)
+    class(layer), intent(inout) :: self
+    real, intent(in), optional :: state(:)
 
     select type (this_layer => self % p)
       type is (rnn_layer)
-        call this_layer % reset()
-    end select
-
-  end subroutine reset
+        if (present(state)) then
+          this_layer % state = state
+        else
+          this_layer % state = 0
+        end if
+      end select
+  end subroutine set_state
 
 end submodule nf_layer_submodule

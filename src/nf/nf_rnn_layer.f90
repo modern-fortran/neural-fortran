@@ -14,7 +14,7 @@ module nf_rnn_layer
 
   type, extends(base_layer) :: rnn_layer
 
-    !! Concrete implementation of a dense (fully-connected) layer type
+    !! Concrete implementation of an RNN (fully-connected) layer type
 
     integer :: input_size
     integer :: output_size
@@ -40,7 +40,7 @@ module nf_rnn_layer
     procedure :: get_params
     procedure :: init
     procedure :: set_params
-    procedure :: reset
+    procedure :: set_state
 
   end type rnn_layer
 
@@ -94,7 +94,7 @@ module nf_rnn_layer
       !! Return the parameters (weights and biases) of this layer.
       !! The parameters are ordered as weights first, biases second.
       class(rnn_layer), intent(in) :: self
-        !! Dense layer instance
+        !! RNN layer instance
       real, allocatable :: params(:)
         !! Parameters of this layer
     end function get_params
@@ -136,5 +136,15 @@ module nf_rnn_layer
     end subroutine reset
 
   end interface
+
+  subroutine set_state(self, state)
+    type(rnn_layer), intent(inout) :: self
+    real, intent(in), optional :: state(:)
+    if (present(state)) then
+      self % state = state
+    else
+      self % state = 0
+    end if
+  end subroutine set_state
 
 end module nf_rnn_layer

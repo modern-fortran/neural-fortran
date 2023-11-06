@@ -26,7 +26,6 @@ module nf_network
     procedure :: get_params
     procedure :: print_info
     procedure :: set_params
-    procedure :: reset
     procedure :: train
     procedure :: update
 
@@ -242,13 +241,6 @@ module nf_network
         !! Set to 1 for a pure stochastic gradient descent (default).
         !! Set to `size(input_data, dim=2)` for a batch gradient descent.
     end subroutine update
-
-    module subroutine reset(self)
-      !! Reset network state
-      !!
-      !! Currently only affect RNN layer type
-      class(network), intent(in out) :: self
-    end subroutine reset
 
   end interface
 
