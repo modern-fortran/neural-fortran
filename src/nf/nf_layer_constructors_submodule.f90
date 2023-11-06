@@ -81,7 +81,6 @@ contains
     res % initialized = .true.
   end function input1d
 
-
   pure module function input3d(layer_shape) result(res)
     integer, intent(in) :: layer_shape(3)
     type(layer) :: res

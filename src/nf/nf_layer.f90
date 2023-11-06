@@ -30,9 +30,9 @@ module nf_layer
     procedure :: get_params
     procedure :: get_gradients
     procedure :: set_params
+    procedure :: set_state
     procedure :: init
     procedure :: print_info
-    procedure :: reset
 
     ! Specific subroutines for different array ranks
     procedure, private :: backward_1d
@@ -154,9 +154,10 @@ module nf_layer
         !! Parameters of this layer
     end subroutine set_params
 
-    module subroutine reset(self)
-      class(layer), intent(in out) :: self
-    end subroutine reset
+    module subroutine set_state(self, state)
+      class(layer), intent(inout) :: self
+      real, intent(in), optional :: state(:)
+    end subroutine set_state
 
   end interface
 
