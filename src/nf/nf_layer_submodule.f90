@@ -438,6 +438,9 @@ contains
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
 
+      type is (rnn_layer)
+        call this_layer % set_params(params)
+
           class default
         error stop 'set_params() with unknown layer type.'
     end select
