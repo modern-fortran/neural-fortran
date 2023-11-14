@@ -40,7 +40,7 @@ module nf_rnn_layer
     procedure :: get_params
     procedure :: init
     procedure :: set_params
-    procedure :: set_state
+    ! procedure :: set_state
 
   end type rnn_layer
 
@@ -127,24 +127,11 @@ module nf_rnn_layer
         !! Shape of the input layer
     end subroutine init
 
-    module subroutine reset(self)
-      !! Reset layer state
-      !!
-      !! Currently reset state to zero but might be worth reconsidering it
-      !! in the future.
-      class(rnn_layer), intent(in out) :: self
-    end subroutine reset
+    !module subroutine set_state(self, state)
+    !  type(rnn_layer), intent(inout) :: self
+    !  real, intent(in), optional :: state(:)
+    !end subroutine set_state
 
   end interface
-
-  subroutine set_state(self, state)
-    type(rnn_layer), intent(inout) :: self
-    real, intent(in), optional :: state(:)
-    if (present(state)) then
-      self % state = state
-    else
-      self % state = 0
-    end if
-  end subroutine set_state
 
 end module nf_rnn_layer
