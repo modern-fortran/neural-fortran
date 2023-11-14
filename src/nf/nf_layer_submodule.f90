@@ -379,6 +379,8 @@ contains
         ! No gradients to get.
       type is (reshape3d_layer)
         ! No gradients to get.
+      type is (rnn_layer)
+        gradients = this_layer % get_gradients()
       class default
         error stop 'get_gradients() with unknown layer type.'
     end select
