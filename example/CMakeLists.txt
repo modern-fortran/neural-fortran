@@ -6,6 +6,7 @@ foreach(execid
   get_set_network_params
   network_parameters
   simple
+  simple_rnn
   sine
   quadratic
 )

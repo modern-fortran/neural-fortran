@@ -7,13 +7,15 @@ submodule(nf_network) nf_network_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_rnn_layer, only: rnn_layer
   use nf_io_hdf5, only: get_hdf5_dataset
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
+  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape, rnn
   use nf_loss, only: quadratic_derivative
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
+  use nf_rnn_layer, only: rnn_layer
   use nf_activation, only: activation_function, &
                            elu, &
                            exponential, &
@@ -215,6 +217,23 @@ contains
           ! Nothing to do
           continue
 
+        type is(rnn_layer)
+
+          ! Read biases from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/bias:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % biases)
+
+          ! Read weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % weights)
+
+          ! Read recurrent weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/recurrent_kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % recurrent)
+
         class default
           error stop 'Internal error in network_from_keras(); ' &
             // 'mismatch in layer types between the Keras and ' &
@@ -299,6 +318,11 @@ contains
               self % layers(n - 1), &
               quadratic_derivative(output, this_layer % output) &
             )
+          type is(rnn_layer)
+            call self % layers(n) % backward( &
+              self % layers(n - 1), &
+              quadratic_derivative(output, this_layer % output) &
+            )
         end select
       else
         ! Hidden layer; take the gradient from the next layer
@@ -367,6 +391,8 @@ contains
       type is(dense_layer)
         res = output_layer % output
       type is(flatten_layer)
+        res = output_layer % output
+      type is(rnn_layer)
         res = output_layer % output
       class default
         error stop 'network % output not implemented for this output layer'
@@ -651,6 +677,9 @@ contains
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv2d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(rnn_layer)
           this_layer % dw = 0
           this_layer % db = 0
       end select
