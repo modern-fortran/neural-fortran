@@ -15,6 +15,7 @@ submodule(nf_network) nf_network_submodule
   use nf_loss, only: quadratic_derivative
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
+  use nf_rnn_layer, only: rnn_layer
   use nf_activation, only: activation_function, &
                            elu, &
                            exponential, &
@@ -390,6 +391,8 @@ contains
       type is(dense_layer)
         res = output_layer % output
       type is(flatten_layer)
+        res = output_layer % output
+      type is(rnn_layer)
         res = output_layer % output
       class default
         error stop 'network % output not implemented for this output layer'
