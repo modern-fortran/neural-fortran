@@ -8,7 +8,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
-  use nf_activation, only: activation_function, sigmoid
+  use nf_activation, only: activation_function, relu, sigmoid
 
   implicit none
 
@@ -27,7 +27,7 @@ contains
     if (present(activation)) then
       allocate(activation_tmp, source=activation)
     else
-      allocate(activation_tmp, source=sigmoid())
+      allocate(activation_tmp, source=relu())
     end if
 
     res % activation = activation_tmp % get_name()
