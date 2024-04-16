@@ -280,10 +280,19 @@ contains
 
   end function get_activation_by_name
 
-  pure module subroutine backward(self, output)
+  pure module subroutine backward(self, output, loss_derivative)
     class(network), intent(in out) :: self
+    procedure(loss_derivative_interface), optional :: loss_derivative
     real, intent(in) :: output(:)
     integer :: n, num_layers
+
+    if (.not.associated(self % loss_derivative)) then
+      if (present(loss_derivative)) then
+        self % loss_derivative => loss_derivative
+      else
+        self % loss_derivative => quadratic_derivative
+      end if
+    endif
 
     num_layers = size(self % layers)
 
@@ -608,9 +617,9 @@ contains
     class(network), intent(in out) :: self
     class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
+    procedure(loss_derivative_interface), optional :: loss_derivative
     class(optimizer_base_type), allocatable :: optimizer_
     integer :: batch_size_
-    procedure(loss_derivative_interface), optional :: loss_derivative
     real, allocatable :: params(:)
     integer :: n
 

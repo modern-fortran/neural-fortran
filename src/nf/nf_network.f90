@@ -140,13 +140,16 @@ module nf_network
 
   interface
 
-    pure module subroutine backward(self, output)
+    pure module subroutine backward(self, output, loss_derivative)
       !! Apply one backward pass through the network.
       !! This changes the state of layers on the network.
       !! Typically used only internally from the `train` method,
       !! but can be invoked by the user when creating custom optimizers.
       class(network), intent(in out) :: self
         !! Network instance
+      procedure(loss_derivative_interface), optional :: loss_derivative
+        !! First derivative of the loss function to use.
+        !! If not provide the default is `quadratic_derivative(x, y)`.
       real, intent(in) :: output(:)
         !! Output data
     end subroutine backward
