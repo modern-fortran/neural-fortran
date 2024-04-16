@@ -24,9 +24,9 @@ program test_conv2d_layer
     write(stderr, '(a)') 'conv2d layer should not be marked as initialized yet.. failed'
   end if
 
-  if (.not. conv_layer % activation == 'sigmoid') then
+  if (.not. conv_layer % activation == 'relu') then
     ok = .false.
-    write(stderr, '(a)') 'conv2d layer is defaults to sigmoid activation.. failed'
+    write(stderr, '(a)') 'conv2d layer defaults to relu activation.. failed'
   end if
 
   input_layer = input([3, 32, 32])
@@ -62,7 +62,7 @@ program test_conv2d_layer
   call conv_layer % forward(input_layer)
   call conv_layer % get_output(output)
 
-  if (.not. all(abs(output - 0.5) < tolerance)) then
+  if (.not. all(abs(output) < tolerance)) then
     ok = .false.
     write(stderr, '(a)') 'conv2d layer with zero input and sigmoid function must forward to all 0.5.. failed'
   end if
