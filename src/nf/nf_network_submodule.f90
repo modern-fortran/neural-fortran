@@ -630,11 +630,13 @@ contains
       call self % optimizer % init(self % get_num_params())
     end if
 
-    if (present(loss_derivative)) then
-      self % loss_derivative => loss_derivative
-    else
-      self % loss_derivative => quadratic_derivative
-    end if
+    if (.not.associated(self % loss_derivative)) then
+      if (present(loss_derivative)) then
+        self % loss_derivative => loss_derivative
+      else
+        self % loss_derivative => quadratic_derivative
+      end if
+    endif
 
     if (present(batch_size)) then
       batch_size_ = batch_size
