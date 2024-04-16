@@ -305,11 +305,13 @@ contains
         select type(next_layer => self % layers(n + 1) % p)
           type is(dense_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(flatten_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(conv2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(flatten_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(maxpool2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(reshape3d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if
