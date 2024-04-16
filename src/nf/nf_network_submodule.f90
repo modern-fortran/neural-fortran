@@ -11,7 +11,7 @@ submodule(nf_network) nf_network_submodule
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
-  use nf_loss, only: loss_derivative => mse_derivative
+  use nf_loss, only: quadratic_derivative, mse_derivative
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
   use nf_activation, only: activation_function, &
@@ -297,7 +297,7 @@ contains
           type is(dense_layer)
             call self % layers(n) % backward( &
               self % layers(n - 1), &
-              loss_derivative(output, this_layer % output) &
+              self % loss_derivative(output, this_layer % output) &
             )
         end select
       else
@@ -565,6 +565,8 @@ contains
 
     call self % optimizer % init(self % get_num_params())
 
+    self % loss_derivative => quadratic_derivative
+
     dataset_size = size(output_data, dim=2)
 
     epoch_loop: do n = 1, epochs
@@ -621,6 +623,8 @@ contains
       end if
       call self % optimizer % init(self % get_num_params())
     end if
+
+    self % loss_derivative => quadratic_derivative
 
     if (present(batch_size)) then
       batch_size_ = batch_size

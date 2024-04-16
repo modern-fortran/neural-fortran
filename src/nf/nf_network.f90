@@ -15,6 +15,8 @@ module nf_network
     type(layer), allocatable :: layers(:)
     class(optimizer_base_type), allocatable :: optimizer
 
+    procedure(loss_derivative_interface), pointer, nopass :: loss_derivative => null()
+
   contains
 
     procedure :: backward
@@ -25,6 +27,7 @@ module nf_network
     procedure :: set_params
     procedure :: train
     procedure :: update
+
 
     procedure, private :: forward_1d
     procedure, private :: forward_3d
@@ -135,6 +138,21 @@ module nf_network
     end function predict_batch_3d
 
   end interface output
+
+  interface
+
+    pure function loss_derivative_interface(true, predicted) result(res)
+      real, intent(in) :: true(:)
+        !! True values, i.e. labels from training datasets
+      real, intent(in) :: predicted(:)
+        !! Values predicted by the network
+      real :: res(size(true))
+        !! Resulting loss values
+    end function loss_derivative_interface
+
+  end interface
+
+
 
   interface
 
