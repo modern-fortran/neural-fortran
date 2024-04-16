@@ -4,6 +4,7 @@ module nf
   use nf_layer, only: layer
   use nf_layer_constructors, only: &
     conv2d, dense, flatten, input, maxpool2d, reshape
+  use nf_loss, only: quadratic_derivative, mse_derivative
   use nf_network, only: network
   use nf_optimizers, only: sgd, rmsprop, adam, adagrad
   use nf_activation, only: activation_function, elu, exponential,  &

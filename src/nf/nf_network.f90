@@ -3,6 +3,7 @@ module nf_network
   !! This module provides the network type to create new models.
 
   use nf_layer, only: layer
+  use nf_loss, only: loss_derivative_interface
   use nf_optimizers, only: optimizer_base_type
 
   implicit none
@@ -15,6 +16,8 @@ module nf_network
     type(layer), allocatable :: layers(:)
     class(optimizer_base_type), allocatable :: optimizer
 
+    procedure(loss_derivative_interface), pointer, nopass :: loss_derivative => null()
+
   contains
 
     procedure :: backward
@@ -25,6 +28,7 @@ module nf_network
     procedure :: set_params
     procedure :: train
     procedure :: update
+
 
     procedure, private :: forward_1d
     procedure, private :: forward_3d
@@ -185,7 +189,7 @@ module nf_network
     end subroutine print_info
 
     module subroutine train(self, input_data, output_data, batch_size, &
-                            epochs, optimizer)
+                            epochs, optimizer, loss_derivative)
       class(network), intent(in out) :: self
         !! Network instance
       real, intent(in) :: input_data(:,:)
@@ -204,9 +208,10 @@ module nf_network
         !! Number of epochs to run
       class(optimizer_base_type), intent(in), optional :: optimizer
         !! Optimizer instance to use. If not provided, the default is sgd().
+      procedure(loss_derivative_interface), optional :: loss_derivative
     end subroutine train
 
-    module subroutine update(self, optimizer, batch_size)
+    module subroutine update(self, optimizer, batch_size, loss_derivative)
       !! Update the weights and biases on all layers using the stored
       !! gradients (from backward passes) on those layers, and flush those
       !! same stored gradients to zero.
@@ -221,6 +226,7 @@ module nf_network
         !! Batch size to use.
         !! Set to 1 for a pure stochastic gradient descent (default).
         !! Set to `size(input_data, dim=2)` for a batch gradient descent.
+      procedure(loss_derivative_interface), optional :: loss_derivative
     end subroutine update
 
   end interface

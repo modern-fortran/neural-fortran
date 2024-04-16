@@ -11,7 +11,7 @@ submodule(nf_network) nf_network_submodule
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
-  use nf_loss, only: loss_derivative => mse_derivative
+  use nf_loss, only: quadratic_derivative, mse_derivative
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
   use nf_activation, only: activation_function, &
@@ -297,7 +297,7 @@ contains
           type is(dense_layer)
             call self % layers(n) % backward( &
               self % layers(n - 1), &
-              loss_derivative(output, this_layer % output) &
+              self % loss_derivative(output, this_layer % output) &
             )
         end select
       else
@@ -540,13 +540,14 @@ contains
 
 
   module subroutine train(self, input_data, output_data, batch_size, &
-                          epochs, optimizer)
+                          epochs, optimizer, loss_derivative)
     class(network), intent(in out) :: self
     real, intent(in) :: input_data(:,:)
     real, intent(in) :: output_data(:,:)
     integer, intent(in) :: batch_size
     integer, intent(in) :: epochs
     class(optimizer_base_type), intent(in), optional :: optimizer
+    procedure(loss_derivative_interface), optional :: loss_derivative
     class(optimizer_base_type), allocatable :: optimizer_
 
     real :: pos
@@ -564,6 +565,12 @@ contains
     end if
 
     call self % optimizer % init(self % get_num_params())
+
+    if (present(loss_derivative)) then
+      self % loss_derivative => loss_derivative
+    else
+      self % loss_derivative => quadratic_derivative
+    end if
 
     dataset_size = size(output_data, dim=2)
 
@@ -597,12 +604,13 @@ contains
   end subroutine train
 
 
-  module subroutine update(self, optimizer, batch_size)
+  module subroutine update(self, optimizer, batch_size, loss_derivative)
     class(network), intent(in out) :: self
     class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
     class(optimizer_base_type), allocatable :: optimizer_
     integer :: batch_size_
+    procedure(loss_derivative_interface), optional :: loss_derivative
     real, allocatable :: params(:)
     integer :: n
 
@@ -621,6 +629,14 @@ contains
       end if
       call self % optimizer % init(self % get_num_params())
     end if
+
+    if (.not.associated(self % loss_derivative)) then
+      if (present(loss_derivative)) then
+        self % loss_derivative => loss_derivative
+      else
+        self % loss_derivative => quadratic_derivative
+      end if
+    endif
 
     if (present(batch_size)) then
       batch_size_ = batch_size
