@@ -15,7 +15,6 @@ module nf_network
 
     type(layer), allocatable :: layers(:)
     class(optimizer_base_type), allocatable :: optimizer
-
     procedure(loss_derivative_interface), pointer, nopass :: loss_derivative => null()
 
   contains
@@ -28,7 +27,6 @@ module nf_network
     procedure :: set_params
     procedure :: train
     procedure :: update
-
 
     procedure, private :: forward_1d
     procedure, private :: forward_3d
@@ -209,6 +207,8 @@ module nf_network
       class(optimizer_base_type), intent(in), optional :: optimizer
         !! Optimizer instance to use. If not provided, the default is sgd().
       procedure(loss_derivative_interface), optional :: loss_derivative
+        !! First derivative of the loss function to use.
+        !! If not provide the default is `quadratic_derivative(x, y)`.
     end subroutine train
 
     module subroutine update(self, optimizer, batch_size, loss_derivative)
@@ -227,6 +227,8 @@ module nf_network
         !! Set to 1 for a pure stochastic gradient descent (default).
         !! Set to `size(input_data, dim=2)` for a batch gradient descent.
       procedure(loss_derivative_interface), optional :: loss_derivative
+        !! First derivative of the loss function to use.
+        !! If not provide the default is `quadratic_derivative(x, y)`.
     end subroutine update
 
   end interface

@@ -32,6 +32,4 @@ contains
     res = 2 * (predicted - true) / size(true)
   end function mse_derivative
 
-
-
 end submodule nf_loss_submodule

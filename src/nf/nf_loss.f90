@@ -14,6 +14,8 @@ module nf_loss
   interface
 
     pure function loss_derivative_interface(true, predicted) result(res)
+      !! Interface for the first derivative of a loss function
+      !!
       real, intent(in) :: true(:)
         !! True values, i.e. labels from training datasets
       real, intent(in) :: predicted(:)
