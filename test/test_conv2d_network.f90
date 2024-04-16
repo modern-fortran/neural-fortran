@@ -1,7 +1,7 @@
 program test_conv2d_network
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: conv2d, input, network, flatten, dense, sgd
+  use nf, only: conv2d, input, network, dense, sgd, maxpool2d
 
   implicit none
 
@@ -43,7 +43,6 @@ program test_conv2d_network
     input(shape(sample_input)), &
     conv2d(filters=1, kernel_size=3), &
     conv2d(filters=1, kernel_size=3), &
-    flatten(), &
     dense(1) &
   ])
 
