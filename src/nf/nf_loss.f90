@@ -7,10 +7,20 @@ module nf_loss
   implicit none
 
   private
+  public :: loss_derivative_interface
   public :: mse, mse_derivative
   public :: quadratic, quadratic_derivative
 
   interface
+
+    pure function loss_derivative_interface(true, predicted) result(res)
+      real, intent(in) :: true(:)
+        !! True values, i.e. labels from training datasets
+      real, intent(in) :: predicted(:)
+        !! Values predicted by the network
+      real :: res(size(true))
+        !! Resulting loss values
+    end function loss_derivative_interface
 
     pure module function quadratic(true, predicted) result(res)
       !! Quadratic loss function:

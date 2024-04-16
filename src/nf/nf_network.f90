@@ -3,6 +3,7 @@ module nf_network
   !! This module provides the network type to create new models.
 
   use nf_layer, only: layer
+  use nf_loss, only: loss_derivative_interface
   use nf_optimizers, only: optimizer_base_type
 
   implicit none
@@ -138,21 +139,6 @@ module nf_network
     end function predict_batch_3d
 
   end interface output
-
-  interface
-
-    pure function loss_derivative_interface(true, predicted) result(res)
-      real, intent(in) :: true(:)
-        !! True values, i.e. labels from training datasets
-      real, intent(in) :: predicted(:)
-        !! Values predicted by the network
-      real :: res(size(true))
-        !! Resulting loss values
-    end function loss_derivative_interface
-
-  end interface
-
-
 
   interface
 
