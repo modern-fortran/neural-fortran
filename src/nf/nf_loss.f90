@@ -7,7 +7,8 @@ module nf_loss
   implicit none
 
   private
-  public :: quadratic, quadratic_derivative
+  public :: loss_type
+  public :: quadratic
 
   type, abstract :: loss_type
   contains

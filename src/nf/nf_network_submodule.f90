@@ -11,7 +11,7 @@ submodule(nf_network) nf_network_submodule
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
-  use nf_loss, only: quadratic_derivative
+  use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
   use nf_activation, only: activation_function, &
@@ -280,10 +280,26 @@ contains
 
   end function get_activation_by_name
 
-  pure module subroutine backward(self, output)
+  pure module subroutine backward(self, output, loss)
     class(network), intent(in out) :: self
     real, intent(in) :: output(:)
+    class(loss_type), intent(in), optional :: loss
     integer :: n, num_layers
+
+    ! Passing the loss instance is optional. If not provided, and if the
+    ! loss instance has not already been set, we default to the default quadratic. The
+    ! instantiation and initialization below of the loss instance is normally done
+    ! at the beginning of the network % train() method. However, if the user
+    ! wants to call network % backward() directly, for example if they use their
+    ! own custom mini-batching routine, we initialize the loss instance here as
+    ! well. If it's initialized already, this step is a cheap no-op.
+    if (.not. allocated(self % loss)) then
+      if (present(loss)) then
+        self % loss = loss
+      else
+        self % loss = quadratic()
+      end if
+    end if
 
     num_layers = size(self % layers)
 
@@ -297,7 +313,7 @@ contains
           type is(dense_layer)
             call self % layers(n) % backward( &
               self % layers(n - 1), &
-              quadratic_derivative(output, this_layer % output) &
+              self % loss % derivative(output, this_layer % output) &
             )
         end select
       else
@@ -540,13 +556,14 @@ contains
 
 
   module subroutine train(self, input_data, output_data, batch_size, &
-                          epochs, optimizer)
+                          epochs, optimizer, loss)
     class(network), intent(in out) :: self
     real, intent(in) :: input_data(:,:)
     real, intent(in) :: output_data(:,:)
     integer, intent(in) :: batch_size
     integer, intent(in) :: epochs
     class(optimizer_base_type), intent(in), optional :: optimizer
+    class(loss_type), intent(in), optional :: loss
     class(optimizer_base_type), allocatable :: optimizer_
 
     real :: pos
@@ -564,6 +581,14 @@ contains
     end if
 
     call self % optimizer % init(self % get_num_params())
+
+    ! Passing the loss instance is optional.
+    ! If not provided, we default to quadratic().
+    if (present(loss)) then
+      self % loss = loss
+    else
+      self % loss = quadratic()
+    end if
 
     dataset_size = size(output_data, dim=2)
 

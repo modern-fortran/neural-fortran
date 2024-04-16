@@ -3,6 +3,7 @@ module nf_network
   !! This module provides the network type to create new models.
 
   use nf_layer, only: layer
+  use nf_loss, only: loss_type
   use nf_optimizers, only: optimizer_base_type
 
   implicit none
@@ -13,6 +14,7 @@ module nf_network
   type :: network
 
     type(layer), allocatable :: layers(:)
+    class(loss_type), allocatable :: loss
     class(optimizer_base_type), allocatable :: optimizer
 
   contains
@@ -138,7 +140,7 @@ module nf_network
 
   interface
 
-    pure module subroutine backward(self, output)
+    pure module subroutine backward(self, output, loss)
       !! Apply one backward pass through the network.
       !! This changes the state of layers on the network.
       !! Typically used only internally from the `train` method,
@@ -147,6 +149,8 @@ module nf_network
         !! Network instance
       real, intent(in) :: output(:)
         !! Output data
+      class(loss_type), intent(in), optional :: loss
+        !! Loss instance to use. If not provided, the default is quadratic().
     end subroutine backward
 
     pure module integer function get_num_params(self)
@@ -185,7 +189,7 @@ module nf_network
     end subroutine print_info
 
     module subroutine train(self, input_data, output_data, batch_size, &
-                            epochs, optimizer)
+                            epochs, optimizer, loss)
       class(network), intent(in out) :: self
         !! Network instance
       real, intent(in) :: input_data(:,:)
@@ -204,6 +208,8 @@ module nf_network
         !! Number of epochs to run
       class(optimizer_base_type), intent(in), optional :: optimizer
         !! Optimizer instance to use. If not provided, the default is sgd().
+      class(loss_type), intent(in), optional :: loss
+        !! Loss instance to use. If not provided, the default is quadratic().
     end subroutine train
 
     module subroutine update(self, optimizer, batch_size)
