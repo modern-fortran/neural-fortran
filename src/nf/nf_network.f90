@@ -214,7 +214,7 @@ module nf_network
         !! If not provide the default is `quadratic_derivative(x, y)`.
     end subroutine train
 
-    module subroutine update(self, optimizer, batch_size, loss_derivative)
+    module subroutine update(self, optimizer, batch_size)
       !! Update the weights and biases on all layers using the stored
       !! gradients (from backward passes) on those layers, and flush those
       !! same stored gradients to zero.
@@ -229,9 +229,6 @@ module nf_network
         !! Batch size to use.
         !! Set to 1 for a pure stochastic gradient descent (default).
         !! Set to `size(input_data, dim=2)` for a batch gradient descent.
-      procedure(loss_derivative_interface), optional :: loss_derivative
-        !! First derivative of the loss function to use.
-        !! If not provide the default is `quadratic_derivative(x, y)`.
     end subroutine update
 
   end interface

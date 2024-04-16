@@ -613,11 +613,10 @@ contains
   end subroutine train
 
 
-  module subroutine update(self, optimizer, batch_size, loss_derivative)
+  module subroutine update(self, optimizer, batch_size)
     class(network), intent(in out) :: self
     class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
-    procedure(loss_derivative_interface), optional :: loss_derivative
     class(optimizer_base_type), allocatable :: optimizer_
     integer :: batch_size_
     real, allocatable :: params(:)
@@ -638,14 +637,6 @@ contains
       end if
       call self % optimizer % init(self % get_num_params())
     end if
-
-    if (.not.associated(self % loss_derivative)) then
-      if (present(loss_derivative)) then
-        self % loss_derivative => loss_derivative
-      else
-        self % loss_derivative => quadratic_derivative
-      end if
-    endif
 
     if (present(batch_size)) then
       batch_size_ = batch_size
