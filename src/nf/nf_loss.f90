@@ -7,6 +7,7 @@ module nf_loss
   implicit none
 
   private
+  public :: mse, mse_derivative
   public :: quadratic, quadratic_derivative
 
   interface
@@ -36,6 +37,32 @@ module nf_loss
       real :: res(size(true))
         !! Resulting loss values
     end function quadratic_derivative
+
+    pure module function mse(true, predicted) result(res)
+      !! Mean square error loss function:
+      !!
+      !!   L  = (predicted - true)**2 / n
+      !!
+      real, intent(in) :: true(:)
+        !! True values, i.e. labels from training datasets
+      real, intent(in) :: predicted(:)
+        !! Values predicted by the network
+      real :: res(size(true))
+        !! Resulting loss values
+    end function mse
+
+    pure module function quadratic_derivative(true, predicted) result(res)
+      !! First derivative of the quadratic loss function:
+      !!
+      !!   L' =  2 * (predicted - true) / n
+      !!
+      real, intent(in) :: true(:)
+        !! True values, i.e. labels from training datasets
+      real, intent(in) :: predicted(:)
+        !! Values predicted by the network
+      real :: res(size(true))
+        !! Resulting loss values
+    end function mse_derivative
 
   end interface
 

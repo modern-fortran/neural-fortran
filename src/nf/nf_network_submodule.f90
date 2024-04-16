@@ -11,7 +11,7 @@ submodule(nf_network) nf_network_submodule
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
-  use nf_loss, only: quadratic_derivative
+  use nf_loss, only: loss_derivative => mse_derivative
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
   use nf_activation, only: activation_function, &
@@ -297,7 +297,7 @@ contains
           type is(dense_layer)
             call self % layers(n) % backward( &
               self % layers(n - 1), &
-              quadratic_derivative(output, this_layer % output) &
+              loss_derivative(output, this_layer % output) &
             )
         end select
       else

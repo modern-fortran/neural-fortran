@@ -18,4 +18,20 @@ contains
     res = predicted - true
   end function quadratic_derivative
 
+  pure module function mse(true, predicted) result(res)
+    real, intent(in) :: true(:)
+    real, intent(in) :: predicted(:)
+    real :: res(size(true))
+    res = (predicted - true)**2 / size(true)
+  end function quadratic
+
+  pure module function mse_derivative(true, predicted) result(res)
+    real, intent(in) :: true(:)
+    real, intent(in) :: predicted(:)
+    real :: res(size(true))
+    res = 2 * (predicted - true) / size(true)
+  end function quadratic_derivative
+
+
+
 end submodule nf_loss_submodule
