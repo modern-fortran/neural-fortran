@@ -51,7 +51,7 @@ module nf_loss
         !! Resulting loss values
     end function mse
 
-    pure module function quadratic_derivative(true, predicted) result(res)
+    pure module function mse_derivative(true, predicted) result(res)
       !! First derivative of the quadratic loss function:
       !!
       !!   L' =  2 * (predicted - true) / n
