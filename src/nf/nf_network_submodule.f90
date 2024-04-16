@@ -540,13 +540,14 @@ contains
 
 
   module subroutine train(self, input_data, output_data, batch_size, &
-                          epochs, optimizer)
+                          epochs, optimizer, loss_derivative)
     class(network), intent(in out) :: self
     real, intent(in) :: input_data(:,:)
     real, intent(in) :: output_data(:,:)
     integer, intent(in) :: batch_size
     integer, intent(in) :: epochs
     class(optimizer_base_type), intent(in), optional :: optimizer
+    procedure(loss_derivative_interface), optional :: loss_derivative
     class(optimizer_base_type), allocatable :: optimizer_
 
     real :: pos
@@ -565,7 +566,11 @@ contains
 
     call self % optimizer % init(self % get_num_params())
 
-    self % loss_derivative => quadratic_derivative
+    if (present(loss_derivative)) then
+      self % loss_derivative => loss_derivative
+    else
+      self % loss_derivative => quadratic_derivative
+    end if
 
     dataset_size = size(output_data, dim=2)
 
@@ -599,12 +604,13 @@ contains
   end subroutine train
 
 
-  module subroutine update(self, optimizer, batch_size)
+  module subroutine update(self, optimizer, batch_size, loss_derivative)
     class(network), intent(in out) :: self
     class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
     class(optimizer_base_type), allocatable :: optimizer_
     integer :: batch_size_
+    procedure(loss_derivative_interface), optional :: loss_derivative
     real, allocatable :: params(:)
     integer :: n
 
@@ -624,7 +630,11 @@ contains
       call self % optimizer % init(self % get_num_params())
     end if
 
-    self % loss_derivative => quadratic_derivative
+    if (present(loss_derivative)) then
+      self % loss_derivative => loss_derivative
+    else
+      self % loss_derivative => quadratic_derivative
+    end if
 
     if (present(batch_size)) then
       batch_size_ = batch_size
