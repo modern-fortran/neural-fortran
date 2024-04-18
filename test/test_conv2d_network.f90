@@ -65,7 +65,7 @@ program test_conv2d_network
 
     if (.not. n <= num_iterations) then
       write(stderr, '(a)') &
-        'convolutional network should converge in simple training.. failed'
+        'convolutional network 1 should converge in simple training.. failed'
       ok = .false.
     end if
 
@@ -100,11 +100,46 @@ program test_conv2d_network
 
     if (.not. n <= num_iterations) then
       write(stderr, '(a)') &
-        'convolutional network should converge in simple training.. failed'
+        'convolutional network 2 should converge in simple training.. failed'
       ok = .false.
     end if
 
   end block training2
+
+  training3: block
+
+    type(network) :: cnn
+    real :: x(1, 12, 12)
+    real :: y(9)
+    real :: tolerance = 1e-5
+    integer :: n
+    integer, parameter :: num_iterations = 5000
+
+    call random_number(x)
+    y = [0.12345, 0.23456, 0.34567, 0.45678, 0.56789, 0.67890, 0.78901, 0.89012, 0.90123]
+
+    cnn = network([ &
+      input(shape(x)), &
+      conv2d(filters=1, kernel_size=3), & ! 1x12x12 input, 1x10x10 output
+      maxpool2d(pool_size=2), &           ! 1x10x10 input, 1x5x5 output
+      conv2d(filters=1, kernel_size=3), & ! 1x5x5 input, 1x3x3 output
+      dense(9) &                          ! 9 outputs
+    ])
+
+    do n = 1, num_iterations
+      call cnn % forward(x)
+      call cnn % backward(y)
+      call cnn % update(optimizer=sgd(learning_rate=1.))
+      if (all(abs(cnn % predict(x) - y) < tolerance)) exit
+    end do
+
+    if (.not. n <= num_iterations) then
+      write(stderr, '(a)') &
+        'convolutional network 3 should converge in simple training.. failed'
+      ok = .false.
+    end if
+
+  end block training3
 
 
   if (ok) then
