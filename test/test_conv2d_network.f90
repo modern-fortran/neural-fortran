@@ -35,30 +35,32 @@ program test_conv2d_network
 
   deallocate(sample_input, output)
 
-  ! Test training of a minimal constant mapping
-  allocate(sample_input(1, 5, 5))
-  call random_number(sample_input)
+  training1: block
 
-  net = network([ &
-    input(shape(sample_input)), &
-    conv2d(filters=1, kernel_size=3), &
-    conv2d(filters=1, kernel_size=3), &
-    dense(1) &
-  ])
-
-  training: block
+    type(network) :: cnn
     real :: y(1)
     real :: tolerance = 1e-5
     integer :: n
     integer, parameter :: num_iterations = 1000
 
+    ! Test training of a minimal constant mapping
+    allocate(sample_input(1, 5, 5))
+    call random_number(sample_input)
+
+    cnn = network([ &
+      input(shape(sample_input)), &
+      conv2d(filters=1, kernel_size=3), &
+      conv2d(filters=1, kernel_size=3), &
+      dense(1) &
+    ])
+
     y = [0.1234567]
 
     do n = 1, num_iterations
-      call net % forward(sample_input)
-      call net % backward(y)
-      call net % update(optimizer=sgd(learning_rate=1.))
-      if (all(abs(net % predict(sample_input) - y) < tolerance)) exit
+      call cnn % forward(sample_input)
+      call cnn % backward(y)
+      call cnn % update(optimizer=sgd(learning_rate=1.))
+      if (all(abs(cnn % predict(sample_input) - y) < tolerance)) exit
     end do
 
     if (.not. n <= num_iterations) then
@@ -67,7 +69,43 @@ program test_conv2d_network
       ok = .false.
     end if
 
-  end block training
+  end block training1
+
+  training2: block
+
+    type(network) :: cnn
+    real :: x(1, 8, 8)
+    real :: y(1)
+    real :: tolerance = 1e-5
+    integer :: n
+    integer, parameter :: num_iterations = 1000
+
+    call random_number(x)
+    y = [0.1234567]
+
+    cnn = network([ &
+      input(shape(x)), &
+      conv2d(filters=1, kernel_size=3), &
+      maxpool2d(pool_size=2), &
+      conv2d(filters=1, kernel_size=3), &
+      dense(1) &
+    ])
+
+    do n = 1, num_iterations
+      call cnn % forward(x)
+      call cnn % backward(y)
+      call cnn % update(optimizer=sgd(learning_rate=1.))
+      if (all(abs(cnn % predict(x) - y) < tolerance)) exit
+    end do
+
+    if (.not. n <= num_iterations) then
+      write(stderr, '(a)') &
+        'convolutional network should converge in simple training.. failed'
+      ok = .false.
+    end if
+
+  end block training2
+
 
   if (ok) then
     print '(a)', 'test_conv2d_network: All tests passed.'
