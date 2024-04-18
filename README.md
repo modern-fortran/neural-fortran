@@ -90,6 +90,15 @@ HDF5 install.
 The `-fno-frontend-optimize` disables some optimizations that may be harmful
 when building neural-fortran.
 
+If you use Conda, the following instructions work:
+
+```
+conda create -n nf hdf5
+conda activate nf
+fpm build --profile release --flag "-fno-frontend-optimize -I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib -Wl,-rpath -Wl,$CONDA_PREFIX/lib"
+fpm test --profile release --flag "-fno-frontend-optimize -I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib -Wl,-rpath -Wl,$CONDA_PREFIX/lib"
+```
+
 #### Building in parallel mode
 
 If you use GFortran and want to run neural-fortran in parallel,
