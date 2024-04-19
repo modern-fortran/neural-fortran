@@ -11,7 +11,7 @@ foreach(execid
 )
   add_executable(${execid} ${execid}.f90)
   target_link_libraries(${execid} PRIVATE
-    neural
+    neural-fortran
     h5fortran::h5fortran
     jsonfortran::jsonfortran
     ${LIBS}
