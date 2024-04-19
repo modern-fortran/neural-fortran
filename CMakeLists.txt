@@ -21,8 +21,8 @@ include(cmake/functional.cmake)
 include(cmake/h5fortran.cmake)
 include(cmake/json.cmake)
 
-# library to archive (libneural.a)
-add_library(neural
+# library to archive (libneural-fortran.a)
+add_library(neural-fortran
   src/nf.f90
   src/nf/nf_activation.f90
   src/nf/nf_base_layer.f90
@@ -64,14 +64,14 @@ add_library(neural
   src/nf/io/nf_io_hdf5_submodule.f90
 )
 
-target_link_libraries(neural PRIVATE
+target_link_libraries(neural-fortran PRIVATE
   functional::functional
   h5fortran::h5fortran
   HDF5::HDF5
   jsonfortran::jsonfortran
 )
 
-install(TARGETS neural)
+install(TARGETS neural-fortran)
 
 # Remove leading or trailing whitespace
 string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
