@@ -203,6 +203,23 @@ ctest
 
 to run the tests.
 
+## Using neural-fortran in your project
+
+You can use the CMake module available [here](cmake/Findneural-fortran.cmake) to
+find or fetch an installation of this project while configuring your project. This
+module makes sure that the `neural-fortran::neural-fortran` target is always generated regardless
+of how the neural-fortran is included in the project.
+
+You can configure neural-fortran by setting the appropriate options before
+including the subproject.
+
+The following should be added in the CMake file of your directory:
+```cmake
+if(NOT TARGET "neural-fortran::neural-fortran")
+  find_package("neural-fortran" REQUIRED)
+endif()
+```
+
 ## Examples
 
 The easiest way to get a sense of how to use neural-fortran is to look at
