@@ -569,7 +569,7 @@ contains
 
     real :: pos
     integer :: dataset_size
-    integer :: batch_start, batch_end
+    integer :: batch_start
     integer :: i, j, n
     integer :: istart, iend, indices(2)
 
@@ -599,11 +599,9 @@ contains
         ! Pull a random mini-batch from the dataset
         call random_number(pos)
         batch_start = int(pos * (dataset_size - batch_size + 1)) + 1
-        batch_end = batch_start + batch_size - 1
 
         ! FIXME shuffle in a way that doesn't require co_broadcast
         call co_broadcast(batch_start, 1)
-        call co_broadcast(batch_end, 1)
 
         ! Distribute the batch in nearly equal pieces to all images
         indices = tile_indices(batch_size)
