@@ -3,7 +3,6 @@ program test_get_set_network_params
   use nf, only: conv2d, dense, flatten, input, maxpool2d, network
   implicit none
   type(network) :: net
-  integer :: n
   logical :: ok = .true.
   real :: test_params_dense(8) = [1, 2, 3, 4, 5, 6, 7, 8]
   real :: test_params_conv2d(10) = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

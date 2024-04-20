@@ -566,7 +566,6 @@ contains
     integer, intent(in) :: epochs
     class(optimizer_base_type), intent(in), optional :: optimizer
     class(loss_type), intent(in), optional :: loss
-    class(optimizer_base_type), allocatable :: optimizer_
 
     real :: pos
     integer :: dataset_size
@@ -628,7 +627,6 @@ contains
     class(network), intent(in out) :: self
     class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
-    class(optimizer_base_type), allocatable :: optimizer_
     integer :: batch_size_
     real, allocatable :: params(:)
     integer :: n
