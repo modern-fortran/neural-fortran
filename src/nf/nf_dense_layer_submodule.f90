@@ -27,11 +27,15 @@ contains
     real, intent(in) :: gradient(:)
     real :: db(self % output_size)
     real :: dw(self % input_size, self % output_size)
+    integer :: i
 
     db = gradient * self % activation % eval_prime(self % z)
-    dw = matmul(reshape(input, [size(input), 1]), reshape(db, [1, size(db)]))
+!    dw = matmul(reshape(input, [size(input), 1]), reshape(db, [1, size(db)]))
+    do concurrent (i = 1:size(db))
+      self % dw(:,i) = self % dw(:,i) + input(:) * db(i)
+    enddo
     self % gradient = matmul(self % weights, db)
-    self % dw = self % dw + dw
+!    self % dw = self % dw + dw
     self % db = self % db + db
 
   end subroutine backward
