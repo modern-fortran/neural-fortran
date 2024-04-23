@@ -295,11 +295,7 @@ contains
     class(relu), intent(in) :: self
     real, intent(in) :: x(:)
     real :: res(size(x))
-    where (x > 0)
-      res = 1
-    elsewhere
-      res = 0
-    end where
+    res = merge(1., 0., x > 0)
   end function eval_1d_relu_prime
 
   pure function eval_3d_relu(self, x) result(res)
@@ -315,11 +311,7 @@ contains
     class(relu), intent(in) :: self
     real, intent(in) :: x(:,:,:)
     real :: res(size(x,1),size(x,2),size(x,3))
-    where (x > 0)
-      res = 1
-    elsewhere
-      res = 0
-    end where
+    res = merge(1., 0., x > 0)
   end function eval_3d_relu_prime
 
   pure function eval_1d_leaky_relu(self, x) result(res)
@@ -335,11 +327,7 @@ contains
     class(leaky_relu), intent(in) :: self
     real, intent(in) :: x(:)
     real :: res(size(x))
-    where (x > 0)
-      res = 1
-    elsewhere
-      res = self % alpha
-    end where
+    res = merge(1., self%alpha, x > 0)
   end function eval_1d_leaky_relu_prime
 
   pure function eval_3d_leaky_relu(self, x) result(res)
@@ -355,11 +343,7 @@ contains
     class(leaky_relu), intent(in) :: self
     real, intent(in) :: x(:,:,:)
     real :: res(size(x,1),size(x,2),size(x,3))
-    where (x > 0)
-      res = 1
-    elsewhere
-      res = self % alpha
-    end where
+    res = merge(1., self%alpha, x > 0)
   end function eval_3d_leaky_relu_prime
 
   pure function eval_1d_sigmoid(self, x) result(res)
@@ -465,11 +449,7 @@ contains
     class(step), intent(in) :: self
     real, intent(in) :: x(:)
     real :: res(size(x))
-    where (x > 0)
-      res = 1
-    elsewhere
-      res = 0
-    end where
+    res = merge(1., 0., x > 0)
   end function eval_1d_step
 
   pure function eval_1d_step_prime(self, x) result(res)
@@ -485,11 +465,7 @@ contains
     class(step), intent(in) :: self
     real, intent(in) :: x(:,:,:)
     real :: res(size(x,1),size(x,2),size(x,3))
-    where (x > 0)
-      res = 1
-    elsewhere
-      res = 0
-    end where
+    res = merge(1., 0., x > 0)
   end function eval_3d_step
 
   pure function eval_3d_step_prime(self, x) result(res)
