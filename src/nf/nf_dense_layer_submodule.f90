@@ -67,7 +67,7 @@ contains
 
     params = [ &
       pack(self % weights, .true.), &
-      pack(self % biases, .true.) &
+      self % biases &
     ]
 
   end function get_params
@@ -79,7 +79,7 @@ contains
 
     gradients = [ &
       pack(self % dw, .true.), &
-      pack(self % db, .true.) &
+      self % db &
     ]
 
   end function get_gradients
