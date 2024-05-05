@@ -139,7 +139,7 @@ contains
     allocate(self % db(self % output_size))
     self % db = 0
 
-    allocate(self % gradient(self % output_size))
+    allocate(self % gradient(self % input_size))
     self % gradient = 0
 
   end subroutine init
