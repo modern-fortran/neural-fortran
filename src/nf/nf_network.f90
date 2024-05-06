@@ -3,6 +3,7 @@ module nf_network
   !! This module provides the network type to create new models.
 
   use nf_layer, only: layer
+  use nf_metric, only: metric_type
   use nf_loss, only: loss_type
   use nf_optimizers, only: optimizer_base_type
 
@@ -28,6 +29,8 @@ module nf_network
     procedure :: train
     procedure :: update
 
+    procedure, private :: evaluate_batch_1d_metric
+    procedure, private :: evaluate_batch_1d_metrics
     procedure, private :: forward_1d
     procedure, private :: forward_3d
     procedure, private :: predict_1d
@@ -35,6 +38,7 @@ module nf_network
     procedure, private :: predict_batch_1d
     procedure, private :: predict_batch_3d
 
+    generic :: evaluate => evaluate_batch_1d_metric, evaluate_batch_1d_metrics
     generic :: forward => forward_1d, forward_3d
     generic :: predict => predict_1d, predict_3d, predict_batch_1d, predict_batch_3d
 
@@ -61,6 +65,26 @@ module nf_network
     end function network_from_keras
 
   end interface network
+
+  interface evaluate
+
+    module function evaluate_batch_1d_metric(self, input_data, output_data, metric) result(res)
+      class(network), intent(in out) :: self
+      real, intent(in) :: input_data(:,:)
+      real, intent(in) :: output_data(:,:)
+      class(metric_type), intent(in), optional :: metric
+      real, allocatable :: res(:,:)
+    end function evaluate_batch_1d_metric
+
+    module function evaluate_batch_1d_metrics(self, input_data, output_data, metric) result(res)
+      class(network), intent(in out) :: self
+      real, intent(in) :: input_data(:,:)
+      real, intent(in) :: output_data(:,:)
+      class(metric_type), intent(in) :: metric(:)
+      real, allocatable :: res(:,:)
+    end function evaluate_batch_1d_metrics
+
+  end interface evaluate
 
   interface forward
 

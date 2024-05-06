@@ -7,6 +7,7 @@ module nf_loss
   !! loss type that extends the abstract loss derived type, and that
   !! implements concrete eval and derivative methods that accept vectors.
 
+  use nf_metric, only: metric_type
   implicit none
 
   private
@@ -14,18 +15,12 @@ module nf_loss
   public :: mse
   public :: quadratic
 
-  type, abstract :: loss_type
+  type, extends(metric_type), abstract :: loss_type
   contains
-    procedure(loss_interface), nopass, deferred :: eval
     procedure(loss_derivative_interface), nopass, deferred :: derivative
   end type loss_type
 
   abstract interface
-    pure function loss_interface(true, predicted) result(res)
-      real, intent(in) :: true(:)
-      real, intent(in) :: predicted(:)
-      real :: res
-    end function loss_interface
     pure function loss_derivative_interface(true, predicted) result(res)
       real, intent(in) :: true(:)
       real, intent(in) :: predicted(:)

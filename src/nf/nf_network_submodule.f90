@@ -337,6 +337,64 @@ contains
   end subroutine backward
 
 
+  module function evaluate_batch_1d_metric(self, input_data, output_data, metric) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input_data(:,:)
+    real, intent(in) :: output_data(:,:)
+    class(metric_type), intent(in), optional :: metric
+    real, allocatable :: res(:,:)
+
+    integer :: i, n
+    real, allocatable :: output(:,:)
+
+    output = self % predict(input_data)
+
+    n = 1
+    if(present(metric)) n = n + 1
+
+    allocate(res(size(output, dim=1), n))
+
+    do concurrent (i = 1:size(output, dim=1))
+     res(i, 1) = self % loss % eval(output_data(i,:), output(i,:))
+    end do
+
+    if(.not.present(metric))return
+
+    do concurrent (i = 1:size(output, dim=1))
+     res(i, 2) = metric % eval(output_data(i,:), output(i,:))
+    end do
+
+  end function evaluate_batch_1d_metric
+
+  module function evaluate_batch_1d_metrics(self, input_data, output_data, metric) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input_data(:,:)
+    real, intent(in) :: output_data(:,:)
+    class(metric_type), intent(in) :: metric(:)
+    real, allocatable :: res(:,:)
+
+    integer :: i, j, n
+    real, allocatable :: output(:,:)
+
+    output = self % predict(input_data)
+
+    n = 1 + size(metric)
+
+    allocate(res(size(output, dim=1), n))
+
+    do concurrent (i = 1:size(output, dim=1))
+     res(i, 1) = self % loss % eval(output_data(i,:), output(i,:))
+    end do
+
+    do j = 1, size(metric)
+      do concurrent (i = 1:size(output, dim=1))
+       res(i, 1 + j) = metric(j) % eval(output_data(i,:), output(i,:))
+      end do
+    end do
+
+  end function evaluate_batch_1d_metrics
+
+
   pure module subroutine forward_1d(self, input)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
