@@ -6,6 +6,7 @@ module nf_metrics
 
   private
   public :: metric_type
+  public :: corr
 
   type, abstract :: metric_type
   contains
