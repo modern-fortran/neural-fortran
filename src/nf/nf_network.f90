@@ -159,7 +159,7 @@ module nf_network
       !! Network instance
     end function get_num_params
 
-    pure module function get_params(self) result(params)
+    module function get_params(self) result(params)
       !! Get the network parameters (weights and biases).
       class(network), intent(in) :: self
         !! Network instance
@@ -167,7 +167,7 @@ module nf_network
         !! Network parameters to get
     end function get_params
 
-    pure module function get_gradients(self) result(gradients)
+    module function get_gradients(self) result(gradients)
       class(network), intent(in) :: self
         !! Network instance
       real, allocatable :: gradients(:)

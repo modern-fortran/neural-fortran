@@ -61,24 +61,34 @@ contains
   end function get_num_params
 
 
-  pure module function get_params(self) result(params)
-    class(dense_layer), intent(in) :: self
+  module function get_params(self) result(params)
+    class(dense_layer), intent(in), target :: self
     real, allocatable :: params(:)
 
+    real, pointer :: w_(:)
+
+    w_(1:size(self % weights)) => self % weights
+
     params = [ &
-      pack(self % weights, .true.), &
+!      pack(self % weights, .true.), &
+      w_, &
       self % biases &
     ]
 
   end function get_params
 
 
-  pure module function get_gradients(self) result(gradients)
-    class(dense_layer), intent(in) :: self
+  module function get_gradients(self) result(gradients)
+    class(dense_layer), intent(in), target :: self
     real, allocatable :: gradients(:)
 
+    real, pointer :: dw_(:)
+
+    dw_(1:size(self % dw)) => self % dw
+
     gradients = [ &
-      pack(self % dw, .true.), &
+!      pack(self % dw, .true.), &
+      dw_, &
       self % db &
     ]
 
