@@ -556,6 +556,25 @@ contains
 
   end subroutine set_params
 
+  module subroutine set_optimizers(self, optimizer)
+    class(network), intent(in out) :: self
+    class(optimizer_base_type), intent(in) :: optimizer
+
+    integer :: n
+
+    do n = 1, size(self % layers)
+
+    select type (this_layer => self % layers(n) % p)
+
+      type is (dense_layer)
+        call this_layer % set_optimizer(optimizer)
+
+    end select
+
+    end do
+
+  end subroutine set_optimizers
+
 
   module subroutine train(self, input_data, output_data, batch_size, &
                           epochs, optimizer, loss)
@@ -583,6 +602,8 @@ contains
     end if
 
     call self % optimizer % init(self % get_num_params())
+
+    call self % set_optimizers(optimizer)
 
     ! Passing the loss instance is optional.
     ! If not provided, we default to quadratic().
@@ -667,9 +688,11 @@ contains
       end select
     end do
 
-    params = self % get_params()
-    call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
-    call self % set_params(params)
+!    params = self % get_params()
+!    call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
+!    call self % set_params(params)
+
+    call self % apply_optimizer(batch_size_)
 
     ! Flush network gradients to zero.
     do concurrent(n = 2:size(self % layers))
@@ -684,5 +707,21 @@ contains
     end do
 
   end subroutine update
+
+
+  module subroutine apply_optimizer(self, batch_size)
+    class(network), intent(in out) :: self
+    integer, intent(in) :: batch_size
+
+    integer :: n
+
+    do concurrent(n = 2:size(self % layers))
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          call this_layer % apply_optimizer(batch_size)
+      end select
+    end do
+
+  end subroutine apply_optimizer
 
 end submodule nf_network_submodule

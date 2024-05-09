@@ -4,6 +4,7 @@ module nf_dense_layer
   !! It is used internally by the layer type.
   !! It is not intended to be used directly by the user.
 
+  use nf_optimizers, only: optimizer_base_type
   use nf_activation, only: activation_function
   use nf_base_layer, only: base_layer
 
@@ -28,6 +29,8 @@ module nf_dense_layer
     real, allocatable :: db(:) ! bias gradients
 
     class(activation_function), allocatable :: activation
+    class(optimizer_base_type), allocatable :: optimizer_1d
+    class(optimizer_base_type), allocatable :: optimizer_2d
 
   contains
 
@@ -38,6 +41,8 @@ module nf_dense_layer
     procedure :: get_params
     procedure :: init
     procedure :: set_params
+    procedure :: apply_optimizer
+    procedure :: set_optimizer
 
   end type dense_layer
 
@@ -122,7 +127,24 @@ module nf_dense_layer
         !! Dense layer instance
       integer, intent(in) :: input_shape(:)
         !! Shape of the input layer
+
     end subroutine init
+
+    module subroutine apply_optimizer(self, batch_size)
+      class(dense_layer), intent(in out), target :: self
+      integer, intent(in) :: batch_size
+    end subroutine apply_optimizer
+
+    module subroutine set_optimizer(self, optimizer)
+      !! Initialize the layer data structures.
+      !!
+      !! This is a deferred procedure from the `base_layer` abstract type.
+      class(dense_layer), intent(in out) :: self
+        !! Dense layer instance
+      class(optimizer_base_type), intent(in), optional :: optimizer
+
+    end subroutine set_optimizer
+
 
   end interface
 

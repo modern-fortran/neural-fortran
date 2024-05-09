@@ -1,5 +1,6 @@
 submodule(nf_dense_layer) nf_dense_layer_submodule
 
+  use nf_optimizers, only: adam
   use nf_activation, only: activation_function
   use nf_base_layer, only: base_layer
   use nf_random, only: random_normal
@@ -143,5 +144,47 @@ contains
     self % gradient = 0
 
   end subroutine init
+
+
+  module subroutine set_optimizer(self, optimizer)
+    class(dense_layer), intent(in out) :: self
+    class(optimizer_base_type), intent(in), optional:: optimizer
+
+    if (.not. allocated(self % optimizer_1d)) then
+      if (present(optimizer)) then
+        self % optimizer_1d = optimizer
+      else
+        self % optimizer_1d = adam(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1.e-7)
+      end if
+      call self % optimizer_1d % init(self % output_size)
+    end if
+    if (.not. allocated(self % optimizer_2d)) then
+      if (present(optimizer)) then
+        self % optimizer_2d = optimizer
+      else
+        self % optimizer_2d = adam(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1.e-7)
+      end if
+      call self % optimizer_2d % init(self % input_size * self % output_size)
+    end if
+
+  end subroutine set_optimizer
+
+  module subroutine apply_optimizer(self, batch_size)
+    class(dense_layer), intent(in out), target :: self
+    integer, intent(in) :: batch_size
+
+    real, pointer :: w_(:), dw_(:)
+
+    call self % optimizer_1d % minimize( self % biases, self % db / batch_size)
+
+    associate(n => self % input_size * self % output_size)
+      w_(1:n) => self % weights
+      dw_(1:n) => self % dw
+      call self % optimizer_2d % minimize( w_, dw_ / batch_size)
+    end associate
+
+
+  end subroutine apply_optimizer
+
 
 end submodule nf_dense_layer_submodule

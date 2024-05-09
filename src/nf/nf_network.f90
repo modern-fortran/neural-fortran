@@ -25,6 +25,8 @@ module nf_network
     procedure :: get_params
     procedure :: print_info
     procedure :: set_params
+    procedure :: apply_optimizer
+    procedure :: set_optimizers
     procedure :: train
     procedure :: update
 
@@ -228,6 +230,17 @@ module nf_network
         !! Set to 1 for a pure stochastic gradient descent (default).
         !! Set to `size(input_data, dim=2)` for a batch gradient descent.
     end subroutine update
+
+    module subroutine set_optimizers(self, optimizer)
+      class(network), intent(in out) :: self
+      class(optimizer_base_type), intent(in) :: optimizer
+    end subroutine set_optimizers
+
+    module subroutine apply_optimizer(self, batch_size)
+      class(network), intent(in out) :: self
+      integer, intent(in) :: batch_size
+    end subroutine
+
 
   end interface
 
