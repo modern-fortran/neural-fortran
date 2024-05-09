@@ -70,7 +70,6 @@ contains
     w_(1:size(self % weights)) => self % weights
 
     params = [ &
-!      pack(self % weights, .true.), &
       w_, &
       self % biases &
     ]
@@ -87,7 +86,6 @@ contains
     dw_(1:size(self % dw)) => self % dw
 
     gradients = [ &
-!      pack(self % dw, .true.), &
       dw_, &
       self % db &
     ]
@@ -111,10 +109,13 @@ contains
     )
 
     ! reshape the biases
-    self % biases = reshape( &
-      params(self % input_size * self % output_size + 1:), &
-      [self % output_size] &
-    )
+!    self % biases = reshape( &
+!      params(self % input_size * self % output_size + 1:), &
+!      [self % output_size] &
+!    )
+    associate(n => self % input_size * self % output_size)
+      self % biases = params(n + 1 : n + self % output_size)
+    end associate
 
   end subroutine set_params
 
