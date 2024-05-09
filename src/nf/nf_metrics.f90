@@ -1,4 +1,4 @@
-module nf_metric
+module nf_metrics
 
   !! This module provides a collection of metric functions.
 
@@ -37,8 +37,6 @@ module nf_metric
       !! Values predicted by the network
     real :: res
       !! Resulting loss value
-
-
     real :: m_true, m_pred
 
     m_true = sum(true) / size(true)
@@ -49,4 +47,4 @@ module nf_metric
 
   end function corr_eval
 
-end module nf_metric
+end module nf_metrics

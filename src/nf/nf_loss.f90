@@ -7,7 +7,7 @@ module nf_loss
   !! loss type that extends the abstract loss derived type, and that
   !! implements concrete eval and derivative methods that accept vectors.
 
-  use nf_metric, only: metric_type
+  use nf_metrics, only: metric_type
   implicit none
 
   private

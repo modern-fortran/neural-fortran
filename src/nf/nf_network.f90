@@ -3,7 +3,7 @@ module nf_network
   !! This module provides the network type to create new models.
 
   use nf_layer, only: layer
-  use nf_metric, only: metric_type
+  use nf_metrics, only: metric_type
   use nf_loss, only: loss_type
   use nf_optimizers, only: optimizer_base_type
 
