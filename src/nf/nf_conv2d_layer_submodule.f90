@@ -189,24 +189,32 @@ contains
   end function get_num_params
 
 
-  pure module function get_params(self) result(params)
-    class(conv2d_layer), intent(in) :: self
+  module function get_params(self) result(params)
+    class(conv2d_layer), intent(in), target :: self
     real, allocatable :: params(:)
 
+    real, pointer :: w_(:)
+
+    w_(1:size(self % kernel)) => self % kernel
+
     params = [ &
-      pack(self % kernel, .true.), &
+      w_, &
       self % biases &
     ]
 
   end function get_params
 
 
-  pure module function get_gradients(self) result(gradients)
-    class(conv2d_layer), intent(in) :: self
+  module function get_gradients(self) result(gradients)
+    class(conv2d_layer), intent(in), target :: self
     real, allocatable :: gradients(:)
 
+    real, pointer :: dw_(:)
+
+    dw_(1:size(self % dw)) => self % dw
+
     gradients = [ &
-      pack(self % dw, .true.), &
+      dw_, &
       self % db &
     ]
 
@@ -229,10 +237,13 @@ contains
     )
 
     ! Reshape the biases.
-    self % biases = reshape( &
-      params(product(shape(self % kernel)) + 1:), &
-      [self % filters] &
-    )
+!    self % biases = reshape( &
+!      params(product(shape(self % kernel)) + 1:), &
+!      [self % filters] &
+!    )
+    associate(n => product(shape(self % kernel)))
+      self % biases = params(n + 1 : n + self % filters)
+    end associate
 
   end subroutine set_params
 
