@@ -193,7 +193,7 @@ contains
     class(conv2d_layer), intent(in), target :: self
     real, allocatable :: params(:)
 
-    real, pointer :: w_(:)
+    real, pointer :: w_(:) => null()
 
     w_(1:size(self % kernel)) => self % kernel
 
@@ -209,7 +209,7 @@ contains
     class(conv2d_layer), intent(in), target :: self
     real, allocatable :: gradients(:)
 
-    real, pointer :: dw_(:)
+    real, pointer :: dw_(:) => null()
 
     dw_(1:size(self % dw)) => self % dw
 
@@ -227,7 +227,7 @@ contains
 
     ! Check that the number of parameters is correct.
     if (size(params) /= self % get_num_params()) then
-       error stop 'conv2d % set_params: Number of parameters does not match'
+      error stop 'conv2d % set_params: Number of parameters does not match'
     end if
 
     ! Reshape the kernel.
@@ -237,10 +237,6 @@ contains
     )
 
     ! Reshape the biases.
-!    self % biases = reshape( &
-!      params(product(shape(self % kernel)) + 1:), &
-!      [self % filters] &
-!    )
     associate(n => product(shape(self % kernel)))
       self % biases = params(n + 1 : n + self % filters)
     end associate
