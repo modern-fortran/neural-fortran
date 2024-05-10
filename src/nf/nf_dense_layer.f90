@@ -110,7 +110,7 @@ module nf_dense_layer
       !! The parameters are ordered as weights first, biases second.
       class(dense_layer), intent(in out) :: self
         !! Dense layer instance
-      real, intent(in) :: params(:)
+      real, intent(in), target :: params(:)
         !! Parameters of this layer
     end subroutine set_params
 
