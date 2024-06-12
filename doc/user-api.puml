@@ -1,0 +1,75 @@
+@startuml
+
+title Developer API: Public Classes, Type-Bound Procedures, and Constructors
+hide empty members 
+
+class sgd
+
+abstract class base_layer {
+  {abstract} init_interface(input_shape : integer)
+  set_activation(activation : character(len=*))
+}
+
+class maxpool2d_layer{
+  maxpool2d_layer(ipool_size: integer, stride : integer) : maxpool2d_layer
+  init(input_shape : integer)
+  forward(input : real[][][])
+  backward(input : real[][][], gradient : real[][][])
+}
+
+class input3d_layer{
+  input3d_layer(output_shape : real[]) : input3d_layer
+  init(input_shape : real[])
+  set(values : real[][][])
+}
+
+class dense_layer{
+  dense_layer(output_size : integer, activation : character(len=*)) : dense_layer
+  backward(input : rea[], gradient : real[])
+  forward(input : real[])
+}
+
+class conv2d_layer{
+  conv2d_layer(filters : integer, kernel_size : integer, activation : character(len=*))
+  init(input_shape : integer[])
+  forward(input : real[][][])
+  backward(input : real[][][], gradient : real[][][])
+}
+
+class input1d_layer{
+  input1d_layer(output_size : integer)
+  init(input_shape:integer)
+  set(values : real[])
+}
+
+
+class network {
+  network(layers[] : layer) : network
+  backward(output : real[])
+  output(input : real[]) : real[]
+  print_info()
+  train(input_data:real[][], output_data:real[][], batch_size:integer, epochs:integer, optimizer:sgd)
+  update(learning_rate:real)
+  forward(input : real[])
+  forward(input : real[][][])
+}
+
+class layer{
+  backward(previous : layer, gradient : real[])
+  forward(input : layer)
+  init(input : layer)
+  print_info()
+  update(learning_rate : real)
+  get_output(output : real[])
+  get_output(output : real[][])
+}
+
+network *-left- layer 
+
+base_layer <|-- maxpool2d_layer
+base_layer <|-- input3d_layer
+base_layer <|-- dense_layer
+base_layer <|-- conv2d_layer
+base_layer <|-- input1d_layer
+
+@enduml
