@@ -76,11 +76,11 @@ module nf_network
       real, allocatable :: res(:,:)
     end function evaluate_batch_1d_metric
 
-    module function evaluate_batch_1d_metrics(self, input_data, output_data, metric) result(res)
+    module function evaluate_batch_1d_metrics(self, input_data, output_data, metrics) result(res)
       class(network), intent(in out) :: self
       real, intent(in) :: input_data(:,:)
       real, intent(in) :: output_data(:,:)
-      class(metric_type), intent(in) :: metric(:)
+      class(metric_type), intent(in) :: metrics(:)
       real, allocatable :: res(:,:)
     end function evaluate_batch_1d_metrics
 
