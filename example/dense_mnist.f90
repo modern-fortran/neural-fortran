@@ -1,6 +1,6 @@
 program dense_mnist
 
-  use nf, only: dense, input, network, sgd, label_digits, load_mnist
+  use nf, only: dense, input, network, sgd, label_digits, load_mnist, corr
 
   implicit none
 
@@ -41,6 +41,12 @@ program dense_mnist
     if (this_image() == 1) &
       print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', accuracy( &
         net, validation_images, label_digits(validation_labels)) * 100, ' %'
+
+    block
+      real :: output_metrics(10,2) ! 2 metrics; 1st is default loss function (quadratic), other is Pearson corr.
+      output_metrics = net % evaluate(validation_images, label_digits(validation_labels), metric=corr())
+      print *, "Metrics: quadratic loss, Pearson corr.:", sum(output_metrics, 1) / size(output_metrics, 1)
+    end block
 
   end do epochs
 
