@@ -80,23 +80,21 @@ With gfortran, the following will create an optimized build of neural-fortran:
 ```
 fpm build \
   --profile release \
-  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
+  --flag "-I$HDF5INC -L$HDF5LIB"
 ```
 
 HDF5 is now a required dependency, so you have to provide it to fpm.
 The above command assumes that the `HDF5INC` and `HDF5LIB` environment
 variables are set to the include and library paths, respectively, of your
 HDF5 install.
-The `-fno-frontend-optimize` disables some optimizations that may be harmful
-when building neural-fortran.
 
 If you use Conda, the following instructions work:
 
 ```
 conda create -n nf hdf5
 conda activate nf
-fpm build --profile release --flag "-fno-frontend-optimize -I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib -Wl,-rpath -Wl,$CONDA_PREFIX/lib"
-fpm test --profile release --flag "-fno-frontend-optimize -I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib -Wl,-rpath -Wl,$CONDA_PREFIX/lib"
+fpm build --profile release --flag "-I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib -Wl,-rpath -Wl,$CONDA_PREFIX/lib"
+fpm test --profile release --flag "-I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib -Wl,-rpath -Wl,$CONDA_PREFIX/lib"
 ```
 
 #### Building in parallel mode
@@ -110,7 +108,7 @@ in parallel, respectively:
 fpm build \
   --compiler caf \
   --profile release \
-  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
+  --flag "-I$HDF5INC -L$HDF5LIB"
 ```
 
 #### Testing with fpm
@@ -118,7 +116,7 @@ fpm build \
 ```
 fpm test \
   --profile release \
-  --flag "-fno-frontend-optimize -I$HDF5INC -L$HDF5LIB"
+  --flag "-I$HDF5INC -L$HDF5LIB"
 ```
 
 For the time being, you need to specify the same compiler flags to `fpm test`
