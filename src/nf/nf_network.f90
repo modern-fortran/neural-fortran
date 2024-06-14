@@ -254,7 +254,6 @@ module nf_network
       integer, intent(in) :: batch_size
     end subroutine
 
-
   end interface
 
 end module nf_network

@@ -127,7 +127,6 @@ module nf_dense_layer
         !! Dense layer instance
       integer, intent(in) :: input_shape(:)
         !! Shape of the input layer
-
     end subroutine init
 
     module subroutine apply_optimizer(self, batch_size)
@@ -144,8 +143,6 @@ module nf_dense_layer
       class(optimizer_base_type), intent(in), optional :: optimizer
 
     end subroutine set_optimizer
-
-
   end interface
 
 end module nf_dense_layer

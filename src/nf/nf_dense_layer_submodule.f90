@@ -152,7 +152,6 @@ contains
 
   end subroutine init
 
-
   module subroutine set_optimizer(self, optimizer)
     class(dense_layer), intent(in out) :: self
     class(optimizer_base_type), intent(in), optional:: optimizer
@@ -192,6 +191,5 @@ contains
 
 
   end subroutine apply_optimizer
-
 
 end submodule nf_dense_layer_submodule
