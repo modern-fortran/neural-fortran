@@ -8,7 +8,7 @@ program test_optimizers
   real, allocatable :: x(:), y(:)
   real, allocatable :: ypred(:)
   integer, parameter :: num_iterations = 1000
-  integer :: n, i
+  integer :: n
   logical :: ok = .true.
   logical :: converged = .false.
 
