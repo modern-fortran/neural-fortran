@@ -298,7 +298,7 @@ contains
 
   end function get_num_params
 
-  pure module function get_params(self) result(params)
+  module function get_params(self) result(params)
     class(layer), intent(in) :: self
     real, allocatable :: params(:)
 
@@ -323,7 +323,7 @@ contains
 
   end function get_params
 
-  pure module function get_gradients(self) result(gradients)
+  module function get_gradients(self) result(gradients)
     class(layer), intent(in) :: self
     real, allocatable :: gradients(:)
 

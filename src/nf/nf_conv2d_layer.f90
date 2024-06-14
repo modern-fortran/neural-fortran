@@ -89,19 +89,19 @@ module nf_conv2d_layer
         !! Number of parameters
     end function get_num_params
 
-    pure module function get_params(self) result(params)
+    module function get_params(self) result(params)
       !! Return the parameters (weights and biases) of this layer.
       !! The parameters are ordered as weights first, biases second.
-      class(conv2d_layer), intent(in) :: self
+      class(conv2d_layer), intent(in), target :: self
         !! A `conv2d_layer` instance
       real, allocatable :: params(:)
         !! Parameters to get
     end function get_params
 
-    pure module function get_gradients(self) result(gradients)
+    module function get_gradients(self) result(gradients)
       !! Return the gradients of this layer.
       !! The gradients are ordered as weights first, biases second.
-      class(conv2d_layer), intent(in) :: self
+      class(conv2d_layer), intent(in), target :: self
         !! A `conv2d_layer` instance
       real, allocatable :: gradients(:)
         !! Gradients to get

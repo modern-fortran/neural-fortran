@@ -526,7 +526,7 @@ contains
   end function get_num_params
 
 
-  pure module function get_params(self) result(params)
+  module function get_params(self) result(params)
     class(network), intent(in) :: self
     real, allocatable :: params(:)
     integer :: n, nstart, nend
@@ -546,7 +546,7 @@ contains
   end function get_params
 
 
-  pure module function get_gradients(self) result(gradients)
+  module function get_gradients(self) result(gradients)
     class(network), intent(in) :: self
     real, allocatable :: gradients(:)
     integer :: n, nstart, nend

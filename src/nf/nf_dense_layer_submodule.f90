@@ -61,24 +61,32 @@ contains
   end function get_num_params
 
 
-  pure module function get_params(self) result(params)
-    class(dense_layer), intent(in) :: self
+  module function get_params(self) result(params)
+    class(dense_layer), intent(in), target :: self
     real, allocatable :: params(:)
 
+    real, pointer :: w_(:) => null()
+
+    w_(1:size(self % weights)) => self % weights
+
     params = [ &
-      pack(self % weights, .true.), &
+      w_, &
       self % biases &
     ]
 
   end function get_params
 
 
-  pure module function get_gradients(self) result(gradients)
-    class(dense_layer), intent(in) :: self
+  module function get_gradients(self) result(gradients)
+    class(dense_layer), intent(in), target :: self
     real, allocatable :: gradients(:)
 
+    real, pointer :: dw_(:) => null()
+
+    dw_(1:size(self % dw)) => self % dw
+
     gradients = [ &
-      pack(self % dw, .true.), &
+      dw_, &
       self % db &
     ]
 
@@ -87,24 +95,23 @@ contains
 
   module subroutine set_params(self, params)
     class(dense_layer), intent(in out) :: self
-    real, intent(in) :: params(:)
+    real, intent(in), target :: params(:)
+
+    real, pointer :: p_(:,:) => null()
 
     ! check if the number of parameters is correct
     if (size(params) /= self % get_num_params()) then
       error stop 'Error: number of parameters does not match'
     end if
 
-    ! reshape the weights
-    self % weights = reshape( &
-      params(:self % input_size * self % output_size), &
-      [self % input_size, self % output_size] &
-    )
+    associate(n => self % input_size * self % output_size)
+      ! reshape the weights
+      p_(1:self % input_size, 1:self % output_size) => params(1 : n)
+      self % weights = p_
 
-    ! reshape the biases
-    self % biases = reshape( &
-      params(self % input_size * self % output_size + 1:), &
-      [self % output_size] &
-    )
+      ! reshape the biases
+      self % biases = params(n + 1 : n + self % output_size)
+    end associate
 
   end subroutine set_params
 

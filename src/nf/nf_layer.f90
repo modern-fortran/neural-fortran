@@ -129,7 +129,7 @@ module nf_layer
         !! Number of parameters in this layer
     end function get_num_params
 
-    pure module function get_params(self) result(params)
+    module function get_params(self) result(params)
       !! Returns the parameters of this layer.
       class(layer), intent(in) :: self
         !! Layer instance
@@ -137,7 +137,7 @@ module nf_layer
         !! Parameters of this layer
     end function get_params
 
-    pure module function get_gradients(self) result(gradients)
+    module function get_gradients(self) result(gradients)
       !! Returns the gradients of this layer.
       class(layer), intent(in) :: self
         !! Layer instance
