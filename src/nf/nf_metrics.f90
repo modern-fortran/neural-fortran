@@ -7,6 +7,7 @@ module nf_metrics
   private
   public :: metric_type
   public :: corr
+  public :: maxabs
 
   type, abstract :: metric_type
   contains
@@ -27,6 +28,12 @@ module nf_metrics
     procedure, nopass :: eval => corr_eval
   end type corr
 
+  type, extends(metric_type) :: maxabs
+    !! Maximum absolute difference
+  contains
+    procedure, nopass :: eval => maxabs_eval
+  end type maxabs
+
   contains
 
   pure module function corr_eval(true, predicted) result(res)
@@ -37,7 +44,7 @@ module nf_metrics
     real, intent(in) :: predicted(:)
       !! Values predicted by the network
     real :: res
-      !! Resulting loss value
+      !! Resulting correlation value
     real :: m_true, m_pred
 
     m_true = sum(true) / size(true)
@@ -47,5 +54,19 @@ module nf_metrics
       sqrt(sum((true - m_true)**2)*sum((predicted - m_pred)**2))
 
   end function corr_eval
+
+  pure function maxabs_eval(true, predicted) result(res)
+    !! Maximum absolute difference function:
+    !!
+    real, intent(in) :: true(:)
+      !! True values, i.e. labels from training datasets
+    real, intent(in) :: predicted(:)
+      !! Values predicted by the network
+    real :: res
+      !! Resulting maximum absolute difference value
+
+    res = maxval(abs(true - predicted))
+
+  end function maxabs_eval
 
 end module nf_metrics

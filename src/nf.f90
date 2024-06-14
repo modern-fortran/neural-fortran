@@ -5,7 +5,7 @@ module nf
   use nf_layer_constructors, only: &
     conv2d, dense, flatten, input, maxpool2d, reshape
   use nf_loss, only: mse, quadratic
-  use nf_metrics, only: corr
+  use nf_metrics, only: corr, maxabs
   use nf_network, only: network
   use nf_optimizers, only: sgd, rmsprop, adam, adagrad
   use nf_activation, only: activation_function, elu, exponential,  &

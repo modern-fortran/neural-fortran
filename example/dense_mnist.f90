@@ -43,8 +43,14 @@ program dense_mnist
         net, validation_images, label_digits(validation_labels)) * 100, ' %'
 
     block
-      real :: output_metrics(10,2) ! 2 metrics; 1st is default loss function (quadratic), other is Pearson corr.
+      real, allocatable :: output_metrics(:,:) ! 2 metrics; 1st is default loss function (quadratic), other is Pearson corr.
       output_metrics = net % evaluate(validation_images, label_digits(validation_labels), metric=corr())
+      print *, "Metrics: quadratic loss, Pearson corr.:", sum(output_metrics, 1) / size(output_metrics, 1)
+    end block
+
+    block
+      real, allocatable :: output_metrics(:,:) ! 3 metrics; 1st is default loss function (quadratic), others are Pearson corr.
+      output_metrics = net % evaluate(validation_images, label_digits(validation_labels), metrics=[corr(), corr()])
       print *, "Metrics: quadratic loss, Pearson corr.:", sum(output_metrics, 1) / size(output_metrics, 1)
     end block
 
