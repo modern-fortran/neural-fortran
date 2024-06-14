@@ -337,7 +337,7 @@ contains
   end subroutine backward
 
 
-  module function evaluate_batch_1d_metric(self, input_data, output_data, metric) result(res)
+  module function evaluate_batch_1d(self, input_data, output_data, metric) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input_data(:,:)
     real, intent(in) :: output_data(:,:)
@@ -364,36 +364,7 @@ contains
       res(i,2) = metric % eval(output_data(i,:), output(i,:))
     end do
 
-  end function evaluate_batch_1d_metric
-
-
-  module function evaluate_batch_1d_metrics(self, input_data, output_data, metrics) result(res)
-    class(network), intent(in out) :: self
-    real, intent(in) :: input_data(:,:)
-    real, intent(in) :: output_data(:,:)
-    class(metric_type), intent(in) :: metrics(:)
-    real, allocatable :: res(:,:)
-
-    integer :: i, j, n
-    real, allocatable :: output(:,:)
-
-    output = self % predict(input_data)
-
-    n = 1 + size(metrics)
-
-    allocate(res(size(output, dim=1), n))
-
-    do concurrent (i = 1:size(output, dim=1))
-      res(i,1) = self % loss % eval(output_data(i,:), output(i,:))
-    end do
-
-    do j = 1, size(metrics)
-      do concurrent (i = 1:size(output, dim=1))
-        res(i,1+j) = metrics(j) % eval(output_data(i,:), output(i,:))
-      end do
-    end do
-
-  end function evaluate_batch_1d_metrics
+  end function evaluate_batch_1d
 
 
   pure module subroutine forward_1d(self, input)
