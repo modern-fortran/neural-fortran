@@ -20,6 +20,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 * Stochastic gradient descent optimizers: Classic, momentum, Nesterov momentum,
   RMSProp, Adagrad, Adam, AdamW
 * More than a dozen activation functions and their derivatives
+* Loss functions and metrics: Quadratic, Mean Squared Error, Pearson Correlation etc.
 * Loading dense and convolutional models from Keras HDF5 (.h5) files
 * Data-based parallelism
 

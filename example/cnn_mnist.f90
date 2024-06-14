@@ -11,9 +11,6 @@ program cnn_mnist
   real, allocatable :: training_images(:,:), training_labels(:)
   real, allocatable :: validation_images(:,:), validation_labels(:)
   real, allocatable :: testing_images(:,:), testing_labels(:)
-  real, allocatable :: input_reshaped(:,:,:,:)
-  real :: acc
-  logical :: ok
   integer :: n
   integer, parameter :: num_epochs = 10
 

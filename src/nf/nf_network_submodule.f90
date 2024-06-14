@@ -337,6 +337,36 @@ contains
   end subroutine backward
 
 
+  module function evaluate_batch_1d(self, input_data, output_data, metric) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input_data(:,:)
+    real, intent(in) :: output_data(:,:)
+    class(metric_type), intent(in), optional :: metric
+    real, allocatable :: res(:,:)
+
+    integer :: i, n
+    real, allocatable :: output(:,:)
+
+    output = self % predict(input_data)
+
+    n = 1
+    if (present(metric)) n = n + 1
+
+    allocate(res(size(output, dim=1), n))
+
+    do concurrent (i = 1:size(output, dim=1))
+      res(i,1) = self % loss % eval(output_data(i,:), output(i,:))
+    end do
+
+    if (.not. present(metric)) return
+
+    do concurrent (i = 1:size(output, dim=1))
+      res(i,2) = metric % eval(output_data(i,:), output(i,:))
+    end do
+
+  end function evaluate_batch_1d
+
+
   pure module subroutine forward_1d(self, input)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
@@ -566,11 +596,10 @@ contains
     integer, intent(in) :: epochs
     class(optimizer_base_type), intent(in), optional :: optimizer
     class(loss_type), intent(in), optional :: loss
-    class(optimizer_base_type), allocatable :: optimizer_
 
     real :: pos
     integer :: dataset_size
-    integer :: batch_start, batch_end
+    integer :: batch_start
     integer :: i, j, n
     integer :: istart, iend, indices(2)
 
@@ -600,11 +629,9 @@ contains
         ! Pull a random mini-batch from the dataset
         call random_number(pos)
         batch_start = int(pos * (dataset_size - batch_size + 1)) + 1
-        batch_end = batch_start + batch_size - 1
 
         ! FIXME shuffle in a way that doesn't require co_broadcast
         call co_broadcast(batch_start, 1)
-        call co_broadcast(batch_end, 1)
 
         ! Distribute the batch in nearly equal pieces to all images
         indices = tile_indices(batch_size)
@@ -628,7 +655,6 @@ contains
     class(network), intent(in out) :: self
     class(optimizer_base_type), intent(in), optional :: optimizer
     integer, intent(in), optional :: batch_size
-    class(optimizer_base_type), allocatable :: optimizer_
     integer :: batch_size_
     real, allocatable :: params(:)
     integer :: n

@@ -24,7 +24,7 @@ program quadratic_fit
   real, allocatable :: x(:), y(:) ! training data
   real, allocatable :: xtest(:), ytest(:) ! testing data
 
-  integer :: i, n
+  integer :: i
 
   print '("Fitting quadratic function")'
   print '(60("="))'
@@ -277,7 +277,7 @@ contains
     real, intent(in) :: xtest(:), ytest(:)
     real, intent(in) :: learning_rate, decay_rate
     integer, intent(in) :: num_epochs
-    integer :: i, j, n
+    integer :: i, n
     real, allocatable :: ypred(:)
 
     print '(a)', 'RMSProp optimizer'
