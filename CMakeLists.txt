@@ -50,6 +50,7 @@ add_library(neural-fortran
   src/nf/nf_loss_submodule.f90
   src/nf/nf_maxpool2d_layer.f90
   src/nf/nf_maxpool2d_layer_submodule.f90
+  src/nf/nf_metrics.f90
   src/nf/nf_network.f90
   src/nf/nf_network_submodule.f90
   src/nf/nf_optimizers.f90

@@ -9,7 +9,7 @@ program test_flatten_layer
 
   type(layer) :: test_layer, input_layer
   type(network) :: net
-  real, allocatable :: input_data(:,:,:), gradient(:,:,:)
+  real, allocatable :: gradient(:,:,:)
   real, allocatable :: output(:)
   logical :: ok = .true.
 

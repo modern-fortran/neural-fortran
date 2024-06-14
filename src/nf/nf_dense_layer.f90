@@ -92,19 +92,19 @@ module nf_dense_layer
          !! Number of parameters in this layer
     end function get_num_params
 
-    pure module function get_params(self) result(params)
+    module function get_params(self) result(params)
       !! Return the parameters (weights and biases) of this layer.
       !! The parameters are ordered as weights first, biases second.
-      class(dense_layer), intent(in) :: self
+      class(dense_layer), intent(in), target :: self
         !! Dense layer instance
       real, allocatable :: params(:)
         !! Parameters of this layer
     end function get_params
 
-    pure module function get_gradients(self) result(gradients)
+    module function get_gradients(self) result(gradients)
       !! Return the gradients of this layer.
       !! The gradients are ordered as weights first, biases second.
-      class(dense_layer), intent(in) :: self
+      class(dense_layer), intent(in), target :: self
         !! Dense layer instance
       real, allocatable :: gradients(:)
         !! Gradients of this layer
@@ -115,7 +115,7 @@ module nf_dense_layer
       !! The parameters are ordered as weights first, biases second.
       class(dense_layer), intent(in out) :: self
         !! Dense layer instance
-      real, intent(in) :: params(:)
+      real, intent(in), target :: params(:)
         !! Parameters of this layer
     end subroutine set_params
 

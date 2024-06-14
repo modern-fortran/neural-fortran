@@ -9,8 +9,7 @@ program get_set_network_params
   integer, parameter :: test_size = 30
   real :: xtest(test_size), ytest(test_size)
   real :: ypred1(test_size), ypred2(test_size)
-  integer :: i, n, nparam
-  real, allocatable :: parameters(:)
+  integer :: i, n
 
   print '("Getting and setting network parameters")'
   print '(60("="))'
