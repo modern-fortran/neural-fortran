@@ -336,7 +336,7 @@ contains
           type is(rnn_layer)
             call self % layers(n) % backward( &
               self % layers(n - 1), &
-              quadratic_derivative(output, this_layer % output) &
+              self % loss % derivative(output, this_layer % output) &
             )
         end select
       else
