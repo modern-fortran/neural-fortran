@@ -154,7 +154,7 @@ module nf_layer
         !! Parameters of this layer
     end subroutine set_params
 
-    module subroutine set_state(self, state)
+    pure module subroutine set_state(self, state)
       class(layer), intent(inout) :: self
       real, intent(in), optional :: state(:)
     end subroutine set_state
