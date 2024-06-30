@@ -59,6 +59,8 @@ add_library(neural-fortran
   src/nf/nf_random.f90
   src/nf/nf_reshape_layer.f90
   src/nf/nf_reshape_layer_submodule.f90
+  src/nf/nf_rnn_layer.f90
+  src/nf/nf_rnn_layer_submodule.f90
   src/nf/io/nf_io_binary.f90
   src/nf/io/nf_io_binary_submodule.f90
   src/nf/io/nf_io_hdf5.f90

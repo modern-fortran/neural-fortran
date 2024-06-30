@@ -8,6 +8,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_rnn_layer, only: rnn_layer
   use nf_optimizers, only: optimizer_base_type
 
 contains
@@ -32,6 +33,8 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(flatten_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(rnn_layer)
+            call this_layer % backward(prev_layer % output, gradient)
         end select
 
       type is(flatten_layer)
@@ -43,6 +46,19 @@ contains
           type is(conv2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(maxpool2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(rnn_layer)
+
+        select type(prev_layer => previous % p)
+          type is(input1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(dense_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(flatten_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(rnn_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
@@ -123,6 +139,8 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(flatten_layer)
             call this_layer % forward(prev_layer % output)
+          type is(rnn_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(conv2d_layer)
@@ -179,6 +197,19 @@ contains
             call this_layer % forward(prev_layer % output)
         end select
 
+      type is(rnn_layer)
+
+        ! Upstream layers permitted: input1d, dense, rnn
+        select type(prev_layer => input % p)
+          type is(input1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(dense_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(rnn_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+
     end select
 
   end subroutine forward
@@ -196,6 +227,8 @@ contains
       type is(dense_layer)
         allocate(output, source=this_layer % output)
       type is(flatten_layer)
+        allocate(output, source=this_layer % output)
+      type is(rnn_layer)
         allocate(output, source=this_layer % output)
       class default
         error stop '1-d output can only be read from an input1d, dense, or flatten layer.'
@@ -292,8 +325,10 @@ contains
         num_params = 0
       type is (reshape3d_layer)
         num_params = 0
+      type is (rnn_layer)
+        num_params = this_layer % get_num_params()
       class default
-        error stop 'Unknown layer type.'
+        error stop 'get_num_params() with unknown layer type.'
     end select
 
   end function get_num_params
@@ -317,8 +352,10 @@ contains
         ! No parameters to get.
       type is (reshape3d_layer)
         ! No parameters to get.
+      type is (rnn_layer)
+        params = this_layer % get_params()
       class default
-        error stop 'Unknown layer type.'
+        error stop 'get_params() with unknown layer type.'
     end select
 
   end function get_params
@@ -342,8 +379,10 @@ contains
         ! No gradients to get.
       type is (reshape3d_layer)
         ! No gradients to get.
+      type is (rnn_layer)
+        gradients = this_layer % get_gradients()
       class default
-        error stop 'Unknown layer type.'
+        error stop 'get_gradients() with unknown layer type.'
     end select
 
   end function get_gradients
@@ -399,10 +438,27 @@ contains
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
 
+      type is (rnn_layer)
+        call this_layer % set_params(params)
+
           class default
-        error stop 'Unknown layer type.'
+        error stop 'set_params() with unknown layer type.'
     end select
 
   end subroutine set_params
+
+  pure module subroutine set_state(self, state)
+    class(layer), intent(inout) :: self
+    real, intent(in), optional :: state(:)
+
+    select type (this_layer => self % p)
+      type is (rnn_layer)
+        if (present(state)) then
+          this_layer % state = state
+        else
+          this_layer % state = 0
+        end if
+      end select
+  end subroutine set_state
 
 end submodule nf_layer_submodule

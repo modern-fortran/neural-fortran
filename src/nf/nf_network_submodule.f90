@@ -7,10 +7,11 @@ submodule(nf_network) nf_network_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_rnn_layer, only: rnn_layer
   use nf_io_hdf5, only: get_hdf5_dataset
   use nf_keras, only: get_keras_h5_layers, keras_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
+  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape, rnn
   use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
@@ -215,6 +216,23 @@ contains
           ! Nothing to do
           continue
 
+        type is(rnn_layer)
+
+          ! Read biases from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/bias:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % biases)
+
+          ! Read weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % weights)
+
+          ! Read recurrent weights from file
+          object_name = '/model_weights/' // layer_name // '/' &
+            // layer_name // '/simple_rnn_cell_23/recurrent_kernel:0'
+          call get_hdf5_dataset(filename, object_name, this_layer % recurrent)
+
         class default
           error stop 'Internal error in network_from_keras(); ' &
             // 'mismatch in layer types between the Keras and ' &
@@ -311,6 +329,11 @@ contains
         ! Output layer; apply the loss function
         select type(this_layer => self % layers(n) % p)
           type is(dense_layer)
+            call self % layers(n) % backward( &
+              self % layers(n - 1), &
+              self % loss % derivative(output, this_layer % output) &
+            )
+          type is(rnn_layer)
             call self % layers(n) % backward( &
               self % layers(n - 1), &
               self % loss % derivative(output, this_layer % output) &
@@ -704,6 +727,9 @@ contains
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv2d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(rnn_layer)
           this_layer % dw = 0
           this_layer % db = 0
       end select
