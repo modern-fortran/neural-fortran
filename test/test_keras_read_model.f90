@@ -1,4 +1,5 @@
 program test_keras_read_model
+#ifdef USE_KERAS_HDF5
 
   use iso_fortran_env, only: stderr => error_unit
   use nf_datasets, only: download_and_unpack, keras_dense_mnist_url, &
@@ -105,4 +106,5 @@ program test_keras_read_model
     stop 1
   end if
 
+#endif
 end program test_keras_read_model

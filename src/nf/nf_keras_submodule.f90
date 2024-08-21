@@ -1,3 +1,4 @@
+#ifdef USE_KERAS_HDF5
 submodule(nf_keras) nf_keras_submodule
 
   use functional, only: reverse
@@ -102,3 +103,4 @@ contains
   end function get_keras_h5_layers
 
 end submodule nf_keras_submodule
+#endif

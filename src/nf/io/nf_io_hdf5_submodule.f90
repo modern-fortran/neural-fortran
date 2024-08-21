@@ -1,3 +1,4 @@
+#ifdef USE_KERAS_HDF5
 submodule(nf_io_hdf5) nf_io_hdf5_submodule
 
   use iso_fortran_env, only: int64, real32, stderr => error_unit
@@ -109,3 +110,4 @@ contains
   end subroutine get_hdf5_dataset_real32_4d
 
 end submodule nf_io_hdf5_submodule
+#endif

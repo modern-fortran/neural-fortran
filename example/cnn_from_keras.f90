@@ -1,4 +1,5 @@
 program cnn_from_keras
+#ifdef USE_KERAS_HDF5
 
   ! This example demonstrates loading a convolutional model
   ! pre-trained on the MNIST dataset from a Keras HDF5
@@ -55,4 +56,5 @@ contains
     accuracy = real(good) / size(x, dim=4)
   end function accuracy
 
+#endif
 end program cnn_from_keras

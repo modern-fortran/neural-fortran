@@ -1,4 +1,5 @@
 option(SERIAL "Serial execution")
+option(USE_KERAS_HDF5 "Enable modules to load Keras HDF5 models")
 option(${PROJECT_NAME}_BUILD_TESTING "build ${PROJECT_NAME} tests" true)
 option(${PROJECT_NAME}_BUILD_EXAMPLES "build ${PROJECT_NAME} examples" true)
 
@@ -12,6 +13,12 @@ if(SERIAL)
   message(STATUS "Configuring build for serial execution")
 else()
   message(STATUS "Configuring build for parallel execution")
+endif()
+
+if(USE_KERAS_HDF5)
+  message(STATUS "Configuring build with Keras HDF5 support")
+else()
+  message(STATUS "Configuring build without Keras HDF5 support")
 endif()
 
 # --- Generally useful CMake project options

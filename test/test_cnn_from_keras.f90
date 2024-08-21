@@ -1,4 +1,5 @@
 program test_cnn_from_keras
+#ifdef USE_KERAS_HDF5
 
   use iso_fortran_env, only: stderr => error_unit
   use nf, only: network
@@ -66,4 +67,5 @@ contains
     accuracy = real(good) / size(x, dim=4)
   end function accuracy
 
+#endif
 end program test_cnn_from_keras

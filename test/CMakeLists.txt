@@ -20,7 +20,13 @@ foreach(execid
   metrics
   )
   add_executable(test_${execid} test_${execid}.f90)
-  target_link_libraries(test_${execid} PRIVATE neural-fortran h5fortran::h5fortran jsonfortran::jsonfortran ${LIBS})
+
+  if (USE_KERAS_HDF5)
+    target_compile_definitions(test_${execid} PRIVATE USE_KERAS_HDF5)
+    target_link_libraries(test_${execid} PRIVATE neural-fortran h5fortran::h5fortran jsonfortran::jsonfortran ${LIBS})
+  else()
+    target_link_libraries(test_${execid} PRIVATE neural-fortran ${LIBS})
+  endif()
 
   add_test(NAME test_${execid} COMMAND test_${execid})
 endforeach()

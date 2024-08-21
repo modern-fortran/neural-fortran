@@ -1,4 +1,5 @@
 program dense_from_keras
+#ifdef USE_KERAS_HDF5
 
   ! This example demonstrates loading a dense model
   ! pre-trained on the MNIST dataset from a Keras HDF5
@@ -49,4 +50,5 @@ contains
     accuracy = real(good) / size(x, dim=2)
   end function accuracy
 
+#endif
 end program dense_from_keras

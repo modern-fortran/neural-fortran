@@ -2,7 +2,10 @@ program test_reshape_layer
 
   use iso_fortran_env, only: stderr => error_unit
   use nf, only: input, network, reshape_layer => reshape
-  use nf_datasets, only: download_and_unpack, keras_reshape_url
+  use nf_datasets, only: download_and_unpack
+#ifdef USE_KERAS_HDF5
+  use nf_datasets, only: keras_reshape_url
+#endif
 
   implicit none
 
@@ -43,6 +46,7 @@ program test_reshape_layer
     ok = .false.
   end if
 
+#ifdef USE_KERAS_HDF5
   ! Now test reading the reshape layer from a Keras h5 model.
   inquire(file=keras_reshape_path, exist=file_exists)
   if (.not. file_exists) call download_and_unpack(keras_reshape_url)
@@ -67,6 +71,7 @@ program test_reshape_layer
     write(stderr, '(a)') 'the target shape of the reshape layer is correct.. failed'
     ok = .false.
   end if
+#endif
 
   if (ok) then
     print '(a)', 'test_reshape_layer: All tests passed.'

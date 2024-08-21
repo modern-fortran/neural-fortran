@@ -95,6 +95,7 @@ contains
   end function network_from_layers
 
 
+#ifdef USE_KERAS_HDF5
   module function network_from_keras(filename) result(res)
     character(*), intent(in) :: filename
     type(network) :: res
@@ -222,9 +223,10 @@ contains
 
       end select
 
-  end do
+    end do
 
   end function network_from_keras
+#endif
 
 
   pure function get_activation_by_name(activation_name) result(res)

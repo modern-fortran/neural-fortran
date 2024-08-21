@@ -10,10 +10,15 @@ foreach(execid
   quadratic
 )
   add_executable(${execid} ${execid}.f90)
-  target_link_libraries(${execid} PRIVATE
-    neural-fortran
-    h5fortran::h5fortran
-    jsonfortran::jsonfortran
-    ${LIBS}
-  )
+  if(USE_KERAS_HDF5)
+    target_compile_definitions(${execid} PRIVATE USE_KERAS_HDF5)
+    target_link_libraries(${execid} PRIVATE
+      neural-fortran
+      h5fortran::h5fortran
+      jsonfortran::jsonfortran
+      ${LIBS}
+    )
+  else()
+    target_link_libraries(${execid} PRIVATE neural-fortran ${LIBS})
+  endif()
 endforeach()

@@ -21,8 +21,8 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   RMSProp, Adagrad, Adam, AdamW
 * More than a dozen activation functions and their derivatives
 * Loss functions and metrics: Quadratic, Mean Squared Error, Pearson Correlation etc.
-* Loading dense and convolutional models from Keras HDF5 (.h5) files
 * Data-based parallelism
+* Loading dense and convolutional models from Keras HDF5 (.h5) files (optional)
 
 ### Available layers
 
@@ -51,24 +51,23 @@ cd neural-fortran
 Required dependencies are:
 
 * A Fortran compiler
-* [HDF5](https://www.hdfgroup.org/downloads/hdf5/)
-  (must be provided by the OS package manager or your own build from source)
-* [functional-fortran](https://github.com/wavebitscientific/functional-fortran),
-  [h5fortran](https://github.com/geospace-code/h5fortran),
-  [json-fortran](https://github.com/jacobwilliams/json-fortran)
-  (all handled by neural-fortran's build systems, no need for a manual install)
 * [fpm](https://github.com/fortran-lang/fpm) or
   [CMake](https://cmake.org) for building the code
 
 Optional dependencies are:
 
+* [HDF5](https://www.hdfgroup.org/downloads/hdf5/) for input of Keras models
+  saved as HDF5 files. You can use the HDF5 that ships from your system
+  package manager or build your own from source.
+  Note that HDF5 is still a required dependency if building with fpm instead
+  of CMake.
 * OpenCoarrays (for parallel execution with GFortran)
 * BLAS, MKL, or similar (for offloading `matmul` and `dot_product` calls)
-* curl (for downloading testing and example datasets)
+* curl (for downloading test and example datasets)
 
 Compilers tested include:
 
-* gfortran-9.4.0
+* gfortran-13.2.0
 * ifort-2021.4
 * ifx-2021.4
 
@@ -84,7 +83,8 @@ fpm build \
   --flag "-I$HDF5INC -L$HDF5LIB"
 ```
 
-HDF5 is now a required dependency, so you have to provide it to fpm.
+HDF5 is for now a required dependency when building with fpm, so you have to
+provide it to fpm.
 The above command assumes that the `HDF5INC` and `HDF5LIB` environment
 variables are set to the include and library paths, respectively, of your
 HDF5 install.
@@ -138,6 +138,15 @@ make
 ```
 
 Tests and examples will be built in the `bin/` directory.
+
+#### Building with Keras HDF5 input
+
+When building neural-fortran with CMake, Keras HDF5 input feature will not be
+built by default. To build it, use the `-DUSE_KERAS_HDF5=1` option.
+
+```
+cmake .. -DSERIAL=1 -DUSE_KERAS_HDF5=1
+```
 
 #### Building in parallel mode
 

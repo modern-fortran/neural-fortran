@@ -14,8 +14,8 @@ if(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     message(STATUS "Configuring build to use BLAS from ${BLAS}")
   endif()
 
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-fcheck=bounds;-fbacktrace>")
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-Ofast;-fno-frontend-optimize;-fno-backtrace>")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-cpp;-O0;-fcheck=bounds;-fbacktrace>")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-cpp;-Ofast;-fno-backtrace>")
 
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
   # compiler flags for ifort
@@ -44,12 +44,12 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
   else()
     string(APPEND CMAKE_Fortran_FLAGS " -assume byterecl")
   endif()
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-check;-traceback>")
-  # add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-O3>")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-fpp;-O0;-check;-traceback>")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-fpp;-O3>")
 
 elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "Cray")
   # compiler flags for Cray ftn
   string(APPEND CMAKE_Fortran_FLAGS " -h noomp")
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-O0;-g>")
-  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-O3>")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Debug>>:-e Z;-O0;-g>")
+  add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:Fortran>,$<CONFIG:Release>>:-e Z;-O3>")
 endif()

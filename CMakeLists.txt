@@ -17,9 +17,12 @@ include(FetchContent)
 include(cmake/options.cmake)
 include(cmake/compilers.cmake)
 
-include(cmake/functional.cmake)
-include(cmake/h5fortran.cmake)
-include(cmake/json.cmake)
+if(USE_KERAS_HDF5)
+  add_definitions(-DUSE_KERAS_HDF5)
+  include(cmake/functional.cmake)
+  include(cmake/h5fortran.cmake)
+  include(cmake/json.cmake)
+endif()
 
 # library to archive (libneural-fortran.a)
 add_library(neural-fortran
@@ -65,12 +68,14 @@ add_library(neural-fortran
   src/nf/io/nf_io_hdf5_submodule.f90
 )
 
-target_link_libraries(neural-fortran PRIVATE
-  functional::functional
-  h5fortran::h5fortran
-  HDF5::HDF5
-  jsonfortran::jsonfortran
-)
+if(USE_KERAS_HDF5)
+  target_link_libraries(neural-fortran PRIVATE
+    functional::functional
+    h5fortran::h5fortran
+    HDF5::HDF5
+    jsonfortran::jsonfortran
+  )
+endif()
 
 install(TARGETS neural-fortran)
 
