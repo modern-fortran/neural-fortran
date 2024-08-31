@@ -14,52 +14,50 @@ on:
       - "fpm.toml"
       - "**.f90"
 
-env:
-  FPM_FFLAGS: -I/usr/include/hdf5/serial
-  FPM_LDFLAGS: -L/usr/lib/x86_64-linux-gnu/hdf5/serial
-
 jobs:
 
-  build_and_test_debug_profile:
+  gnu-cmake-debug:
     name: Build and test in debug mode
     runs-on: ubuntu-latest
-
     steps:
+    - uses: actions/checkout@v4
+    - name: Compile
+      run: cmake -DCMAKE_BUILD_TYPE=Debug -DSERIAL=1 . && make
+    - name: Test
+      run: make test
 
-    - uses: fortran-lang/setup-fpm@v4
+  gnu-cmake-release:
+    name: Build and test in release mode
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Compile
+      run: cmake -DCMAKE_BUILD_TYPE=Release -DSERIAL=1 . && make
+    - name: Test
+      run: make test
+
+  gnu-fpm-debug:
+    name: Build and test in debug mode
+    runs-on: ubuntu-latest
+    steps:
+    - uses: fortran-lang/setup-fpm@v5
       with:
-        fpm-version: "v0.6.0"
-
-    - name: Install HDF5
-      run: |
-        sudo apt update
-        sudo apt install --no-install-recommends libhdf5-dev
-    - uses: actions/checkout@v2
-
+        fpm-version: "v0.10.1"
+    - uses: actions/checkout@v4
     - name: Compile
       run: fpm build --profile debug
-
     - name: Test
       run: fpm test --profile debug
 
-  build_and_test_release_profile:
+  gnu-fpm-release:
     name: Build and test in release mode
     runs-on: ubuntu-latest
-
     steps:
-
-    - uses: fortran-lang/setup-fpm@v4
+    - uses: fortran-lang/setup-fpm@v5
       with:
-        fpm-version: "v0.6.0"
-
-    - name: Install HDF5
-      run: |
-        sudo apt update
-        sudo apt install --no-install-recommends libhdf5-dev
-    - uses: actions/checkout@v2
-
+        fpm-version: "v0.10.1"
+    - uses: actions/checkout@v4
     - name: Compile
       run: fpm build --profile release
-
     - name: Test
       run: fpm test --profile release
