@@ -17,7 +17,7 @@ on:
 jobs:
 
   gnu-cmake-debug:
-    name: Build and test in debug mode
+    name: gnu-cmake-debug
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
       run: make test
 
   gnu-cmake-release:
-    name: Build and test in release mode
+    name: gnu-cmake-release
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
       run: make test
 
   gnu-fpm-debug:
-    name: Build and test in debug mode
+    name: gnu-fpm-debug
     runs-on: ubuntu-latest
     steps:
     - uses: fortran-lang/setup-fpm@v5
@@ -50,7 +50,7 @@ jobs:
       run: fpm test --profile debug
 
   gnu-fpm-release:
-    name: Build and test in release mode
+    name: gnu-fpm-release
     runs-on: ubuntu-latest
     steps:
     - uses: fortran-lang/setup-fpm@v5
