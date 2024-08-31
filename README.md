@@ -21,8 +21,9 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
   RMSProp, Adagrad, Adam, AdamW
 * More than a dozen activation functions and their derivatives
 * Loss functions and metrics: Quadratic, Mean Squared Error, Pearson Correlation etc.
-* Loading dense and convolutional models from Keras HDF5 (.h5) files
 * Data-based parallelism
+* Loading dense and convolutional models from Keras HDF5 (.h5) files
+(see the [nf-keras-hdf5](https://github.com/neural-fortran/nf-keras-hdf5) add-on)
 
 ### Available layers
 
@@ -51,14 +52,8 @@ cd neural-fortran
 Required dependencies are:
 
 * A Fortran compiler
-* [HDF5](https://www.hdfgroup.org/downloads/hdf5/)
-  (must be provided by the OS package manager or your own build from source)
-* [functional-fortran](https://github.com/wavebitscientific/functional-fortran),
-  [h5fortran](https://github.com/geospace-code/h5fortran),
-  [json-fortran](https://github.com/jacobwilliams/json-fortran)
-  (all handled by neural-fortran's build systems, no need for a manual install)
 * [fpm](https://github.com/fortran-lang/fpm) or
-  [CMake](https://cmake.org) for building the code
+  [CMake](https://cmake.org) to build the code
 
 Optional dependencies are:
 
@@ -79,23 +74,7 @@ Compilers tested include:
 With gfortran, the following will create an optimized build of neural-fortran:
 
 ```
-fpm build \
-  --profile release \
-  --flag "-I$HDF5INC -L$HDF5LIB"
-```
-
-HDF5 is now a required dependency, so you have to provide it to fpm.
-The above command assumes that the `HDF5INC` and `HDF5LIB` environment
-variables are set to the include and library paths, respectively, of your
-HDF5 install.
-
-If you use Conda, the following instructions work:
-
-```
-conda create -n nf hdf5
-conda activate nf
-fpm build --profile release --flag "-I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib -Wl,-rpath -Wl,$CONDA_PREFIX/lib"
-fpm test --profile release --flag "-I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib -Wl,-rpath -Wl,$CONDA_PREFIX/lib"
+fpm build --profile release
 ```
 
 #### Building in parallel mode
@@ -106,25 +85,20 @@ Once installed, use the compiler wrappers `caf` and `cafrun` to build and execut
 in parallel, respectively:
 
 ```
-fpm build \
-  --compiler caf \
-  --profile release \
-  --flag "-I$HDF5INC -L$HDF5LIB"
+fpm build --compiler caf --profile release
 ```
 
 #### Testing with fpm
 
 ```
-fpm test \
-  --profile release \
-  --flag "-I$HDF5INC -L$HDF5LIB"
+fpm test --profile release
 ```
 
 For the time being, you need to specify the same compiler flags to `fpm test`
 as you did in `fpm build` so that fpm knows it should use the same build
 profile.
 
-See [Fortran Package Manager](https://github.com/fortran-lang/fpm) for more info on fpm.
+See the [Fortran Package Manager](https://github.com/fortran-lang/fpm) for more info on fpm.
 
 ### Building with CMake
 
@@ -156,8 +130,7 @@ cafrun -n 4 bin/mnist # run MNIST example on 4 cores
 #### Building with a different compiler
 
 If you want to build with a different compiler, such as Intel Fortran,
-set the `HDF5_ROOT` environment variable to the root path of your
-Intel HDF5 build, and specify `FC` when issuing `cmake`:
+specify `FC` when issuing `cmake`:
 
 ```
 FC=ifort cmake ..
@@ -213,6 +186,7 @@ You can configure neural-fortran by setting the appropriate options before
 including the subproject.
 
 The following should be added in the CMake file of your directory:
+
 ```cmake
 if(NOT TARGET "neural-fortran::neural-fortran")
   find_package("neural-fortran" REQUIRED)
@@ -230,11 +204,7 @@ examples, in increasing level of complexity:
 3. [dense_mnist](example/dense_mnist.f90): Hand-written digit recognition
   (MNIST dataset) using a dense (fully-connected) network
 4. [cnn_mnist](example/cnn_mnist.f90): Training a CNN on the MNIST dataset
-5. [dense_from_keras](example/dense_from_keras.f90): Creating a pre-trained
-  dense model from a Keras HDF5 file and running the inference.
-6. [cnn_from_keras](example/cnn_from_keras.f90): Creating a pre-trained
-  convolutional model from a Keras HDF5 file and running the inference.
-7. [get_set_network_params](example/get_set_network_params.f90): Getting and
+5. [get_set_network_params](example/get_set_network_params.f90): Getting and
   setting hyperparameters of a network.
 
 The examples also show you the extent of the public API that's meant to be
