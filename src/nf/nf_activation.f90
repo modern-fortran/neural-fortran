@@ -7,6 +7,7 @@ module nf_activation
   private
 
   public :: activation_function
+  public :: get_activation_by_name
   public :: elu
   public :: exponential
   public :: gaussian
@@ -555,6 +556,59 @@ contains
         res = exp(x / self % alpha)
     end where
   end function
+
+  pure function get_activation_by_name(activation_name) result(res)
+  ! Workaround to get activation_function with some
+  ! hardcoded default parameters by its name.
+  ! Need this function since we get only activation name
+  ! from keras files.
+    character(len=*), intent(in) :: activation_name
+    class(activation_function), allocatable :: res
+
+    select case(trim(activation_name))
+    case('elu')
+     allocate ( res, source = elu(alpha = 0.1) )
+
+    case('exponential')
+      allocate ( res, source = exponential() )
+
+    case('gaussian')
+      allocate ( res, source = gaussian() )
+
+    case('linear')
+      allocate ( res, source = linear() )
+
+    case('relu')
+      allocate ( res, source = relu() )
+
+    case('leaky_relu')
+      allocate ( res, source = leaky_relu(alpha = 0.1) )
+
+    case('sigmoid')
+      allocate ( res, source = sigmoid() )
+
+    case('softmax')
+      allocate ( res, source = softmax() )
+
+    case('softplus')
+      allocate ( res, source = softplus() )
+
+    case('step')
+      allocate ( res, source = step() )
+
+    case('tanh')
+      allocate ( res, source = tanhf() )
+
+    case('celu')
+      allocate ( res, source = celu() )
+
+    case default
+        error stop 'activation_name must be one of: ' // &
+          '"elu", "exponential", "gaussian", "linear", "relu", ' // &
+          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", "tanh" or "celu".'
+    end select
+
+  end function get_activation_by_name
 
   pure function get_name(self) result(name)
     !! Return the name of the activation function.
