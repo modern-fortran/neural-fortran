@@ -63,9 +63,8 @@ Optional dependencies are:
 
 Compilers tested include:
 
-* gfortran-9.4.0
-* ifort-2021.4
-* ifx-2021.4
+* gfortran-13.2.0
+* flang-new-20.0.0
 
 ### Building with fpm
 
