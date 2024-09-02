@@ -1,15 +1,6 @@
 name = "neural-fortran"
-version = "0.17.0"
+version = "0.18.0"
 license = "MIT"
 author = "Milan Curcic"
 maintainer = "milancurcic@hey.com"
 copyright = "Copyright 2018-2024, neural-fortran contributors"
-
-[build]
-external-modules = "hdf5"
-link = ["hdf5", "hdf5_fortran"]
-
-[dependencies]
-functional = { git = "https://github.com/wavebitscientific/functional-fortran" }
-h5fortran = { git = "https://github.com/geospace-code/h5fortran" }
-json-fortran = { git = "https://github.com/jacobwilliams/json-fortran" }
