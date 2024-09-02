@@ -8,7 +8,7 @@ submodule(nf_dense_layer) nf_dense_layer_submodule
 
 contains
 
-  elemental module function dense_layer_cons(output_size, activation) &
+  module function dense_layer_cons(output_size, activation) &
     result(res)
     integer, intent(in) :: output_size
     class(activation_function), intent(in) :: activation
@@ -129,7 +129,9 @@ contains
     self % weights = self % weights / self % input_size
 
     ! Broadcast weights to all other images, if any.
+#ifdef PARALLEL
     call co_broadcast(self % weights, 1)
+#endif
 
     allocate(self % biases(self % output_size))
     self % biases = 0

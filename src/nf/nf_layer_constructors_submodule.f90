@@ -14,7 +14,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
 
 contains
 
-  pure module function conv2d(filters, kernel_size, activation) result(res)
+  module function conv2d(filters, kernel_size, activation) result(res)
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in), optional :: activation
@@ -40,7 +40,7 @@ contains
   end function conv2d
 
 
-  pure module function dense(layer_size, activation) result(res)
+  module function dense(layer_size, activation) result(res)
     integer, intent(in) :: layer_size
     class(activation_function), intent(in), optional :: activation
     type(layer) :: res
@@ -63,14 +63,14 @@ contains
   end function dense
 
 
-  pure module function flatten() result(res)
+  module function flatten() result(res)
     type(layer) :: res
     res % name = 'flatten'
     allocate(res % p, source=flatten_layer())
   end function flatten
 
 
-  pure module function input1d(layer_size) result(res)
+  module function input1d(layer_size) result(res)
     integer, intent(in) :: layer_size
     type(layer) :: res
     res % name = 'input'
@@ -81,7 +81,7 @@ contains
   end function input1d
 
 
-  pure module function input3d(layer_shape) result(res)
+  module function input3d(layer_shape) result(res)
     integer, intent(in) :: layer_shape(3)
     type(layer) :: res
     res % name = 'input'
@@ -91,7 +91,7 @@ contains
     res % initialized = .true.
   end function input3d
 
-  pure module function maxpool2d(pool_size, stride) result(res)
+  module function maxpool2d(pool_size, stride) result(res)
     integer, intent(in) :: pool_size
     integer, intent(in), optional :: stride
     integer :: stride_
@@ -119,7 +119,7 @@ contains
 
   end function maxpool2d
 
-  pure module function reshape(output_shape) result(res)
+  module function reshape(output_shape) result(res)
     integer, intent(in) :: output_shape(:)
     type(layer) :: res
 

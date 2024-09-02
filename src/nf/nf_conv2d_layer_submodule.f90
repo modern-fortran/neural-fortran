@@ -7,7 +7,7 @@ submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
 contains
 
-  pure module function conv2d_layer_cons(filters, kernel_size, activation) result(res)
+  module function conv2d_layer_cons(filters, kernel_size, activation) result(res)
     implicit none
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size

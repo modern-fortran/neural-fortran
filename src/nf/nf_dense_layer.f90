@@ -42,7 +42,7 @@ module nf_dense_layer
   end type dense_layer
 
   interface dense_layer
-    elemental module function dense_layer_cons(output_size, activation) &
+    module function dense_layer_cons(output_size, activation) &
       result(res)
       !! This function returns the `dense_layer` instance.
       integer, intent(in) :: output_size

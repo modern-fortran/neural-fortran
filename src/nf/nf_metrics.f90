@@ -36,7 +36,7 @@ module nf_metrics
 
   contains
 
-  pure module function corr_eval(true, predicted) result(res)
+  pure function corr_eval(true, predicted) result(res)
     !! Pearson correlation function:
     !!
     real, intent(in) :: true(:)

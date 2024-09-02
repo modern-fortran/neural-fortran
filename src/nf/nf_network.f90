@@ -77,7 +77,7 @@ module nf_network
 
   interface forward
 
-    pure module subroutine forward_1d(self, input)
+    module subroutine forward_1d(self, input)
       !! Apply a forward pass through the network.
       !!
       !! This changes the state of layers on the network.
@@ -91,7 +91,7 @@ module nf_network
         !! 1-d input data
     end subroutine forward_1d
 
-    pure module subroutine forward_3d(self, input)
+    module subroutine forward_3d(self, input)
       !! Apply a forward pass through the network.
       !!
       !! This changes the state of layers on the network.
@@ -153,7 +153,7 @@ module nf_network
 
   interface
 
-    pure module subroutine backward(self, output, loss)
+    module subroutine backward(self, output, loss)
       !! Apply one backward pass through the network.
       !! This changes the state of layers on the network.
       !! Typically used only internally from the `train` method,
@@ -166,7 +166,7 @@ module nf_network
         !! Loss instance to use. If not provided, the default is quadratic().
     end subroutine backward
 
-    pure module integer function get_num_params(self)
+    module integer function get_num_params(self)
       !! Get the number of parameters in the network.
       class(network), intent(in) :: self
       !! Network instance

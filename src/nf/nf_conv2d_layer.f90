@@ -41,7 +41,7 @@ module nf_conv2d_layer
   end type conv2d_layer
 
   interface conv2d_layer
-    pure module function conv2d_layer_cons(filters, kernel_size, activation) &
+    module function conv2d_layer_cons(filters, kernel_size, activation) &
       result(res)
       !! `conv2d_layer` constructor function
       integer, intent(in) :: filters

@@ -93,7 +93,7 @@ contains
   end function network_from_layers
 
 
-  pure module subroutine backward(self, output, loss)
+  module subroutine backward(self, output, loss)
     class(network), intent(in out) :: self
     real, intent(in) :: output(:)
     class(loss_type), intent(in), optional :: loss
@@ -167,20 +167,20 @@ contains
 
     allocate(res(size(output, dim=1), n))
 
-    do concurrent (i = 1:size(output, dim=1))
+    do i = 1, size(output, dim=1)
       res(i,1) = self % loss % eval(output_data(i,:), output(i,:))
     end do
 
     if (.not. present(metric)) return
 
-    do concurrent (i = 1:size(output, dim=1))
+    do i = 1, size(output, dim=1)
       res(i,2) = metric % eval(output_data(i,:), output(i,:))
     end do
 
   end function evaluate_batch_1d
 
 
-  pure module subroutine forward_1d(self, input)
+  module subroutine forward_1d(self, input)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
     integer :: n
@@ -197,7 +197,7 @@ contains
   end subroutine forward_1d
 
 
-  pure module subroutine forward_3d(self, input)
+  module subroutine forward_3d(self, input)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     integer :: n
@@ -273,7 +273,7 @@ contains
 
     allocate(res(output_size, batch_size))
 
-    batch: do concurrent(i = 1:size(res, dim=2))
+    batch: do i = 1, size(res, dim=2)
 
       call self % forward(input(:,i))
 
@@ -303,7 +303,7 @@ contains
 
     allocate(res(output_size, batch_size))
 
-    batch: do concurrent(i = 1:batch_size)
+    batch: do i = 1, batch_size
 
       call self % forward(input(:,:,:,i))
 
@@ -330,7 +330,7 @@ contains
   end subroutine print_info
 
 
-  pure module function get_num_params(self)
+  module function get_num_params(self)
     class(network), intent(in) :: self
     integer :: get_num_params
 
@@ -443,15 +443,17 @@ contains
         call random_number(pos)
         batch_start = int(pos * (dataset_size - batch_size + 1)) + 1
 
+#ifdef PARALLEL
         ! FIXME shuffle in a way that doesn't require co_broadcast
         call co_broadcast(batch_start, 1)
+#endif
 
         ! Distribute the batch in nearly equal pieces to all images
         indices = tile_indices(batch_size)
         istart = indices(1) + batch_start - 1
         iend = indices(2) + batch_start - 1
 
-        do concurrent(j = istart:iend)
+        do j = istart, iend
           call self % forward(input_data(:,j))
           call self % backward(output_data(:,j))
         end do
@@ -494,6 +496,7 @@ contains
       batch_size_ = 1
     end if
 
+#ifdef PARALLEL
     ! Sum weight and bias gradients across images, if any
     do n = 2, size(self % layers)
       select type(this_layer => self % layers(n) % p)
@@ -505,13 +508,14 @@ contains
           call co_sum(this_layer % db)
       end select
     end do
+#endif
 
     params = self % get_params()
     call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
     call self % set_params(params)
 
     ! Flush network gradients to zero.
-    do concurrent(n = 2:size(self % layers))
+    do n = 2, size(self % layers)
       select type(this_layer => self % layers(n) % p)
         type is(dense_layer)
           this_layer % dw = 0
