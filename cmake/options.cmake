@@ -1,4 +1,4 @@
-option(SERIAL "Serial execution")
+option(PARALLEL "Parallel execution")
 option(${PROJECT_NAME}_BUILD_TESTING "build ${PROJECT_NAME} tests" true)
 option(${PROJECT_NAME}_BUILD_EXAMPLES "build ${PROJECT_NAME} examples" true)
 
@@ -8,10 +8,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-if(SERIAL)
-  message(STATUS "Configuring build for serial execution")
-else()
+if(PARALLEL)
   message(STATUS "Configuring build for parallel execution")
+else()
+  message(STATUS "Configuring build for serial execution; configure with -DPARALLEL=1 for a parallel build")
 endif()
 
 # --- Generally useful CMake project options
