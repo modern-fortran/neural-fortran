@@ -24,9 +24,8 @@ program dense_mnist
 
   call net % print_info()
 
-  if (this_image() == 1) &
-    print '(a,f5.2,a)', 'Initial accuracy: ', accuracy( &
-      net, validation_images, label_digits(validation_labels)) * 100, ' %'
+  print '(a,f5.2,a)', 'Initial accuracy: ', accuracy( &
+    net, validation_images, label_digits(validation_labels)) * 100, ' %'
 
   epochs: do n = 1, num_epochs
 
@@ -44,10 +43,9 @@ program dense_mnist
       ! 2 metrics; 1st is default loss function (quadratic), other is Pearson corr.
       output_metrics = net % evaluate(validation_images, label_digits(validation_labels), metric=corr())
       mean_metrics = sum(output_metrics, 1) / size(output_metrics, 1)
-      if (this_image() == 1) &
-        print '(a,i2,3(a,f6.3))', 'Epoch ', n, ' done, Accuracy: ', &
-          accuracy(net, validation_images, label_digits(validation_labels)) * 100, &
-          '%, Loss: ', mean_metrics(1), ', Pearson correlation: ', mean_metrics(2)
+      print '(a,i2,3(a,f6.3))', 'Epoch ', n, ' done, Accuracy: ', &
+        accuracy(net, validation_images, label_digits(validation_labels)) * 100, &
+        '%, Loss: ', mean_metrics(1), ', Pearson correlation: ', mean_metrics(2)
     end block
 
   end do epochs

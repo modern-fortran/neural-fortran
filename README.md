@@ -63,9 +63,10 @@ Optional dependencies are:
 
 Compilers tested include:
 
-* gfortran-9.4.0
-* ifort-2021.4
-* ifx-2021.4
+* flang-new 20.0.0
+* gfortran 13.2.0, 14.0.1
+* ifort 2021.13.1
+* ifx 2024.2.1
 
 ### Building with fpm
 
@@ -85,7 +86,7 @@ Once installed, use the compiler wrappers `caf` and `cafrun` to build and execut
 in parallel, respectively:
 
 ```
-fpm build --compiler caf --profile release
+fpm build --compiler caf --profile release --flag "-cpp -DPARALLEL"
 ```
 
 #### Testing with fpm
@@ -107,7 +108,7 @@ See the [Fortran Package Manager](https://github.com/fortran-lang/fpm) for more 
 ```
 mkdir build
 cd build
-cmake .. -DSERIAL=1
+cmake ..
 make
 ```
 
@@ -122,7 +123,7 @@ in parallel, respectively:
 
 
 ```
-FC=caf cmake ..
+FC=caf cmake .. -DPARALLEL
 make
 cafrun -n 4 bin/mnist # run MNIST example on 4 cores
 ```
@@ -139,7 +140,7 @@ FC=ifort cmake ..
 for a parallel build of neural-fortran, or
 
 ```
-FC=ifort cmake .. -DSERIAL=1
+FC=ifort cmake ..
 ```
 
 for a serial build.

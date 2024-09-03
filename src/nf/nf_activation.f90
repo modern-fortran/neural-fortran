@@ -557,7 +557,7 @@ contains
     end where
   end function
 
-  pure function get_activation_by_name(activation_name) result(res)
+  function get_activation_by_name(activation_name) result(res)
   ! Workaround to get activation_function with some
   ! hardcoded default parameters by its name.
   ! Need this function since we get only activation name

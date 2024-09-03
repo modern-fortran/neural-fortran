@@ -12,7 +12,7 @@ module nf_layer_constructors
 
   interface input
 
-    pure module function input1d(layer_size) result(res)
+    module function input1d(layer_size) result(res)
       !! 1-d input layer constructor.
       !!
       !! This layer is for inputting 1-d data to the network.
@@ -35,7 +35,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function input1d
 
-    pure module function input3d(layer_shape) result(res)
+    module function input3d(layer_shape) result(res)
       !! 3-d input layer constructor.
       !!
       !! This layer is for inputting 3-d data to the network.
@@ -62,7 +62,7 @@ module nf_layer_constructors
 
   interface
 
-    pure module function dense(layer_size, activation) result(res)
+    module function dense(layer_size, activation) result(res)
       !! Dense (fully-connected) layer constructor.
       !!
       !! This layer is a building block for dense, fully-connected networks,
@@ -85,7 +85,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function dense
 
-    pure module function flatten() result(res)
+    module function flatten() result(res)
       !! Flatten (3-d -> 1-d) layer constructor.
       !!
       !! Use this layer to chain layers with 3-d outputs to layers with 1-d
@@ -106,7 +106,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function flatten
 
-    pure module function conv2d(filters, kernel_size, activation) result(res)
+    module function conv2d(filters, kernel_size, activation) result(res)
       !! 2-d convolutional layer constructor.
       !!
       !! This layer is for building 2-d convolutional network.
@@ -133,7 +133,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function conv2d
 
-    pure module function maxpool2d(pool_size, stride) result(res)
+    module function maxpool2d(pool_size, stride) result(res)
       !! 2-d maxpooling layer constructor.
       !!
       !! This layer is for downscaling other layers, typically `conv2d`.
@@ -155,7 +155,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function maxpool2d
 
-    pure module function reshape(output_shape) result(res)
+    module function reshape(output_shape) result(res)
       !! Rank-1 to rank-any reshape layer constructor.
       !! Currently implemented is only rank-3 for the output of the reshape.
       !!

@@ -40,9 +40,8 @@ program cnn_mnist
       optimizer=sgd(learning_rate=3.) &
     )
 
-    if (this_image() == 1) &
-      print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', accuracy( &
-        net, validation_images, label_digits(validation_labels)) * 100, ' %'
+    print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', accuracy( &
+      net, validation_images, label_digits(validation_labels)) * 100, ' %'
 
   end do epochs
 
