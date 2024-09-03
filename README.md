@@ -63,8 +63,12 @@ Optional dependencies are:
 
 Compilers tested include:
 
-* gfortran-13.2.0
-* flang-new-20.0.0
+* flang-new 20.0.0
+* gfortran 13.2.0, 14.0.1
+* ifort 2021.13.1 (*)
+* ifx 2024.2.1 (*)
+
+(*) Some tests fail in minor ways but key examples work.
 
 ### Building with fpm
 
