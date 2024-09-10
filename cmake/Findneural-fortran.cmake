@@ -1,9 +1,11 @@
-# - Find neural-fortran library
 # Find the native neural-fortran includes and library
 #
 # neural-fortran_INCLUDE_DIRS - where to find neural-fortran.h, etc.
 # neural-fortran_LIBRARIES - List of libraries when using neural-fortran.
 # neural-fortran_FOUND - True if neural-fortran found.
+#
+# To use neural-fortran_ROOT_DIR to specify the prefix directory of neural-fortran
+
 
 find_path(neural-fortran_INCLUDE_DIRS
   NAMES nf.mod

@@ -202,6 +202,12 @@ if(NOT TARGET neural-fortran::neural-fortran)
 endif()
 ```
 
+and then to use the target in your project:
+
+```cmake
+target_link_libraries(your_target PRIVATE neural-fortran::neural-fortran)
+```
+
 ## Examples
 
 The easiest way to get a sense of how to use neural-fortran is to look at
