@@ -7,12 +7,14 @@ on:
       - ".github/workflows/ci.yml"
       - "fpm.toml"
       - "**.f90"
+      - "CMakelists.txt"
 
   pull_request:
     paths:
       - ".github/workflows/ci.yml"
       - "fpm.toml"
       - "**.f90"
+      - "CMakelists.txt"
 
 jobs:
 
