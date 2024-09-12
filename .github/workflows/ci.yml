@@ -36,7 +36,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: CMake Configure
-      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DSERIAL=1
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
     - name: Compile
       run: cmake --build build
     - name: Test
