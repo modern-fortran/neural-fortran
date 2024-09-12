@@ -24,7 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: CMake Configure
-      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DSERIAL=1
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
     - name: Compile
       run: cmake --build build
     - name: Test
