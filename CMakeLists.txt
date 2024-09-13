@@ -54,16 +54,25 @@ add_library(neural-fortran
 )
 
 target_link_libraries(neural-fortran PRIVATE)
+set_target_properties(neural-fortran PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 install(TARGETS neural-fortran)
+
+# Install the module files
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/ DESTINATION include)
+
+# Also install the cmake/Findneural-fortran.cmake file
+install(FILES cmake/Findneural-fortran.cmake DESTINATION include/cmake/neural-fortran)
 
 # Remove leading or trailing whitespace
 string(REGEX REPLACE "^ | $" "" LIBS "${LIBS}")
 
 if(${PROJECT_NAME}_BUILD_TESTING)
+  message(STATUS "Building tests")
   add_subdirectory(test)
 endif()
 
 if(${PROJECT_NAME}_BUILD_EXAMPLES)
+  message(STATUS "Building examples")
   add_subdirectory(example)
 endif()

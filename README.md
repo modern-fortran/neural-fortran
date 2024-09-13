@@ -183,15 +183,29 @@ find or fetch an installation of this project while configuring your project. Th
 module makes sure that the `neural-fortran::neural-fortran` target is always generated regardless
 of how the neural-fortran is included in the project.
 
-You can configure neural-fortran by setting the appropriate options before
-including the subproject.
+First, either copy `Findneural-fortran.cmake` to, say, your project's `cmake` directory
+and then include it in your `CMakeLists.txt` file:
+
+```cmake
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+```
+or use the `CMAKE_MODULE_PATH` variable to point to the directory where it is installed.
+
+Next you need to set `neural-fortran_ROOT_DIR` to the directory where neural-fortran is installed
+such that `neural-fortran_ROOT_DIR/lib/libneural-fortran.a` exists.
 
 The following should be added in the CMake file of your directory:
 
 ```cmake
-if(NOT TARGET "neural-fortran::neural-fortran")
-  find_package("neural-fortran" REQUIRED)
+if(NOT TARGET neural-fortran::neural-fortran)
+  find_package(neural-fortran REQUIRED)
 endif()
+```
+
+and then to use the target in your project:
+
+```cmake
+target_link_libraries(your_target PRIVATE neural-fortran::neural-fortran)
 ```
 
 ## Examples

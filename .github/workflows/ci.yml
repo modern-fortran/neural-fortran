@@ -7,12 +7,14 @@ on:
       - ".github/workflows/ci.yml"
       - "fpm.toml"
       - "**.f90"
+      - "CMakelists.txt"
 
   pull_request:
     paths:
       - ".github/workflows/ci.yml"
       - "fpm.toml"
       - "**.f90"
+      - "CMakelists.txt"
 
 jobs:
 
@@ -21,20 +23,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: CMake Configure
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
     - name: Compile
-      run: cmake -DCMAKE_BUILD_TYPE=Debug -DSERIAL=1 . && make
+      run: cmake --build build
     - name: Test
-      run: make test
+      run: ctest --test-dir build
 
   gnu-cmake-release:
     name: gnu-cmake-release
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: CMake Configure
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
     - name: Compile
-      run: cmake -DCMAKE_BUILD_TYPE=Release -DSERIAL=1 . && make
+      run: cmake --build build
     - name: Test
-      run: make test
+      run: ctest --test-dir build
 
   gnu-fpm-debug:
     name: gnu-fpm-debug
