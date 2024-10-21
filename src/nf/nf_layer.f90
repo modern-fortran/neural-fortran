@@ -30,6 +30,7 @@ module nf_layer
     procedure :: get_params
     procedure :: get_gradients
     procedure :: set_params
+    procedure :: set_state
     procedure :: init
     procedure :: print_info
 
@@ -152,6 +153,11 @@ module nf_layer
       real, intent(in) :: params(:)
         !! Parameters of this layer
     end subroutine set_params
+
+    pure module subroutine set_state(self, state)
+      class(layer), intent(inout) :: self
+      real, intent(in), optional :: state(:)
+    end subroutine set_state
 
   end interface
 

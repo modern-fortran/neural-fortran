@@ -7,8 +7,9 @@ submodule(nf_network) nf_network_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_rnn_layer, only: rnn_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
+  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape, rnn
   use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
@@ -93,6 +94,59 @@ contains
   end function network_from_layers
 
 
+  pure function get_activation_by_name(activation_name) result(res)
+  ! Workaround to get activation_function with some
+  ! hardcoded default parameters by its name.
+  ! Need this function since we get only activation name
+  ! from keras files.
+    character(len=*), intent(in) :: activation_name
+    class(activation_function), allocatable :: res
+
+    select case(trim(activation_name))
+    case('elu')
+     allocate ( res, source = elu(alpha = 0.1) )
+
+    case('exponential')
+      allocate ( res, source = exponential() )
+
+    case('gaussian')
+      allocate ( res, source = gaussian() )
+
+    case('linear')
+      allocate ( res, source = linear() )
+
+    case('relu')
+      allocate ( res, source = relu() )
+
+    case('leaky_relu')
+      allocate ( res, source = leaky_relu(alpha = 0.1) )
+
+    case('sigmoid')
+      allocate ( res, source = sigmoid() )
+
+    case('softmax')
+      allocate ( res, source = softmax() )
+
+    case('softplus')
+      allocate ( res, source = softplus() )
+
+    case('step')
+      allocate ( res, source = step() )
+
+    case('tanh')
+      allocate ( res, source = tanhf() )
+
+    case('celu')
+      allocate ( res, source = celu() )
+
+    case default
+        error stop 'activation_name must be one of: ' // &
+          '"elu", "exponential", "gaussian", "linear", "relu", ' // &
+          '"leaky_relu", "sigmoid", "softmax", "softplus", "step", "tanh" or "celu".'
+    end select
+
+  end function get_activation_by_name
+
   module subroutine backward(self, output, loss)
     class(network), intent(in out) :: self
     real, intent(in) :: output(:)
@@ -124,6 +178,11 @@ contains
         ! Output layer; apply the loss function
         select type(this_layer => self % layers(n) % p)
           type is(dense_layer)
+            call self % layers(n) % backward( &
+              self % layers(n - 1), &
+              self % loss % derivative(output, this_layer % output) &
+            )
+          type is(rnn_layer)
             call self % layers(n) % backward( &
               self % layers(n - 1), &
               self % loss % derivative(output, this_layer % output) &
@@ -521,6 +580,9 @@ contains
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv2d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(rnn_layer)
           this_layer % dw = 0
           this_layer % db = 0
       end select
