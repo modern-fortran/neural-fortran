@@ -3,6 +3,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_layer, only: layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
+  use nf_dropout_layer, only: dropout_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
