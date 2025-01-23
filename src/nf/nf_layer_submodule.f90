@@ -107,7 +107,7 @@ contains
   end subroutine backward_3d
 
 
-  pure module subroutine forward(self, input)
+  module subroutine forward(self, input)
     implicit none
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: input
@@ -115,6 +115,18 @@ contains
     select type(this_layer => self % p)
 
       type is(dense_layer)
+
+        ! Upstream layers permitted: input1d, dense, flatten
+        select type(prev_layer => input % p)
+          type is(input1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(dense_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(flatten_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(dropout_layer)
 
         ! Upstream layers permitted: input1d, dense, flatten
         select type(prev_layer => input % p)

@@ -65,6 +65,32 @@ program test_dropout_layer
 
   end select
 
+  ! Now we're gonna run the forward pass and check that the dropout indeed
+  ! drops according to the requested dropout rate.
+  forward_pass: block
+    real :: input_data(5)
+    real :: output_data(size(input_data))
+    integer :: n
+
+    net = network([ &
+      input(size(input_data)), &
+      dropout(0.5) &
+    ])
+
+    call random_number(input_data)
+    do n = 1, 10000
+      output_data = net % predict(input_data)
+      ! Check that sum of output matches sum of input within small tolerance
+      if (abs(sum(output_data) - sum(input_data)) > 1e-5) then
+        ok = .false.
+        exit
+      end if
+    end do
+    if (.not. ok) then
+      write(stderr, '(a)') 'dropout layer output sum should match input sum within 1% tolerance.. failed'
+    end if
+  end block forward_pass
+
   if (ok) then
     print '(a)', 'test_dropout_layer: All tests passed.'
   else

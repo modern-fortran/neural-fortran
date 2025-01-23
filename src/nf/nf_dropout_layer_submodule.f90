@@ -35,17 +35,24 @@ contains
   module subroutine forward(self, input)
     class(dropout_layer), intent(in out) :: self
     real, intent(in) :: input(:)
+    real :: scale
 
     ! Generate random mask for dropout
     call random_number(self % mask)
     where (self % mask < self % dropout_rate)
       self % mask = 0
     elsewhere
-      self % mask = 1 / (1 - self % dropout_rate)  ! Scale to preserve expected value
+      self % mask = 1
     end where
 
     ! Apply dropout mask
     self % output = input * self % mask
+
+    ! Scale output and mask to preserve the input sum
+    scale = sum(input) / sum(self % output)
+    self % output = self % output * scale
+    self % mask = self % mask * scale
+
   end subroutine forward
 
 

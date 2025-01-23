@@ -76,7 +76,7 @@ module nf_layer
 
   interface
 
-    pure module subroutine forward(self, input)
+    module subroutine forward(self, input)
       !! Apply a forward pass on the layer.
       !! This changes the internal state of the layer.
       !! This is normally called internally by the `network % forward`

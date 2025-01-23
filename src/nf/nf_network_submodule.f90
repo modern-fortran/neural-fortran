@@ -2,6 +2,7 @@ submodule(nf_network) nf_network_submodule
 
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
+  use nf_dropout_layer, only: dropout_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
@@ -226,6 +227,8 @@ contains
 
     select type(output_layer => self % layers(num_layers) % p)
       type is(dense_layer)
+        res = output_layer % output
+      type is(dropout_layer)
         res = output_layer % output
       type is(flatten_layer)
         res = output_layer % output
