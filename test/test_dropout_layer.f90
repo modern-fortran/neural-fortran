@@ -87,7 +87,7 @@ program test_dropout_layer
       end if
     end do
     if (.not. ok) then
-      write(stderr, '(a)') 'dropout layer output sum should match input sum within 1% tolerance.. failed'
+      write(stderr, '(a)') 'dropout layer output sum should match input sum within tolerance.. failed'
     end if
   end block forward_pass
 
