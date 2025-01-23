@@ -4,7 +4,6 @@ module nf_dropout_layer
   !! It is used internally by the layer type.
   !! It is not intended to be used directly by the user.
 
-  use nf_activation, only: activation_function
   use nf_base_layer, only: base_layer
 
   implicit none
@@ -17,14 +16,13 @@ module nf_dropout_layer
     !! Concrete implementation of a dropout layer type
 
     integer :: input_size
-    integer :: output_size
 
     real, allocatable :: output(:)
     real, allocatable :: gradient(:)
-    real :: dropout_rate ! probability of dropping a neuron
     real, allocatable :: mask(:) ! binary mask for dropout
 
-    class(activation_function), allocatable :: activation
+    real :: dropout_rate ! probability of dropping a neuron
+    logical :: training = .true.
 
   contains
 
@@ -59,7 +57,7 @@ module nf_dropout_layer
         !! Gradient from the next layer
     end subroutine backward
 
-    pure module subroutine forward(self, input)
+    module subroutine forward(self, input)
       !! Propagate forward the layer.
       !! Calling this subroutine updates the values of a few data components
       !! of `dropout_layer` that are needed for the backward pass.
@@ -69,7 +67,7 @@ module nf_dropout_layer
         !! Input from the previous layer
     end subroutine forward
 
-    module subroutine init(self, input_shape, training)
+    module subroutine init(self, input_shape)
       !! Initialize the layer data structures.
       !!
       !! This is a deferred procedure from the `base_layer` abstract type.
@@ -77,9 +75,6 @@ module nf_dropout_layer
         !! Dropout layer instance
       integer, intent(in) :: input_shape(:)
         !! Shape of the input layer
-      logical, intent(in) :: training
-        !! Whether the layer is in training mode (.true. == dropping out neurons)
-        !! or in inference mode (.false. == doing nothing)
     end subroutine init
 
   end interface

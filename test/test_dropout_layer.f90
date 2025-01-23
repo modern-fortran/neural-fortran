@@ -2,6 +2,7 @@ program test_dropout_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf, only: dropout, layer
   type(layer) :: layer1
+  logical :: ok = .true.
 
   layer1 = dropout(0.5)
 

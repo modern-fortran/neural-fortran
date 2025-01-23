@@ -64,6 +64,14 @@ contains
   end function dense
 
 
+  module function dropout(rate) result(res)
+    real, intent(in) :: rate
+    type(layer) :: res
+    res % name = 'dropout'
+    allocate(res % p, source=dropout_layer(rate))
+  end function dropout
+
+
   module function flatten() result(res)
     type(layer) :: res
     res % name = 'flatten'
@@ -92,6 +100,7 @@ contains
     res % initialized = .true.
   end function input3d
 
+
   module function maxpool2d(pool_size, stride) result(res)
     integer, intent(in) :: pool_size
     integer, intent(in), optional :: stride
@@ -119,6 +128,7 @@ contains
     )
 
   end function maxpool2d
+
 
   module function reshape(output_shape) result(res)
     integer, intent(in) :: output_shape(:)
