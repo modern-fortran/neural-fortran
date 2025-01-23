@@ -12,10 +12,9 @@ module nf_dropout_layer
   public :: dropout_layer
 
   type, extends(base_layer) :: dropout_layer
-
     !! Concrete implementation of a dropout layer type
 
-    integer :: input_size
+    integer :: input_size = 0
 
     real, allocatable :: output(:)
     real, allocatable :: gradient(:)
