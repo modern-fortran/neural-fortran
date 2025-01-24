@@ -21,6 +21,7 @@ module nf_dropout_layer
     real, allocatable :: mask(:) ! binary mask for dropout
 
     real :: dropout_rate ! probability of dropping a neuron
+    real :: scale ! scale factor to preserve the input sum
     logical :: training = .true.
 
   contains

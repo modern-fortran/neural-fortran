@@ -35,7 +35,6 @@ contains
   module subroutine forward(self, input)
     class(dropout_layer), intent(in out) :: self
     real, intent(in) :: input(:)
-    real :: scale
 
     ! Generate random mask for dropout
     call random_number(self % mask)
@@ -45,13 +44,11 @@ contains
       self % mask = 1
     end where
 
-    ! Apply dropout mask
-    self % output = input * self % mask
+    ! Scale factor to preserve the input sum
+    self % scale = sum(input) / sum(self % output)  ! scale == 1/P(keep)
 
-    ! Scale output and mask to preserve the input sum
-    scale = sum(input) / sum(self % output)
-    self % output = self % output * scale
-    self % mask = self % mask * scale
+    ! Apply dropout mask
+    self % output = input * self % mask * self % scale
 
   end subroutine forward
 
@@ -62,7 +59,7 @@ contains
     real, intent(in) :: gradient(:)
 
     ! Backpropagate gradient through dropout mask
-    self % gradient = gradient * self % mask
+    self % gradient = gradient * self % mask * self % scale
   end subroutine backward
 
 end submodule nf_dropout_layer_submodule 
