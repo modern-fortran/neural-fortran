@@ -31,6 +31,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 |------------|------------------|------------------------|----------------------|--------------|---------------|
 | Input | `input` | n/a | 1, 3 | n/a | n/a |
 | Dense (fully-connected) | `dense` | `input1d`, `flatten` | 1 | ✅ | ✅ |
+| Dropout | `dropout` | Any | 1 | ✅ | ✅ |
 | Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅(*) |
 | Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
 | Flatten | `flatten` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
