@@ -43,11 +43,9 @@ contains
     elsewhere
       self % mask = 1
     end where
+    
+    self % scale = sum(input) / sum(input * self % mask)   
 
-    ! Scale factor to preserve the input sum
-    self % scale = sum(input) / sum(self % output)  ! scale == 1/P(keep)
-
-    ! Apply dropout mask
     self % output = input * self % mask * self % scale
 
   end subroutine forward

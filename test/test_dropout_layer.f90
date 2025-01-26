@@ -73,7 +73,7 @@ program test_dropout_layer
     integer :: n
 
     net = network([ &
-      input(size(input_data)), &
+      input(size(input_data)), & 
       dropout(0.5) &
     ])
 
