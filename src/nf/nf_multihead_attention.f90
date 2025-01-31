@@ -22,7 +22,7 @@ module nf_multihead_attention_layer
 
     type(softmax) :: softmax_func
 
-!    real :: output(batch_size, sequence_length, model_dimension)
+    real, allocatable :: output(:, :, :)
 
   contains
 
@@ -102,7 +102,26 @@ contains
 
   pure module subroutine forward(self, query, key, value)
     class(multihead_attention_layer), intent(in out) :: self
-    real, intent(in) :: query(:, :, :, :), key(:, :, :, :), value(:, :, :, :)
+    real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
+
+    real :: q(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
+    real :: k(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
+    real :: v(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
+    real :: attention_matrix(self % batch_size, self % n_heads, self % sequence_length, self % sequence_length)
+    real :: dot_product_attention(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
+
+    call self % query_layer % forward(query)
+    call self % key_layer % forward(key)
+    call self % value_layer % forward(value)
+
+    q = self % split_heads(self % query_layer % output)
+    k = self % split_heads(self % key_layer % output)
+    v = self % split_heads(self % value_layer % output)
+
+    attention_matrix = self % normalize_attention_matrix(self % create_attention_matrix(q, k))
+    dot_product_attention = self % scaled_dot_product_attention(attention_matrix, v)
+
+    self % output = self % output_layer % forward(self % combine_heads(dot_product_attention))
   end subroutine forward
 
   module function split_heads(self, input) result(output)
@@ -207,5 +226,6 @@ contains
     class(multihead_attention_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
+    allocate(self % output(self % batch_size, self % sequence_length, self % model_dimension))
   end subroutine init
 end module nf_multihead_attention_layer
