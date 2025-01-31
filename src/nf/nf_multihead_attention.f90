@@ -1,0 +1,184 @@
+module nf_multihead_attention_layer
+
+  !! This module provides the concrete dense layer type.
+  !! It is used internally by the layer type.
+  !! It is not intended to be used directly by the user.
+
+  use nf_activation, only: softmax
+  use nf_base_layer, only: base_layer
+  use nf_dense_layer, only: dense_layer
+
+  implicit none
+
+  private
+  public :: multihead_attention_layer
+
+  type, extends(base_layer) :: multihead_attention_layer
+
+    !! Concrete implementation of a multihead attention layer type
+
+    integer :: model_dimension, batch_size, sequence_length, n_heads
+
+    type(dense_layer) :: query_layer
+    type(dense_layer) :: key_layer
+    type(dense_layer) :: value_layer
+    type(dense_layer) :: output_layer
+
+    type(softmax) :: softmax_func
+
+  contains
+
+!    procedure :: backward
+    procedure :: forward
+    procedure :: split_heads
+    procedure :: create_attention_matrix
+    procedure :: normalize_attention_matrix
+    procedure :: init
+
+  end type multihead_attention_layer
+
+  interface multihead_attention_layer
+    module function multihead_attention_layer_cons(batch_size, sequence_length, model_dimension, n_heads) result(res)
+      !! This function returns the `multihead_attention_layer` instance.
+      integer, intent(in) :: batch_size, sequence_length, model_dimension, n_heads
+      type(multihead_attention_layer) :: res
+    end function multihead_attention_layer_cons
+  end interface multihead_attention_layer
+
+  interface
+
+    pure module subroutine backward(self, input, gradient)
+      !! Apply the backward gradient descent pass.
+      !! Only weight and bias gradients are updated in this subroutine,
+      !! while the weights and biases themselves are untouched.
+      class(multihead_attention_layer), intent(in out) :: self
+        !! Dense layer instance
+      real, intent(in) :: input(:)
+        !! Input from the previous layer
+      real, intent(in) :: gradient(:)
+        !! Gradient from the next layer
+    end subroutine backward
+
+    pure module subroutine forward(self, query, key, value)
+      !! Propagate forward the layer.
+      !! Calling this subroutine updates the values of a few data components
+      !! of `dense_layer` that are needed for the backward pass.
+      class(multihead_attention_layer), intent(in out) :: self
+        !! Dense layer instance
+      real, intent(in) :: query(:), key(:), value(:)
+        !! Input from the previous layer
+    end subroutine forward
+
+    module subroutine init(self, input_shape)
+      !! Initialize the layer data structures.
+      !!
+      !! This is a deferred procedure from the `base_layer` abstract type.
+      class(multihead_attention_layer), intent(in out) :: self
+        !! Dense layer instance
+      integer, intent(in) :: input_shape(:)
+        !! Shape of the input layer
+    end subroutine init
+
+  end interface
+
+contains
+  module function multihead_attention_layer_cons(&
+      batch_size, sequence_length, model_dimension, n_heads) result(res)
+    integer, intent(in) :: batch_size, sequence_length, model_dimension, n_heads
+    type(multihead_attention_layer) :: res
+    res % batch_size = batch_size
+    res % sequence_length = sequence_length
+    res % model_dimension = model_dimension
+    res % n_heads = n_heads
+
+    res % query_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
+    res % key_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
+    res % value_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
+    res % output_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
+
+    res % softmax_func = softmax()
+  end function multihead_attention_layer_cons
+
+  pure module subroutine forward(self, query, key, value)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, intent(in) :: query(:), key(:), value(:)
+
+!    self % z = matmul(input, self % weights) + self % biases
+!    self % output = self % activation % eval(self % z)
+
+  end subroutine forward
+
+  module function split_heads(self, input) result(output)
+    !! Split inputs into heads
+    !!
+    !! Example with two heads:
+    !! input (1, 3, 4):
+    !! [[[0.  , 0.3 , 0.6 , 0.9 ],
+    !!   [0.1 , 0.4 , 0.7 , 0.11],
+    !!   [0.2 , 0.5 , 0.8 , 0.12]]]
+    !! output (1, 2, 3, 2)
+    !! [[[[0.  , 0.3 ],
+    !     [0.1 , 0.4 ],
+    !     [0.2 , 0.5 ]],
+    !    [[0.6 , 0.9 ],
+    !     [0.7 , 0.11],
+    !     [0.8 , 0.12]]]]
+    class(multihead_attention_layer) :: self
+    real :: input(:, :, :)
+    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % model_dimension / self % n_heads)
+    output = reshape(&
+      input,&
+      [self % batch_size, self % n_heads, self % sequence_length, self % model_dimension / self % n_heads],&
+      order=[1, 3, 4, 2]&
+    )
+  end function split_heads
+
+  module function create_attention_matrix(self, query, key) result(output)
+    !! Create attention matrix for query and key
+    class(multihead_attention_layer) :: self
+    real :: query(:, :, :, :)
+    real :: key(:, :, :, :)
+    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % sequence_length)
+    integer :: i, j
+    ! create attention matrix for each sequence in each batch
+    do i = 1, size(query(:, 1, 1, 1))
+      do j = 1, size(query(1, :, 1, 1))
+        output(i, j, :, :) = matmul(query(i, j, :, :), transpose(key(i, j, :, :)))
+      end do
+    end do
+  end function create_attention_matrix
+
+  module function normalize_attention_matrix(self, attention_matrix, attention_mask) result(output)
+    !! Create attention matrix for query and key
+    class(multihead_attention_layer) :: self
+    real :: attention_matrix(:, :, :, :)
+    !! (batch_size, n_heads, sequence_length, sequence_length)
+    real, optional :: attention_mask(:, :, :, :)
+    !! (batch_size, n_heads, sequence_length, sequence_length)
+    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % sequence_length)
+    integer :: i, j, k
+    real :: d_k
+
+    ! scale dowm by square root of each head's size
+    d_k = self % model_dimension / self % n_heads
+    attention_matrix = attention_matrix / sqrt(d_k)
+    ! attention mask is used to mask out some of the tokens if necessary
+    if (present(attention_mask)) then
+      attention_matrix = attention_matrix + attention_mask
+    end if
+    ! softmax by last dimension
+    do i = 1, size(output, 1)
+      do j = 1, size(output, 2)
+        do k = 1, size(output, 3)
+          output(i, j, k, :) = self % softmax_func % eval_1d(attention_matrix(i, j, k, :))
+        end do
+      end do
+    end do
+  end function normalize_attention_matrix
+
+  module subroutine init(self, input_shape)
+    class(multihead_attention_layer), intent(in out) :: self
+    integer, intent(in) :: input_shape(:)
+
+  end subroutine init
+end module nf_multihead_attention_layer
