@@ -1,9 +1,5 @@
 module nf_multihead_attention_layer
-
-  !! This module provides the concrete dense layer type.
-  !! It is used internally by the layer type.
-  !! It is not intended to be used directly by the user.
-
+  use iso_fortran_env, only: stderr => error_unit
   use nf_activation, only: softmax
   use nf_base_layer, only: base_layer
   use nf_dense_layer, only: dense_layer
@@ -17,7 +13,7 @@ module nf_multihead_attention_layer
 
     !! Concrete implementation of a multihead attention layer type
 
-    integer :: model_dimension, batch_size, sequence_length, n_heads
+    integer :: model_dimension, batch_size, sequence_length, n_heads, head_size
 
     type(dense_layer) :: query_layer
     type(dense_layer) :: key_layer
@@ -33,6 +29,7 @@ module nf_multihead_attention_layer
     procedure :: split_heads
     procedure :: create_attention_matrix
     procedure :: normalize_attention_matrix
+    procedure :: scaled_dot_product_attention
     procedure :: init
 
   end type multihead_attention_layer
@@ -91,6 +88,12 @@ contains
     res % model_dimension = model_dimension
     res % n_heads = n_heads
 
+    if (mod(model_dimension, n_heads) /= 0) then
+      write(stderr, '(a)'), 'Number of heads must be divisible by model dimension'
+      error stop
+    end if
+    res % head_size = model_dimension / n_heads
+
     res % query_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
     res % key_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
     res % value_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
@@ -125,10 +128,10 @@ contains
     !     [0.8 , 0.12]]]]
     class(multihead_attention_layer) :: self
     real :: input(:, :, :)
-    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % model_dimension / self % n_heads)
+    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
     output = reshape(&
       input,&
-      [self % batch_size, self % n_heads, self % sequence_length, self % model_dimension / self % n_heads],&
+      [self % batch_size, self % n_heads, self % sequence_length, self % head_size],&
       order=[1, 3, 4, 2]&
     )
   end function split_heads
@@ -157,11 +160,9 @@ contains
     !! (batch_size, n_heads, sequence_length, sequence_length)
     real :: output(self % batch_size, self % n_heads, self % sequence_length, self % sequence_length)
     integer :: i, j, k
-    real :: d_k
 
     ! scale dowm by square root of each head's size
-    d_k = self % model_dimension / self % n_heads
-    attention_matrix = attention_matrix / sqrt(d_k)
+    attention_matrix = attention_matrix / sqrt(real(self % head_size))
     ! attention mask is used to mask out some of the tokens if necessary
     if (present(attention_mask)) then
       attention_matrix = attention_matrix + attention_mask
@@ -175,6 +176,20 @@ contains
       end do
     end do
   end function normalize_attention_matrix
+
+  module function scaled_dot_product_attention(self, attention_matrix, value) result(output)
+    class(multihead_attention_layer) :: self
+    real :: attention_matrix(:, :, :, :)
+    real :: value(:, :, :, :)
+    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
+    integer :: i, j
+
+    do i = 1, size(attention_matrix, 1)
+      do j = 1, size(attention_matrix, 2)
+        output(i, j, :, :) = matmul(attention_matrix(i, j, :, :), value(i, j, :, :))
+      end do
+    end do
+  end function scaled_dot_product_attention
 
   module subroutine init(self, input_shape)
     class(multihead_attention_layer), intent(in out) :: self
