@@ -13,7 +13,7 @@ module nf_multihead_attention_layer
 
     !! Concrete implementation of a multihead attention layer type
 
-    integer :: model_dimension, batch_size, sequence_length, n_heads, head_size
+    integer :: batch_size, sequence_length, model_dimension, n_heads, head_size
 
     type(dense_layer) :: query_layer
     type(dense_layer) :: key_layer
@@ -21,6 +21,8 @@ module nf_multihead_attention_layer
     type(dense_layer) :: output_layer
 
     type(softmax) :: softmax_func
+
+!    real :: output(batch_size, sequence_length, model_dimension)
 
   contains
 
@@ -30,6 +32,7 @@ module nf_multihead_attention_layer
     procedure :: create_attention_matrix
     procedure :: normalize_attention_matrix
     procedure :: scaled_dot_product_attention
+    procedure :: combine_heads
     procedure :: init
 
   end type multihead_attention_layer
@@ -57,13 +60,8 @@ module nf_multihead_attention_layer
     end subroutine backward
 
     pure module subroutine forward(self, query, key, value)
-      !! Propagate forward the layer.
-      !! Calling this subroutine updates the values of a few data components
-      !! of `dense_layer` that are needed for the backward pass.
       class(multihead_attention_layer), intent(in out) :: self
-        !! Dense layer instance
-      real, intent(in) :: query(:), key(:), value(:)
-        !! Input from the previous layer
+      real, intent(in) :: query(:, :, :, :), key(:, :, :, :), value(:, :, :, :)
     end subroutine forward
 
     module subroutine init(self, input_shape)
@@ -104,11 +102,7 @@ contains
 
   pure module subroutine forward(self, query, key, value)
     class(multihead_attention_layer), intent(in out) :: self
-    real, intent(in) :: query(:), key(:), value(:)
-
-!    self % z = matmul(input, self % weights) + self % biases
-!    self % output = self % activation % eval(self % z)
-
+    real, intent(in) :: query(:, :, :, :), key(:, :, :, :), value(:, :, :, :)
   end subroutine forward
 
   module function split_heads(self, input) result(output)
@@ -190,6 +184,24 @@ contains
       end do
     end do
   end function scaled_dot_product_attention
+
+  module function combine_heads(self, input) result(output)
+    class(multihead_attention_layer) :: self
+    real :: input(:, :, :, :)
+    !! (batch_size, n_heads, sequence_length, head_size)
+    real :: output(self % batch_size, self  % sequence_length, self % model_dimension)
+    !! (batch_size, sequence_length, model_dimension)
+
+    real :: scaled_dp_att_reshaped(self % batch_size, self  % sequence_length, self % n_heads, self % head_size)
+    integer :: i, j
+
+    scaled_dp_att_reshaped = reshape(input, shape(scaled_dp_att_reshaped), order=[1, 4, 2, 3])
+    do i = 1, size(scaled_dp_att_reshaped, 1)
+      do j = 1, size(scaled_dp_att_reshaped, 2)
+        output(i, j, :) = reshape(scaled_dp_att_reshaped(i, j, :, :), [4])
+      end do
+    end do
+  end function combine_heads
 
   module subroutine init(self, input_shape)
     class(multihead_attention_layer), intent(in out) :: self
