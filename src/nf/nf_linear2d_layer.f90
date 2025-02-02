@@ -68,10 +68,10 @@ contains
     allocate(self % output(self % batch_size, self % sequence_length, self % out_features))
     allocate(self % gradient(self % batch_size, self % sequence_length, self % in_features))
 
-    allocate(self%weights(self%in_features, self%out_features))
+    allocate(self % weights(self % in_features, self % out_features))
     self % weights = 0.1
 
-    allocate(self%biases(self%out_features))
+    allocate(self % biases(self % out_features))
     self%biases = 0.11
 
     allocate(self % dw(self % in_features, self % out_features))
