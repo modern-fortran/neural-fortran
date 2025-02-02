@@ -64,22 +64,15 @@ contains
   module subroutine init(self, input_shape)
     class(linear2d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
-    integer i, j
 
     allocate(self % output(self % batch_size, self % sequence_length, self % out_features))
     allocate(self % gradient(self % batch_size, self % sequence_length, self % in_features))
 
     allocate(self%weights(self%in_features, self%out_features))
-    do i = 1, self%in_features
-      do j = 1, self%out_features
-        self%weights(i, j) = 0.1
-      end do
-    end do
+    self % weights = 0.1
 
     allocate(self%biases(self%out_features))
-    do i = 1, self%out_features
-      self%biases(i) = 0.11
-    end do
+    self%biases = 0.11
 
     allocate(self % dw(self % in_features, self % out_features))
     self % dw = 0.0
@@ -92,11 +85,11 @@ contains
     real, intent(in) :: input(:, :, :)
     integer :: i, j
 
-    do i = 1, self % batch_size
+    do concurrent(i = 1: self % batch_size)
       self % output(i, :, :) = matmul(input(i, :, :), self % weights)
-      do j = 1, self % sequence_length
-        self % output(i, j, :) = self % output(i, j, :) + self % biases
-      end do
+    end do
+    do concurrent(i = 1: self % batch_size, j = 1: self % sequence_length)
+      self % output(i, j, :) = self % output(i, j, :) + self % biases
     end do
   end subroutine forward
 
@@ -108,7 +101,7 @@ contains
     real :: dw(self % in_features, self % out_features)
     integer :: i
 
-    do i = 1, self % batch_size
+    do concurrent(i = 1: self % batch_size)
       self % dw = self % dw + matmul(transpose(input(i, :, :)), gradient(i, :, :))
       self % db = self % db + sum(gradient(i, :, :), 1)
       self % gradient(i, :, :) = matmul(gradient(i, :, :), transpose(self % weights))
