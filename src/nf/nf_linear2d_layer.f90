@@ -20,7 +20,7 @@ module nf_linear2d_layer
 
   contains
 
-!    procedure :: backward
+    procedure :: backward
     procedure :: forward
     procedure :: init
 
@@ -80,6 +80,11 @@ contains
     do i = 1, self%out_features
       self%biases(i) = 0.11
     end do
+
+    allocate(self % dw(self % in_features, self % out_features))
+    self % dw = 0.0
+    allocate(self % db(self % out_features))
+    self % db = 0.0
   end subroutine init
 
   pure module subroutine forward(self, input)
@@ -94,4 +99,20 @@ contains
       end do
     end do
   end subroutine forward
+
+  pure module subroutine backward(self, input, gradient)
+    class(linear2d_layer), intent(in out) :: self
+    real, intent(in) :: input(:, :, :)
+    real, intent(in) :: gradient(:, :, :)
+    real :: db(self % out_features)
+    real :: dw(self % in_features, self % out_features)
+    integer :: i
+
+    do i = 1, self % batch_size
+      self % dw = self % dw + matmul(transpose(input(i, :, :)), gradient(i, :, :))
+      self % db = self % db + sum(gradient(i, :, :), 1)
+      self % gradient(i, :, :) = matmul(gradient(i, :, :), transpose(self % weights))
+    end do
+
+  end subroutine backward
 end module nf_linear2d_layer
