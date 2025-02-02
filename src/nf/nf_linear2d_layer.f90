@@ -1,0 +1,97 @@
+module nf_linear2d_layer
+
+  use nf_activation, only: activation_function
+  use nf_base_layer, only: base_layer
+
+  implicit none
+
+  private
+  public :: linear2d_layer
+
+  type, extends(base_layer) :: linear2d_layer
+    integer :: batch_size, sequence_length, in_features, out_features
+
+    real, allocatable :: weights(:, :)
+    real, allocatable :: biases(:)
+    real, allocatable :: output(:, :, :)
+    real, allocatable :: gradient(:, :, :) ! input gradient
+    real, allocatable :: dw(:, :) ! weight gradients
+    real, allocatable :: db(:) ! bias gradients
+
+  contains
+
+!    procedure :: backward
+    procedure :: forward
+    procedure :: init
+
+  end type linear2d_layer
+
+  interface linear2d_layer
+    module function linear2d_layer_cons(in_features, out_features) &
+      result(res)
+      integer, intent(in) :: in_features, out_features
+      type(linear2d_layer) :: res
+    end function linear2d_layer_cons
+  end interface linear2d_layer
+
+  interface
+    pure module subroutine forward(self, input)
+      class(linear2d_layer), intent(in out) :: self
+      real, intent(in) :: input(:, :, :)
+    end subroutine forward
+
+    module subroutine init(self, input_shape)
+      class(linear2d_layer), intent(in out) :: self
+      integer, intent(in) :: input_shape(:)
+    end subroutine init
+  end interface
+
+contains
+  module function linear2d_layer_cons(&
+      batch_size, sequence_length, in_features, out_features&
+  ) result(res)
+    integer, intent(in) :: batch_size, sequence_length, in_features, out_features
+    type(linear2d_layer) :: res
+
+    res % in_features = in_features
+    res % out_features = out_features
+    res % sequence_length = sequence_length
+    res % batch_size = batch_size
+
+    call res % init([1])
+  end function linear2d_layer_cons
+
+  module subroutine init(self, input_shape)
+    class(linear2d_layer), intent(in out) :: self
+    integer, intent(in) :: input_shape(:)
+    integer i, j
+
+    allocate(self % output(self % batch_size, self % sequence_length, self % out_features))
+    allocate(self % gradient(self % batch_size, self % sequence_length, self % in_features))
+
+    allocate(self%weights(self%in_features, self%out_features))
+    do i = 1, self%in_features
+      do j = 1, self%out_features
+        self%weights(i, j) = 0.1
+      end do
+    end do
+
+    allocate(self%biases(self%out_features))
+    do i = 1, self%out_features
+      self%biases(i) = 0.11
+    end do
+  end subroutine init
+
+  pure module subroutine forward(self, input)
+    class(linear2d_layer), intent(in out) :: self
+    real, intent(in) :: input(:, :, :)
+    integer :: i, j
+
+    do i = 1, self % batch_size
+      self % output(i, :, :) = matmul(input(i, :, :), self % weights)
+      do j = 1, self % sequence_length
+        self % output(i, j, :) = self % output(i, j, :) + self % biases
+      end do
+    end do
+  end subroutine forward
+end module nf_linear2d_layer

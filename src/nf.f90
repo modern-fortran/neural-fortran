@@ -12,4 +12,5 @@ module nf
                            gaussian, linear, relu, leaky_relu,     &
                            sigmoid, softmax, softplus, step, tanhf, &
                            celu
+  use nf_linear2d_layer, only: linear2d_layer
 end module nf
