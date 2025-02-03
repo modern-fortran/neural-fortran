@@ -23,6 +23,10 @@ module nf_linear2d_layer
     procedure :: backward
     procedure :: forward
     procedure :: init
+    procedure :: get_num_params
+    procedure :: get_params
+    procedure :: get_gradients
+    procedure :: set_params
 
   end type linear2d_layer
 
@@ -58,7 +62,7 @@ contains
     res % sequence_length = sequence_length
     res % batch_size = batch_size
 
-    call res % init([1])
+!    call res % init([1])
   end function linear2d_layer_cons
 
   module subroutine init(self, input_shape)
@@ -106,6 +110,69 @@ contains
       self % db = self % db + sum(gradient(i, :, :), 1)
       self % gradient(i, :, :) = matmul(gradient(i, :, :), transpose(self % weights))
     end do
-
   end subroutine backward
+
+  pure module function get_num_params(self) result(num_params)
+    class(linear2d_layer), intent(in) :: self
+    integer :: num_params
+
+    ! Number of weigths times number of biases
+    num_params = self % in_features * self % out_features + self % out_features
+
+  end function get_num_params
+
+
+  module function get_params(self) result(params)
+    class(linear2d_layer), intent(in), target :: self
+    real, allocatable :: params(:)
+
+    real, pointer :: w_(:) => null()
+
+    w_(1:size(self % weights)) => self % weights
+
+    params = [ &
+      w_, &
+      self % biases &
+    ]
+
+  end function get_params
+
+
+  module function get_gradients(self) result(gradients)
+    class(linear2d_layer), intent(in), target :: self
+    real, allocatable :: gradients(:)
+
+    real, pointer :: dw_(:) => null()
+
+    dw_(1:size(self % dw)) => self % dw
+
+    gradients = [ &
+      dw_, &
+      self % db &
+    ]
+
+  end function get_gradients
+
+
+  module subroutine set_params(self, params)
+    class(linear2d_layer), intent(in out) :: self
+    real, intent(in), target :: params(:)
+
+    real, pointer :: p_(:,:) => null()
+
+    ! check if the number of parameters is correct
+    if (size(params) /= self % get_num_params()) then
+      error stop 'Error: number of parameters does not match'
+    end if
+
+    associate(n => self % in_features * self % out_features)
+      ! reshape the weights
+      p_(1:self % in_features, 1:self % out_features) => params(1 : n)
+      self % weights = p_
+
+      ! reshape the biases
+      self % biases = params(n + 1 : n + self % out_features)
+    end associate
+
+  end subroutine set_params
 end module nf_linear2d_layer
