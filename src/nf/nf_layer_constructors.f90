@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape
+  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d
 
   interface input
 
@@ -184,6 +184,11 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function reshape
+
+    module function linear2d(batch_size, sequence_length, in_features, out_features) result(res)
+      integer, intent(in) :: batch_size, sequence_length, in_features, out_features
+      type(layer) :: res
+    end function linear2d
 
   end interface
 

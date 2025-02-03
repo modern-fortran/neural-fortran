@@ -9,6 +9,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_linear2d_layer, only: linear2d_layer
   use nf_activation, only: activation_function, relu, sigmoid
 
   implicit none
@@ -147,5 +148,14 @@ contains
     end if
 
   end function reshape
+
+  module function linear2d(batch_size, sequence_length, in_features, out_features) result(res)
+    integer, intent(in) :: batch_size, sequence_length, in_features, out_features
+    type(layer) :: res
+
+    res % name = 'linear2d'
+    res % layer_shape = [batch_size, sequence_length, out_features]
+    allocate(res % p, source=linear2d_layer(batch_size, sequence_length, in_features, out_features))
+  end function linear2d
 
 end submodule nf_layer_constructors_submodule
