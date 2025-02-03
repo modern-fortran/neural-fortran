@@ -61,8 +61,6 @@ contains
     res % out_features = out_features
     res % sequence_length = sequence_length
     res % batch_size = batch_size
-
-!    call res % init([1])
   end function linear2d_layer_cons
 
   module subroutine init(self, input_shape)
