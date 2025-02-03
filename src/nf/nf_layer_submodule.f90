@@ -9,6 +9,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_linear2d_layer, only: linear2d_layer
   use nf_optimizers, only: optimizer_base_type
 
 contains
@@ -46,6 +47,8 @@ contains
           type is(conv2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(maxpool2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(linear2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
@@ -116,6 +119,16 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
+      type is(linear2d_layer)
+        select type(prev_layer => previous % p)
+          type is(input3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+!          type is(dense_layer)
+!            call this_layer % forward(prev_layer % output)
+!          type is(flatten_layer)
+!            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
     end select
 
   end subroutine backward_3d
@@ -182,6 +195,8 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(reshape3d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(linear2d_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(reshape3d_layer)
@@ -193,6 +208,14 @@ contains
           type is(dense_layer)
             call this_layer % forward(prev_layer % output)
           type is(flatten_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(linear2d_layer)
+        select type(prev_layer => input % p)
+          type is(input3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
@@ -328,6 +351,8 @@ contains
         num_params = 0
       type is (reshape3d_layer)
         num_params = 0
+      type is (linear2d_layer)
+        num_params = this_layer % get_num_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -355,6 +380,8 @@ contains
         ! No parameters to get.
       type is (reshape3d_layer)
         ! No parameters to get.
+      type is (linear2d_layer)
+        params = this_layer % get_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -382,6 +409,8 @@ contains
         ! No gradients to get.
       type is (reshape3d_layer)
         ! No gradients to get.
+      type is (linear2d_layer)
+        gradients = this_layer % get_gradients()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -446,6 +475,9 @@ contains
 
           class default
         error stop 'Unknown layer type.'
+
+    type is (linear2d_layer)
+        call this_layer % set_params(params)
     end select
 
   end subroutine set_params
