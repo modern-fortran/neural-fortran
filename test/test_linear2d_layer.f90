@@ -12,6 +12,7 @@ program test_linear2d_layer
   type(linear2d_layer) :: linear
 
   linear = linear2d_layer(batch_size=2, sequence_length=3, in_features=4, out_features=1)
+  call linear % init([4])
 
   call test_linear2d_layer_forward(linear, ok, sample_input)
   call test_linear2d_layer_backward(linear, ok, sample_input, sample_gradient)
