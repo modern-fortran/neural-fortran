@@ -123,10 +123,6 @@ contains
         select type(prev_layer => previous % p)
           type is(input3d_layer)
             call this_layer % backward(prev_layer % output, gradient)
-!          type is(dense_layer)
-!            call this_layer % forward(prev_layer % output)
-!          type is(flatten_layer)
-!            call this_layer % backward(prev_layer % output, gradient)
         end select
 
     end select
