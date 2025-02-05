@@ -5,13 +5,13 @@ program test_multihead_attention_layer
 
   logical :: ok = .true.
   type(multihead_attention_layer) :: attention
-  real :: sample_input(1, 3, 4) = reshape([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.11, 0.12], [1, 3, 4])
-  real :: split_heads_output(1, 2, 3, 2)
-  real :: raw_attention_matrix(1, 2, 3, 3)
-  real :: normalized_attention_matrix(1, 2, 3, 3)
-  real :: scaled_dp_att(1, 2, 3, 2)
+  real :: sample_input(3, 4, 1) = reshape([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.11, 0.12], [3, 4, 1])
+  real :: split_heads_output(2, 3, 2, 1)
+  real :: raw_attention_matrix(2, 3, 3, 1)
+  real :: normalized_attention_matrix(2, 3, 3, 1)
+  real :: scaled_dp_att(2, 3, 2, 1)
   real :: scaled_dp_att_reshaped(1, 3, 2, 2)
-  real :: combined_attention(1, 3, 4)
+  real :: combined_attention(3, 4, 1)
   integer :: i, j
 
   attention = multihead_attention_layer(batch_size=1, sequence_length=3, model_dimension=4, n_heads=2)
@@ -29,9 +29,9 @@ contains
     type(multihead_attention_layer), intent(in) :: attention
     real, intent(in) :: input(:, :, :)
     logical, intent(in out) :: ok
-    real, intent(in out) :: output(1, 2, 3, 2)
+    real, intent(in out) :: output(2, 3, 2, 1)
     real :: output_shape(4)
-    real :: expected_shape(4) = [1, 2, 3, 2]
+    real :: expected_shape(4) = [2, 3, 2, 1]
     real :: output_flat(12)
     real :: expected_output_flat(12) = [0.0, 0.6, 0.1, 0.7, 0.2, 0.8, 0.3, 0.9, 0.4, 0.11, 0.5, 0.12]
 
@@ -53,10 +53,10 @@ contains
     type(multihead_attention_layer), intent(in) :: attention
     real, intent(in) :: input(:, :, :, :)
     logical, intent(in out) :: ok
-    real, intent(in out) :: attention_matrix(1, 2, 3, 3)
+    real, intent(in out) :: attention_matrix(2, 3, 3, 1)
     real :: attention_matrix_shape(4)
     real :: attention_matrix_flat(18)
-    real :: expected_shape(4) = [1, 2, 3, 3]
+    real :: expected_shape(4) = [2, 3, 3, 1]
     real :: expected_attention_matrix_flat(18) = [&
         9.00000036E-02, 1.16999996, 0.120000005,&
         0.518999994, 0.150000006, 0.588000000,&
@@ -84,15 +84,13 @@ contains
     type(multihead_attention_layer), intent(in) :: attention
     real, intent(in) :: input(:, :, :, :)
     logical, intent(in out) :: ok
-    real, intent(out) :: output(1, 2, 3, 3)
+    real, intent(out) :: output(2, 3, 3, 1)
     real :: output_flat(18)
     real :: expected_output_flat(18) = [&
         0.326287806, 0.435975075, 0.321620107, 0.330339342, 0.316976935, 0.329200655,&
         0.333283335, 0.275134116, 0.333194464, 0.326415271, 0.333061278, 0.325773478,&
         0.340428889, 0.288890868, 0.345185399, 0.343245387, 0.349961787, 0.345025837&
     ]
-    integer :: i, j, k
-    real :: d_k, exp_x
 
     output = attention % normalize_attention_matrix(input)
 
@@ -109,7 +107,7 @@ contains
     real, intent(in) :: value(:, :, :, :)
     logical, intent(in out) :: ok
     real, intent(out) :: output(&
-        attention % batch_size, attention % n_heads, attention % sequence_length, attention % head_size&
+        attention % n_heads, attention % sequence_length, attention % head_size, attention % batch_size&
     )
     real :: output_flat(12)
     real :: expected_output_flat(12) = [&
@@ -130,7 +128,7 @@ contains
     type(multihead_attention_layer), intent(in) :: attention
     real, intent(in) :: scaled_dp_att(:, :, :, :)
     logical, intent(in out) :: ok
-    real :: output(attention % batch_size, attention  % sequence_length, attention % model_dimension)
+    real :: output(attention % sequence_length, attention % model_dimension, attention % batch_size)
     real :: output_flat(12)
     real :: expected_output_flat(12) = [&
         0.101414114, 0.102356531, 0.103298485, 0.401414126, 0.402356505, 0.403298497,&

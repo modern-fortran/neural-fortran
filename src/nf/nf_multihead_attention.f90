@@ -61,7 +61,7 @@ module nf_multihead_attention_layer
 
     pure module subroutine forward(self, query, key, value)
       class(multihead_attention_layer), intent(in out) :: self
-      real, intent(in) :: query(:, :, :, :), key(:, :, :, :), value(:, :, :, :)
+      real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
     end subroutine forward
 
     module subroutine init(self, input_shape)
@@ -110,18 +110,18 @@ contains
     real :: attention_matrix(self % batch_size, self % n_heads, self % sequence_length, self % sequence_length)
     real :: dot_product_attention(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
 
-    call self % query_layer % forward(query)
-    call self % key_layer % forward(key)
-    call self % value_layer % forward(value)
-
-    q = self % split_heads(self % query_layer % output)
-    k = self % split_heads(self % key_layer % output)
-    v = self % split_heads(self % value_layer % output)
-
-    attention_matrix = self % normalize_attention_matrix(self % create_attention_matrix(q, k))
-    dot_product_attention = self % scaled_dot_product_attention(attention_matrix, v)
-
-    self % output = self % output_layer % forward(self % combine_heads(dot_product_attention))
+!    call self % query_layer % forward(query)
+!    call self % key_layer % forward(key)
+!    call self % value_layer % forward(value)
+!
+!    q = self % split_heads(self % query_layer % output)
+!    k = self % split_heads(self % key_layer % output)
+!    v = self % split_heads(self % value_layer % output)
+!
+!    attention_matrix = self % normalize_attention_matrix(self % create_attention_matrix(q, k))
+!    dot_product_attention = self % scaled_dot_product_attention(attention_matrix, v)
+!
+!    self % output = self % output_layer % forward(self % combine_heads(dot_product_attention))
   end subroutine forward
 
   module function split_heads(self, input) result(output)
@@ -141,11 +141,12 @@ contains
     !     [0.8 , 0.12]]]]
     class(multihead_attention_layer) :: self
     real :: input(:, :, :)
-    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
+    real :: output(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    ! FIXME: if anybody knows how to also swap first two dims in one go, pls tell me
     output = reshape(&
       input,&
-      [self % batch_size, self % n_heads, self % sequence_length, self % head_size],&
-      order=[1, 3, 4, 2]&
+      [self % n_heads, self % sequence_length, self % head_size, self % batch_size],&
+      order=[2, 4, 3, 1]&
     )
   end function split_heads
 
@@ -154,12 +155,12 @@ contains
     class(multihead_attention_layer) :: self
     real :: query(:, :, :, :)
     real :: key(:, :, :, :)
-    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % sequence_length)
+    real :: output(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
     integer :: i, j
     ! create attention matrix for each sequence in each batch
-    do i = 1, size(query(:, 1, 1, 1))
-      do j = 1, size(query(1, :, 1, 1))
-        output(i, j, :, :) = matmul(query(i, j, :, :), transpose(key(i, j, :, :)))
+    do i = 1, self % batch_size
+      do j = 1, self % n_heads
+        output(j, :, :, i) = matmul(query(j, :, :, i), transpose(key(j, :, :, i)))
       end do
     end do
   end function create_attention_matrix
@@ -171,8 +172,8 @@ contains
     !! (batch_size, n_heads, sequence_length, sequence_length)
     real, optional :: attention_mask(:, :, :, :)
     !! (batch_size, n_heads, sequence_length, sequence_length)
-    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % sequence_length)
-    integer :: i, j, k
+    real :: output(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
+    integer :: batch, head, seq
 
     ! scale dowm by square root of each head's size
     attention_matrix = attention_matrix / sqrt(real(self % head_size))
@@ -180,11 +181,11 @@ contains
     if (present(attention_mask)) then
       attention_matrix = attention_matrix + attention_mask
     end if
-    ! softmax by last dimension
-    do i = 1, size(output, 1)
-      do j = 1, size(output, 2)
-        do k = 1, size(output, 3)
-          output(i, j, k, :) = self % softmax_func % eval_1d(attention_matrix(i, j, k, :))
+    ! softmax by second sequnce_length
+    do batch = 1, self % batch_size
+      do head = 1, self % n_heads
+        do seq = 1, self % sequence_length
+          output(head, seq, :, batch) = self % softmax_func % eval_1d(attention_matrix(head, seq, :, batch))
         end do
       end do
     end do
@@ -194,12 +195,12 @@ contains
     class(multihead_attention_layer) :: self
     real :: attention_matrix(:, :, :, :)
     real :: value(:, :, :, :)
-    real :: output(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
-    integer :: i, j
+    real :: output(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    integer :: batch, head
 
-    do i = 1, size(attention_matrix, 1)
-      do j = 1, size(attention_matrix, 2)
-        output(i, j, :, :) = matmul(attention_matrix(i, j, :, :), value(i, j, :, :))
+    do batch = 1, self % batch_size
+      do head = 1, self % n_heads
+        output(head, :, :, batch) = matmul(attention_matrix(head, :, :, batch), value(head, :, :, batch))
       end do
     end do
   end function scaled_dot_product_attention
@@ -207,17 +208,15 @@ contains
   module function combine_heads(self, input) result(output)
     class(multihead_attention_layer) :: self
     real :: input(:, :, :, :)
-    !! (batch_size, n_heads, sequence_length, head_size)
-    real :: output(self % batch_size, self  % sequence_length, self % model_dimension)
-    !! (batch_size, sequence_length, model_dimension)
+    !! (n_heads, sequence_length, head_size, batch_size)
+    real :: output(self % sequence_length, self % model_dimension, self % batch_size)
+    integer :: batch, seq
 
-    real :: scaled_dp_att_reshaped(self % batch_size, self  % sequence_length, self % n_heads, self % head_size)
-    integer :: i, j
-
-    scaled_dp_att_reshaped = reshape(input, shape(scaled_dp_att_reshaped), order=[1, 4, 2, 3])
-    do i = 1, size(scaled_dp_att_reshaped, 1)
-      do j = 1, size(scaled_dp_att_reshaped, 2)
-        output(i, j, :) = reshape(scaled_dp_att_reshaped(i, j, :, :), [4])
+    do batch = 1, self % batch_size
+      do seq = 1, self % sequence_length
+        output(seq, :, batch) = reshape(&
+            transpose(input(:, seq, :, batch)), [self % model_dimension]&
+        )
       end do
     end do
   end function combine_heads
