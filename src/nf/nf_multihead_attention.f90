@@ -2,7 +2,7 @@ module nf_multihead_attention_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf_activation, only: softmax
   use nf_base_layer, only: base_layer
-  use nf_dense_layer, only: dense_layer
+  use nf_linear2d_layer, only: linear2d_layer
 
   implicit none
 
@@ -15,10 +15,10 @@ module nf_multihead_attention_layer
 
     integer :: batch_size, sequence_length, model_dimension, n_heads, head_size
 
-    type(dense_layer) :: query_layer
-    type(dense_layer) :: key_layer
-    type(dense_layer) :: value_layer
-    type(dense_layer) :: output_layer
+    type(linear2d_layer) :: query_layer
+    type(linear2d_layer) :: key_layer
+    type(linear2d_layer) :: value_layer
+    type(linear2d_layer) :: output_layer
 
     type(softmax) :: softmax_func
 
@@ -59,7 +59,7 @@ module nf_multihead_attention_layer
         !! Gradient from the next layer
     end subroutine backward
 
-    pure module subroutine forward(self, query, key, value)
+    module subroutine forward(self, query, key, value)
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
     end subroutine forward
@@ -92,36 +92,44 @@ contains
     end if
     res % head_size = model_dimension / n_heads
 
-    res % query_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
-    res % key_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
-    res % value_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
-    res % output_layer = dense_layer(input_size=model_dimension, output_size=model_dimension)
+    res % query_layer = linear2d_layer(&
+        sequence_length=sequence_length, in_features=model_dimension,&
+        out_features=model_dimension, batch_size=batch_size&
+      )
+    res % key_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, batch_size)
+    res % value_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, batch_size)
+    res % output_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, batch_size)
+    call res % query_layer % init([0])
+    call res % key_layer % init([0])
+    call res % value_layer % init([0])
+    call res % output_layer % init([0])
 
     res % softmax_func = softmax()
   end function multihead_attention_layer_cons
 
-  pure module subroutine forward(self, query, key, value)
+  module subroutine forward(self, query, key, value)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
 
-    real :: q(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
-    real :: k(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
-    real :: v(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
-    real :: attention_matrix(self % batch_size, self % n_heads, self % sequence_length, self % sequence_length)
-    real :: dot_product_attention(self % batch_size, self % n_heads, self % sequence_length, self % head_size)
+    real :: q(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real :: k(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real :: v(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real :: attention_matrix(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
+    real :: dot_product_attention(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
 
-!    call self % query_layer % forward(query)
-!    call self % key_layer % forward(key)
-!    call self % value_layer % forward(value)
-!
-!    q = self % split_heads(self % query_layer % output)
-!    k = self % split_heads(self % key_layer % output)
-!    v = self % split_heads(self % value_layer % output)
-!
-!    attention_matrix = self % normalize_attention_matrix(self % create_attention_matrix(q, k))
-!    dot_product_attention = self % scaled_dot_product_attention(attention_matrix, v)
-!
-!    self % output = self % output_layer % forward(self % combine_heads(dot_product_attention))
+    call self % query_layer % forward(query)
+    call self % key_layer % forward(key)
+    call self % value_layer % forward(value)
+
+    q = self % split_heads(self % query_layer % output)
+    k = self % split_heads(self % key_layer % output)
+    v = self % split_heads(self % value_layer % output)
+
+    attention_matrix = self % normalize_attention_matrix(self % create_attention_matrix(q, k))
+    dot_product_attention = self % scaled_dot_product_attention(attention_matrix, v)
+
+    call self % output_layer % forward(self % combine_heads(dot_product_attention))
+    self % output = self % output_layer % output
   end subroutine forward
 
   module function split_heads(self, input) result(output)
@@ -225,6 +233,6 @@ contains
     class(multihead_attention_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
-    allocate(self % output(self % batch_size, self % sequence_length, self % model_dimension))
+    allocate(self % output(self % sequence_length, self % model_dimension, self % batch_size))
   end subroutine init
 end module nf_multihead_attention_layer
