@@ -149,13 +149,13 @@ contains
 
   end function reshape
 
-  module function linear2d(batch_size, sequence_length, in_features, out_features) result(res)
+  module function linear2d(sequence_length, in_features, out_features, batch_size) result(res)
     integer, intent(in) :: batch_size, sequence_length, in_features, out_features
     type(layer) :: res
 
     res % name = 'linear2d'
-    res % layer_shape = [batch_size, sequence_length, out_features]
-    allocate(res % p, source=linear2d_layer(batch_size, sequence_length, in_features, out_features))
+    res % layer_shape = [sequence_length, out_features, batch_size]
+    allocate(res % p, source=linear2d_layer(sequence_length, in_features, out_features, batch_size))
   end function linear2d
 
 end submodule nf_layer_constructors_submodule

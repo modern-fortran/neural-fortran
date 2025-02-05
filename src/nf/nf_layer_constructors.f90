@@ -185,7 +185,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function reshape
 
-    module function linear2d(batch_size, sequence_length, in_features, out_features) result(res)
+    module function linear2d(sequence_length, in_features, out_features, batch_size) result(res)
       integer, intent(in) :: batch_size, sequence_length, in_features, out_features
       type(layer) :: res
     end function linear2d

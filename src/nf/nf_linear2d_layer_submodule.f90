@@ -3,7 +3,7 @@ submodule(nf_linear2d_layer) nf_linear2d_layer_submodule
   implicit none
 contains
   module function linear2d_layer_cons(&
-      batch_size, sequence_length, in_features, out_features&
+      sequence_length, in_features, out_features, batch_size&
   ) result(res)
     integer, intent(in) :: batch_size, sequence_length, in_features, out_features
     type(linear2d_layer) :: res
@@ -18,8 +18,8 @@ contains
     class(linear2d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
-    allocate(self % output(self % batch_size, self % sequence_length, self % out_features))
-    allocate(self % gradient(self % batch_size, self % sequence_length, self % in_features))
+    allocate(self % output(self % sequence_length, self % out_features, self % batch_size))
+    allocate(self % gradient(self % sequence_length, self % in_features, self % batch_size))
 
     allocate(self % weights(self % in_features, self % out_features))
     self % weights = 0.1
@@ -39,10 +39,10 @@ contains
     integer :: i, j
 
     do concurrent(i = 1: self % batch_size)
-      self % output(i, :, :) = matmul(input(i, :, :), self % weights)
+      self % output(:, :, i) = matmul(input(:, :, i), self % weights)
     end do
     do concurrent(i = 1: self % batch_size, j = 1: self % sequence_length)
-      self % output(i, j, :) = self % output(i, j, :) + self % biases
+      self % output(j, :, i) = self % output(j, :, i) + self % biases
     end do
   end subroutine forward
 
@@ -55,9 +55,9 @@ contains
     integer :: i
 
     do concurrent(i = 1: self % batch_size)
-      self % dw = self % dw + matmul(transpose(input(i, :, :)), gradient(i, :, :))
-      self % db = self % db + sum(gradient(i, :, :), 1)
-      self % gradient(i, :, :) = matmul(gradient(i, :, :), transpose(self % weights))
+      self % dw = self % dw + matmul(transpose(input(:, :, i)), gradient(:, :, i))
+      self % db = self % db + sum(gradient(:, :, i), 1)
+      self % gradient(:, :, i) = matmul(gradient(:, :, i), transpose(self % weights))
     end do
   end subroutine backward
 
