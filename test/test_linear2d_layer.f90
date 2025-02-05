@@ -8,7 +8,7 @@ program test_linear2d_layer
       [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2,&
        0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],&
       [2, 3, 4]) ! first batch are 0.1, second 0.2
-  real :: sample_gradient(2, 3, 1) = reshape([2., 2., 2., 2., 2., 2.], [2, 3, 1])
+  real :: sample_gradient(2, 3, 1) = reshape([2., 2., 2., 3., 3., 3.], [2, 3, 1])
   type(linear2d_layer) :: linear
 
   linear = linear2d_layer(batch_size=2, sequence_length=3, in_features=4, out_features=1)
@@ -54,12 +54,18 @@ contains
     real :: expected_gradient_shape(3) = [2, 3, 4]
     real :: expected_dw_shape(2) = [4, 1]
     real :: expected_db_shape(1) = [1]
-    real :: expected_gradient_flat(24)
+    real :: expected_gradient_flat(24) = [&
+        0.200000003, 0.200000003, 0.200000003, 0.300000012,&
+        0.300000012, 0.300000012, 0.200000003, 0.200000003,&
+        0.200000003, 0.300000012, 0.300000012, 0.300000012,&
+        0.200000003, 0.200000003, 0.200000003, 0.300000012,&
+        0.300000012, 0.300000012, 0.200000003, 0.200000003,&
+        0.200000003, 0.300000012, 0.300000012, 0.300000012&
+    ]
     real :: expected_dw_flat(4)
-    real :: expected_db(1) = [12.0]
+    real :: expected_db(1) = [15.0]
 
-    expected_gradient_flat = 0.200000003
-    expected_dw_flat = 1.80000007
+    expected_dw_flat = 2.29999995
 
     call linear % backward(input, gradient)
 
