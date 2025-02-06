@@ -81,7 +81,7 @@ program test_dropout_layer
     do n = 1, 10000
       output_data = net % predict(input_data)
       ! Check that sum of output matches sum of input within small tolerance
-      if (abs(sum(output_data) - sum(input_data)) > 1e-5) then
+      if (abs(sum(output_data) - sum(input_data)) > 1e-6) then
         ok = .false.
         exit
       end if
