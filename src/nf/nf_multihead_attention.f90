@@ -169,10 +169,8 @@ contains
     real :: key(:, :, :, :)
     integer :: i, j
     ! create attention matrix for each sequence in each batch
-    do i = 1, self % batch_size
-      do j = 1, self % n_heads
-        self % attention_matrix(j, :, :, i) = matmul(query(j, :, :, i), transpose(key(j, :, :, i)))
-      end do
+    do concurrent(i = 1: self % batch_size, j = 1: self % n_heads)
+      self % attention_matrix(j, :, :, i) = matmul(query(j, :, :, i), transpose(key(j, :, :, i)))
     end do
   end subroutine create_attention_matrix
 
@@ -196,14 +194,8 @@ contains
       self % attention_matrix = self % attention_matrix + attention_mask
     end if
     ! softmax by last sequnce_length
-    do batch = 1, self % batch_size
-      do head = 1, self % n_heads
-        do seq = 1, self % sequence_length
-          output(head, seq, :, batch) = self % softmax_func % eval_1d(&
-              self % attention_matrix(head, seq, :, batch)&
-          )
-        end do
-      end do
+    do concurrent(batch = 1: self % batch_size, head = 1: self % n_heads, seq = 1: self % sequence_length)
+      output(head, seq, :, batch) = self % softmax_func % eval_1d(self % attention_matrix(head, seq, :, batch))
     end do
     self % attention_matrix = output
 
@@ -217,10 +209,8 @@ contains
     real :: value(:, :, :, :)
     integer :: batch, head
 
-    do batch = 1, self % batch_size
-      do head = 1, self % n_heads
-        self % sdpa(head, :, :, batch) = matmul(self % attention_matrix(head, :, :, batch), value(head, :, :, batch))
-      end do
+    do concurrent(batch = 1: self % batch_size, head = 1: self % n_heads)
+      self % sdpa(head, :, :, batch) = matmul(self % attention_matrix(head, :, :, batch), value(head, :, :, batch))
     end do
   end subroutine scaled_dot_product_attention
 
@@ -231,12 +221,8 @@ contains
     real :: output(self % sequence_length, self % model_dimension, self % batch_size)
     integer :: batch, seq
 
-    do batch = 1, self % batch_size
-      do seq = 1, self % sequence_length
-        output(seq, :, batch) = reshape(&
-            transpose(input(:, seq, :, batch)), [self % model_dimension]&
-        )
-      end do
+    do concurrent(batch = 1: self % batch_size, seq = 1: self % sequence_length)
+      output(seq, :, batch) = reshape(transpose(input(:, seq, :, batch)), [self % model_dimension])
     end do
   end function combine_heads
 
