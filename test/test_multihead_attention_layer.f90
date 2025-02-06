@@ -1,6 +1,7 @@
 program test_multihead_attention_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf_multihead_attention_layer, only: multihead_attention_layer
+  use nf_linear2d_layer, only: linear2d_layer
   implicit none
 
   logical :: ok = .true.
@@ -12,9 +13,9 @@ program test_multihead_attention_layer
   real :: scaled_dp_att(2, 3, 2, 1)
   real :: scaled_dp_att_reshaped(1, 3, 2, 2)
   real :: combined_attention(3, 4, 1)
-  integer :: i, j
 
   attention = multihead_attention_layer(batch_size=1, sequence_length=3, model_dimension=4, n_heads=2)
+  call attention % init([0])
 
   call test_multihead_attention_split_heads(attention, sample_input, ok, split_heads_output)
   call test_multihead_attention_create_attention_matrix(attention, split_heads_output, ok, raw_attention_matrix)
@@ -23,6 +24,8 @@ program test_multihead_attention_layer
       attention, normalized_attention_matrix, split_heads_output, ok, scaled_dp_att&
   )
   call test_multihead_attention_combine_heads(attention, scaled_dp_att, ok)
+  call test_multihead_attention_forward(attention, ok)
+  call test_multihead_attention_forward_reallife_shape(ok)
 
 contains
   subroutine test_multihead_attention_split_heads(attention, input, ok, output)
@@ -143,4 +146,55 @@ contains
       write(stderr, '(a)') 'combine_heads returned incorrect values.. failed'
     end if
   end subroutine test_multihead_attention_combine_heads
+
+  subroutine test_multihead_attention_forward(attention, ok)
+    type(multihead_attention_layer), intent(in out) :: attention
+    logical, intent(in out) :: ok
+    real :: input(3, 4, 1) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4, 1])
+    real :: output(attention % sequence_length, attention % model_dimension, attention % batch_size)
+    real :: output_flat(12)
+    integer :: output_shape(3)
+    integer :: expected_shape(3) = [3, 4, 1]
+    real :: expected_output_flat(12) = [&
+        0.982241452, 1.00407875, 1.00444126, 0.982241452, 1.00407875, 1.00444126,&
+        0.982241452, 1.00407875, 1.00444126, 0.982241452, 1.00407875, 1.00444126&
+    ]
+
+    call attention % forward(input, input, input)
+
+    output_shape = shape(attention % output)
+    if (.not. all(output_shape.eq.expected_shape)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect shape.. failed'
+    end if
+    output_flat = reshape(attention % output, shape(output_flat))
+    if (.not. all(output_flat.eq.expected_output_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect values.. failed'
+    end if
+  end subroutine test_multihead_attention_forward
+
+  subroutine test_multihead_attention_forward_reallife_shape(ok)
+    logical, intent(in out) :: ok
+    real :: input(148, 512, 2)
+    real :: output(148, 512, 2)
+    type(linear2d_layer) :: q
+    real :: output_flat(12)
+    integer :: output_shape(3)
+    integer :: expected_shape(3) = [148, 512, 2]
+    type(multihead_attention_layer) :: attention
+
+    call random_number(input)
+
+    attention = multihead_attention_layer(batch_size=2, sequence_length=148, model_dimension=512, n_heads=8)
+    call attention % init([0])
+
+    call attention % forward(input, input, input)
+
+    output_shape = shape(attention % output)
+    if (.not. all(output_shape.eq.expected_shape)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect shape.. failed'
+    end if
+  end subroutine test_multihead_attention_forward_reallife_shape
 end program test_multihead_attention_layer
