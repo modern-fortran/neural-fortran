@@ -221,9 +221,18 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
     real, allocatable :: res(:)
-    integer :: num_layers
+    integer :: n, num_layers
 
     num_layers = size(self % layers)
+
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false.
+    do n = 2, num_layers
+      select type(this_layer => self % layers(n) % p)
+        type is(dropout_layer)
+          this_layer % training = .false.
+      end select
+    end do
 
     call self % forward(input)
 
@@ -245,9 +254,18 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     real, allocatable :: res(:)
-    integer :: num_layers
+    integer :: n, num_layers
 
     num_layers = size(self % layers)
+
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false.
+    do n = 2, num_layers
+      select type(this_layer => self % layers(n) % p)
+        type is(dropout_layer)
+          this_layer % training = .false.
+      end select
+    end do
 
     call self % forward(input)
 

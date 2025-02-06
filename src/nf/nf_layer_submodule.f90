@@ -304,7 +304,7 @@ contains
       type is (dense_layer)
         num_params = this_layer % get_num_params()
       type is (dropout_layer)
-        num_params = size(this_layer % mask)
+        num_params = 0
       type is (conv2d_layer)
         num_params = this_layer % get_num_params()
       type is (maxpool2d_layer)

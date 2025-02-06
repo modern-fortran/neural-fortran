@@ -22,7 +22,7 @@ module nf_dropout_layer
 
     real :: dropout_rate ! probability of dropping a neuron
     real :: scale ! scale factor to preserve the input sum
-    logical :: training = .true.
+    logical :: training = .false. ! set to .true. in training mode
 
   contains
 
@@ -33,11 +33,13 @@ module nf_dropout_layer
   end type dropout_layer
 
   interface dropout_layer
-    module function dropout_layer_cons(rate) &
+    module function dropout_layer_cons(rate, training) &
       result(res)
       !! This function returns the `dropout_layer` instance.
       real, intent(in) :: rate
         !! Dropout rate
+      logical, intent(in), optional :: training
+        !! Training mode (default .false.)
       type(dropout_layer) :: res
         !! dropout_layer instance
     end function dropout_layer_cons

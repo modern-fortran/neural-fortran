@@ -4,12 +4,12 @@ submodule (nf_dropout_layer) nf_dropout_layer_submodule
 
 contains
 
-  module function dropout_layer_cons(rate) result(res)
+  module function dropout_layer_cons(rate, training) result(res)
     real, intent(in) :: rate
+    logical, intent(in), optional :: training
     type(dropout_layer) :: res
-
-    ! Initialize dropout rate
     res % dropout_rate = rate
+    if (present(training)) res % training = training
   end function dropout_layer_cons
 
 
@@ -36,19 +36,27 @@ contains
     class(dropout_layer), intent(in out) :: self
     real, intent(in) :: input(:)
 
-    ! Generate random mask for dropout
-    call random_number(self % mask)
-    where (self % mask < self % dropout_rate)
-      self % mask = 0
-    elsewhere
-      self % mask = 1
-    end where
+    ! Generate random mask for dropout, training mode only
+    if (self % training) then
 
-    ! Scale factor to preserve the input sum
-    self % scale = sum(input) / sum(input * self % mask)
+      call random_number(self % mask)
+      where (self % mask < self % dropout_rate)
+        self % mask = 0
+      elsewhere
+        self % mask = 1
+      end where
 
-    ! Apply dropout mask
-    self % output = input * self % mask * self % scale
+      ! Scale factor to preserve the input sum
+      self % scale = sum(input) / sum(input * self % mask)
+
+      ! Apply dropout mask
+      self % output = input * self % mask * self % scale
+
+    else
+      ! In inference mode, we don't apply dropout; simply pass through the input
+      self % output = input
+
+    end if
 
   end subroutine forward
 

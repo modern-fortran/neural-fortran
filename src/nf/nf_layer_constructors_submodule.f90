@@ -64,11 +64,12 @@ contains
   end function dense
 
 
-  module function dropout(rate) result(res)
+  module function dropout(rate, training) result(res)
     real, intent(in) :: rate
+    logical, intent(in), optional :: training
     type(layer) :: res
     res % name = 'dropout'
-    allocate(res % p, source=dropout_layer(rate))
+    allocate(res % p, source=dropout_layer(rate, training))
   end function dropout
 
 
