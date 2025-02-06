@@ -8,22 +8,15 @@ program test_multihead_attention_layer
   type(multihead_attention_layer) :: attention
   real :: sample_input(3, 4, 1) = reshape([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.11, 0.12], [3, 4, 1])
   real :: split_heads_output(2, 3, 2, 1)
-  real :: raw_attention_matrix(2, 3, 3, 1)
-  real :: normalized_attention_matrix(2, 3, 3, 1)
-  real :: scaled_dp_att(2, 3, 2, 1)
-  real :: scaled_dp_att_reshaped(1, 3, 2, 2)
-  real :: combined_attention(3, 4, 1)
 
   attention = multihead_attention_layer(batch_size=1, sequence_length=3, model_dimension=4, n_heads=2)
   call attention % init([0])
 
   call test_multihead_attention_split_heads(attention, sample_input, ok, split_heads_output)
-  call test_multihead_attention_create_attention_matrix(attention, split_heads_output, ok, raw_attention_matrix)
-  call test_multihead_attention_normalization(attention, raw_attention_matrix, ok, normalized_attention_matrix)
-  call test_multihead_attention_scaled_dot_product_attention(&
-      attention, normalized_attention_matrix, split_heads_output, ok, scaled_dp_att&
-  )
-  call test_multihead_attention_combine_heads(attention, scaled_dp_att, ok)
+  call test_multihead_attention_create_attention_matrix(attention, split_heads_output, ok)
+  call test_multihead_attention_normalization(attention, ok)
+  call test_multihead_attention_scaled_dot_product_attention(attention, split_heads_output, ok)
+  call test_multihead_attention_combine_heads(attention, attention % sdpa, ok)
   call test_multihead_attention_forward(attention, ok)
   call test_multihead_attention_forward_reallife_shape(ok)
 
@@ -52,11 +45,10 @@ contains
     end if
   end subroutine test_multihead_attention_split_heads
 
-  subroutine test_multihead_attention_create_attention_matrix(attention, input, ok, attention_matrix)
+  subroutine test_multihead_attention_create_attention_matrix(attention, input, ok)
     type(multihead_attention_layer), intent(in) :: attention
     real, intent(in) :: input(:, :, :, :)
     logical, intent(in out) :: ok
-    real, intent(in out) :: attention_matrix(2, 3, 3, 1)
     real :: attention_matrix_shape(4)
     real :: attention_matrix_flat(18)
     real :: expected_shape(4) = [2, 3, 3, 1]
@@ -69,25 +61,23 @@ contains
         0.573199987, 0.289999992, 0.654400051&
     ]
 
-    attention_matrix = attention % create_attention_matrix(input, input)
+    call attention % create_attention_matrix(input, input)
 
-    attention_matrix_shape = shape(attention_matrix)
+    attention_matrix_shape = shape(attention % attention_matrix)
     if (.not. all(attention_matrix_shape.eq.expected_shape)) then
       ok = .false.
       write(stderr, '(a)') 'create_attention_matrix returned incorrect shape.. failed'
     end if
-    attention_matrix_flat = reshape(attention_matrix, shape(expected_attention_matrix_flat))
+    attention_matrix_flat = reshape(attention % attention_matrix, shape(expected_attention_matrix_flat))
     if (.not. all(attention_matrix_flat.eq.expected_attention_matrix_flat)) then
       ok = .false.
       write(stderr, '(a)') 'create_attention_matrix returned incorrect values.. failed'
     end if
   end subroutine test_multihead_attention_create_attention_matrix
 
-  subroutine test_multihead_attention_normalization(attention, input, ok, output)
+  subroutine test_multihead_attention_normalization(attention, ok)
     type(multihead_attention_layer), intent(in) :: attention
-    real, intent(in) :: input(:, :, :, :)
     logical, intent(in out) :: ok
-    real, intent(out) :: output(2, 3, 3, 1)
     real :: output_flat(18)
     real :: expected_output_flat(18) = [&
         0.326287806, 0.435975075, 0.321620107, 0.330339342, 0.316976935, 0.329200655,&
@@ -95,32 +85,28 @@ contains
         0.340428889, 0.288890868, 0.345185399, 0.343245387, 0.349961787, 0.345025837&
     ]
 
-    output = attention % normalize_attention_matrix(input)
+    call attention % normalize_attention_matrix()
 
-    output_flat = reshape(output, shape(output_flat))
+    output_flat = reshape(attention % attention_matrix, shape(output_flat))
     if (.not. all(output_flat.eq.expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'normalize_attention_matrix returned incorrect values.. failed'
     end if
   end subroutine test_multihead_attention_normalization
 
-  subroutine test_multihead_attention_scaled_dot_product_attention(attention, attention_matrix, value, ok, output)
+  subroutine test_multihead_attention_scaled_dot_product_attention(attention, value, ok)
     type(multihead_attention_layer), intent(in) :: attention
-    real, intent(in) :: attention_matrix(:, :, :, :)
     real, intent(in) :: value(:, :, :, :)
     logical, intent(in out) :: ok
-    real, intent(out) :: output(&
-        attention % n_heads, attention % sequence_length, attention % head_size, attention % batch_size&
-    )
     real :: output_flat(12)
     real :: expected_output_flat(12) = [&
         0.101414114, 0.685291648, 0.102356531, 0.701290607, 0.103298485, 0.701582491,&
         0.401414126, 0.457309216, 0.402356505, 0.374400526, 0.403298497, 0.373518765&
     ]
 
-    output = attention % scaled_dot_product_attention(attention_matrix, value)
+    call attention % scaled_dot_product_attention(value)
 
-    output_flat = reshape(output, shape(output_flat))
+    output_flat = reshape(attention % sdpa, shape(output_flat))
     if (.not. all(output_flat.eq.expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'scaled_dot_product_attention returned incorrect values.. failed'
