@@ -25,7 +25,7 @@ program test_flatten_layer
     write(stderr, '(a)') 'flatten layer is not initialized yet.. failed'
   end if
 
-  input_layer = input([1, 2, 2])
+  input_layer = input(1, 2, 2)
   call test_layer % init(input_layer)
 
   if (.not. test_layer % initialized) then
@@ -68,7 +68,7 @@ program test_flatten_layer
   end if
 
   net = network([ &
-    input([1, 28, 28]), &
+    input(1, 28, 28), &
     flatten(), &
     dense(10) &
   ])

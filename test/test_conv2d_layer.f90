@@ -29,7 +29,7 @@ program test_conv2d_layer
     write(stderr, '(a)') 'conv2d layer defaults to relu activation.. failed'
   end if
 
-  input_layer = input([3, 32, 32])
+  input_layer = input(3, 32, 32)
   call conv_layer % init(input_layer)
 
   if (.not. conv_layer % initialized) then
@@ -51,7 +51,7 @@ program test_conv2d_layer
   allocate(sample_input(1, 3, 3))
   sample_input = 0
 
-  input_layer = input([1, 3, 3])
+  input_layer = input(1, 3, 3)
   conv_layer = conv2d(filters, kernel_size)
   call conv_layer % init(input_layer)
 

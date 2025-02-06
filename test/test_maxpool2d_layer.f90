@@ -28,7 +28,7 @@ program test_maxpool2d_layer
     write(stderr, '(a)') 'maxpool2d layer should not be marked as initialized yet.. failed'
   end if
 
-  input_layer = input(input_shape)
+  input_layer = input(channels, width, width)
   call maxpool_layer % init(input_layer)
 
   if (.not. maxpool_layer % initialized) then

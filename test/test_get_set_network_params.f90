@@ -9,7 +9,7 @@ program test_get_set_network_params
 
   ! First test get_num_params()
   net = network([ &
-    input([3, 5, 5]), & ! 5 x 5 image with 3 channels
+    input(3, 5, 5), & ! 5 x 5 image with 3 channels
     conv2d(filters=2, kernel_size=3), & ! kernel shape [2, 3, 3, 3], output shape [2, 3, 3], 56 parameters total
     flatten(), &
     dense(4) & ! weights shape [72], biases shape [4], 76 parameters total
@@ -45,7 +45,7 @@ program test_get_set_network_params
 
   ! Finally, test set_params() and get_params() for a conv2d layer
   net = network([ &
-    input([1, 3, 3]), &
+    input(1, 3, 3), &
     conv2d(filters=1, kernel_size=3) &
   ])
 
