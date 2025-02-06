@@ -66,8 +66,13 @@ contains
     real, intent(in) :: input(:)
     real, intent(in) :: gradient(:)
 
-    ! Backpropagate gradient through dropout mask
-    self % gradient = gradient * self % mask * self % scale
+    if (self % training) then
+      ! Backpropagate gradient through dropout mask
+      self % gradient = gradient * self % mask * self % scale
+    else
+      ! In inference mode, pass through the gradient unchanged
+      self % gradient = gradient
+    end if
   end subroutine backward
 
 end submodule nf_dropout_layer_submodule 

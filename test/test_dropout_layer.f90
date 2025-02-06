@@ -19,6 +19,16 @@ program test_dropout_layer
   select type(layer1_p => layer1 % p)
     type is(dropout_layer)
 
+      if (layer1_p % dropout_rate /= 0.5) then
+        ok = .false.
+        write(stderr, '(a)') 'dropout layer dropout rate should be 0.5.. failed'
+      end if
+
+      if (layer1_p % training) then
+        ok = .false.
+        write(stderr, '(a)') 'dropout layer default training mode should be false.. failed'
+      end if
+
       if (layer1_p % input_size /= 0) then
         print *, 'input_size: ', layer1_p % input_size
         ok = .false.
@@ -30,6 +40,25 @@ program test_dropout_layer
         write(stderr, '(a)') 'dropout layer output array should not be allocated.. failed'
       end if
 
+  end select
+
+  ! Test setting training mode explicitly.
+  layer1 = dropout(0.5, training=.true.)
+  select type(layer1_p => layer1 % p)
+    type is(dropout_layer)
+      if (.not. layer1_p % training) then
+        ok = .false.
+        write(stderr, '(a)') 'dropout layer training mode should be true.. failed'
+      end if
+  end select
+
+  layer1 = dropout(0.5, training=.false.)
+  select type(layer1_p => layer1 % p)
+    type is(dropout_layer)
+      if (layer1_p % training) then
+        ok = .false.
+        write(stderr, '(a)') 'dropout layer training mode should be false.. failed'
+      end if
   end select
 
   ! Now we're gonna initialize a minimal network with an input layer and a

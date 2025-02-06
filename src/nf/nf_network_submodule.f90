@@ -288,11 +288,20 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:)
     real, allocatable :: res(:,:)
-    integer :: i, batch_size, num_layers, output_size
+    integer :: i, n, batch_size, num_layers, output_size
 
     num_layers = size(self % layers)
     batch_size = size(input, dim=rank(input))
     output_size = product(self % layers(num_layers) % layer_shape)
+
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false.
+    do n = 2, num_layers
+      select type(this_layer => self % layers(n) % p)
+        type is(dropout_layer)
+          this_layer % training = .false.
+      end select
+    end do
 
     allocate(res(output_size, batch_size))
 
@@ -318,11 +327,20 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:,:,:)
     real, allocatable :: res(:,:)
-    integer :: i, batch_size, num_layers, output_size
+    integer :: i, n, batch_size, num_layers, output_size
 
     num_layers = size(self % layers)
     batch_size = size(input, dim=rank(input))
     output_size = product(self % layers(num_layers) % layer_shape)
+
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false.
+    do n = 2, num_layers
+      select type(this_layer => self % layers(n) % p)
+        type is(dropout_layer)
+          this_layer % training = .false.
+      end select
+    end do
 
     allocate(res(output_size, batch_size))
 
@@ -456,6 +474,14 @@ contains
     else
       self % loss = quadratic()
     end if
+
+    ! Set all dropout layers' training mode to true.
+    do n = 2, size(self % layers)
+      select type(this_layer => self % layers(n) % p)
+        type is(dropout_layer)
+          this_layer % training = .true.
+      end select
+    end do
 
     dataset_size = size(output_data, dim=2)
 
