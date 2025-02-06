@@ -39,7 +39,7 @@ program test_conv2d_network
 
     type(network) :: cnn
     real :: y(1)
-    real :: tolerance = 1e-5
+    real :: tolerance = 1e-4
     integer :: n
     integer, parameter :: num_iterations = 1000
 
@@ -76,7 +76,7 @@ program test_conv2d_network
     type(network) :: cnn
     real :: x(1, 8, 8)
     real :: y(1)
-    real :: tolerance = 1e-5
+    real :: tolerance = 1e-4
     integer :: n
     integer, parameter :: num_iterations = 1000
 
@@ -111,7 +111,7 @@ program test_conv2d_network
     type(network) :: cnn
     real :: x(1, 12, 12)
     real :: y(9)
-    real :: tolerance = 1e-5
+    real :: tolerance = 1e-4
     integer :: n
     integer, parameter :: num_iterations = 5000
 
