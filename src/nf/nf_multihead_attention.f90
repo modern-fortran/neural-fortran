@@ -22,6 +22,8 @@ module nf_multihead_attention_layer
 
     type(softmax) :: softmax_func
 
+    real, allocatable :: attention_matrix(:, :, :, :)
+    real, allocatable :: sdpa(:, :, :, :)
     real, allocatable :: output(:, :, :)
 
   contains
@@ -125,10 +127,11 @@ contains
     k = self % split_heads(self % key_layer % output)
     v = self % split_heads(self % value_layer % output)
 
-    attention_matrix = self % normalize_attention_matrix(self % create_attention_matrix(q, k))
-    dot_product_attention = self % scaled_dot_product_attention(attention_matrix, v)
+    call self % create_attention_matrix(q, k)
+    call self % normalize_attention_matrix()
+    call self % scaled_dot_product_attention(v)
 
-    call self % output_layer % forward(self % combine_heads(dot_product_attention))
+    call self % output_layer % forward(self % combine_heads(self % sdpa))
     self % output = self % output_layer % output
   end subroutine forward
 
@@ -158,60 +161,68 @@ contains
     )
   end function split_heads
 
-  module function create_attention_matrix(self, query, key) result(output)
+  module subroutine create_attention_matrix(self, query, key)
     !! Create attention matrix for query and key
+    !! Output dimensions: n_heads, sequence_length, sequence_length, batch_size
     class(multihead_attention_layer) :: self
     real :: query(:, :, :, :)
     real :: key(:, :, :, :)
-    real :: output(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
     integer :: i, j
     ! create attention matrix for each sequence in each batch
     do i = 1, self % batch_size
       do j = 1, self % n_heads
-        output(j, :, :, i) = matmul(query(j, :, :, i), transpose(key(j, :, :, i)))
+        self % attention_matrix(j, :, :, i) = matmul(query(j, :, :, i), transpose(key(j, :, :, i)))
       end do
     end do
-  end function create_attention_matrix
+  end subroutine create_attention_matrix
 
-  module function normalize_attention_matrix(self, attention_matrix, attention_mask) result(output)
+  module subroutine normalize_attention_matrix(self, attention_mask)
     !! Create attention matrix for query and key
+    !! Output dims: n_heads, sequence_length, sequence_length, batch_size
     class(multihead_attention_layer) :: self
-    real :: attention_matrix(:, :, :, :)
     !! (batch_size, n_heads, sequence_length, sequence_length)
     real, optional :: attention_mask(:, :, :, :)
     !! (batch_size, n_heads, sequence_length, sequence_length)
-    real :: output(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
+    real, allocatable :: output(:, :, :, :)
     integer :: batch, head, seq
 
+    ! temporary storage
+    allocate(output(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
+
     ! scale dowm by square root of each head's size
-    attention_matrix = attention_matrix / sqrt(real(self % head_size))
+    self % attention_matrix = self % attention_matrix / sqrt(real(self % head_size))
     ! attention mask is used to mask out some of the tokens if necessary
     if (present(attention_mask)) then
-      attention_matrix = attention_matrix + attention_mask
+      self % attention_matrix = self % attention_matrix + attention_mask
     end if
-    ! softmax by second sequnce_length
+    ! softmax by last sequnce_length
     do batch = 1, self % batch_size
       do head = 1, self % n_heads
         do seq = 1, self % sequence_length
-          output(head, seq, :, batch) = self % softmax_func % eval_1d(attention_matrix(head, seq, :, batch))
+          output(head, seq, :, batch) = self % softmax_func % eval_1d(&
+              self % attention_matrix(head, seq, :, batch)&
+          )
         end do
       end do
     end do
-  end function normalize_attention_matrix
+    self % attention_matrix = output
 
-  module function scaled_dot_product_attention(self, attention_matrix, value) result(output)
+    deallocate(output)
+  end subroutine normalize_attention_matrix
+
+  module subroutine scaled_dot_product_attention(self, value)
+    !! Create scaled dot product attention
+    !! Output dims: n_heads, sequence_length, head_size, batch_size
     class(multihead_attention_layer) :: self
-    real :: attention_matrix(:, :, :, :)
     real :: value(:, :, :, :)
-    real :: output(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
     integer :: batch, head
 
     do batch = 1, self % batch_size
       do head = 1, self % n_heads
-        output(head, :, :, batch) = matmul(attention_matrix(head, :, :, batch), value(head, :, :, batch))
+        self % sdpa(head, :, :, batch) = matmul(self % attention_matrix(head, :, :, batch), value(head, :, :, batch))
       end do
     end do
-  end function scaled_dot_product_attention
+  end subroutine scaled_dot_product_attention
 
   module function combine_heads(self, input) result(output)
     class(multihead_attention_layer) :: self
@@ -233,6 +244,12 @@ contains
     class(multihead_attention_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
+    allocate(self % attention_matrix(&
+        self % n_heads, self % sequence_length, self % sequence_length, self % batch_size&
+    ))
+    allocate(self % sdpa(&
+        self % n_heads, self % sequence_length, self % head_size, self % batch_size&
+    ))
     allocate(self % output(self % sequence_length, self % model_dimension, self % batch_size))
   end subroutine init
 end module nf_multihead_attention_layer
