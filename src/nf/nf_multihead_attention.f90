@@ -26,9 +26,12 @@ module nf_multihead_attention_layer
     real, allocatable :: sdpa(:, :, :, :)
     real, allocatable :: output(:, :, :)
 
+    real, allocatable :: q_input(:, :, :)
+    real, allocatable :: k_input(:, :, :)
+    real, allocatable :: v_input(:, :, :)
   contains
 
-!    procedure :: backward
+    procedure :: backward
     procedure :: forward
     procedure :: split_heads
     procedure :: create_attention_matrix
@@ -49,15 +52,15 @@ module nf_multihead_attention_layer
 
   interface
 
-    pure module subroutine backward(self, input, gradient)
+    module subroutine backward(self, input, gradient)
       !! Apply the backward gradient descent pass.
       !! Only weight and bias gradients are updated in this subroutine,
       !! while the weights and biases themselves are untouched.
       class(multihead_attention_layer), intent(in out) :: self
         !! Dense layer instance
-      real, intent(in) :: input(:)
+      real, intent(in) :: input(:, :, :)
         !! Input from the previous layer
-      real, intent(in) :: gradient(:)
+      real, intent(in) :: gradient(:, :, :)
         !! Gradient from the next layer
     end subroutine backward
 
@@ -109,6 +112,20 @@ contains
     res % softmax_func = softmax()
   end function multihead_attention_layer_cons
 
+  module subroutine backward(self, input, gradient)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, intent(in) :: input(:, :, :)
+    real, intent(in) :: gradient(:, :, :)
+
+    call self % output_layer % backward(input, gradient)
+
+    ! FIXME: calculate gradient for softmax
+
+    call self % value_layer % backward(self % v_input, self % output_layer % gradient)
+    call self % key_layer % backward(self % k_input, self % output_layer % gradient)
+    call self % query_layer % backward(self % q_input, self % output_layer % gradient)
+  end subroutine backward
+
   module subroutine forward(self, query, key, value)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
@@ -118,6 +135,10 @@ contains
     real :: v(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
     real :: attention_matrix(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
     real :: dot_product_attention(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+
+    self % q_input = query
+    self % k_input = key
+    self % v_input = value
 
     call self % query_layer % forward(query)
     call self % key_layer % forward(key)
@@ -237,5 +258,9 @@ contains
         self % n_heads, self % sequence_length, self % head_size, self % batch_size&
     ))
     allocate(self % output(self % sequence_length, self % model_dimension, self % batch_size))
+
+    allocate(self % q_input(self % sequence_length, self % model_dimension, self % batch_size))
+    allocate(self % k_input(self % sequence_length, self % model_dimension, self % batch_size))
+    allocate(self % v_input(self % sequence_length, self % model_dimension, self % batch_size))
   end subroutine init
 end module nf_multihead_attention_layer
