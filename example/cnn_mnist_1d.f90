@@ -1,7 +1,7 @@
 program cnn_mnist
 
     use nf, only: network, sgd, &
-      input, conv2d, maxpool2d, flatten, dense, reshape, locally_connected_1d, &
+      input, conv2d, maxpool2d, flatten, dense, reshape, &
       load_mnist, label_digits, softmax, relu
   
     implicit none
