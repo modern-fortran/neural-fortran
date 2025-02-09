@@ -26,6 +26,8 @@ module nf_multihead_attention_layer
     real, allocatable :: sdpa(:, :, :, :)
     real, allocatable :: output(:, :, :)
 
+    real :: scaling_factor
+
     real, allocatable :: q_input(:, :, :)
     real, allocatable :: k_input(:, :, :)
     real, allocatable :: v_input(:, :, :)
@@ -154,12 +156,12 @@ contains
           jacobian(head, i, j, batch) = &
               self % attention_matrix(head, i, j, batch) &
               * (1 - self % attention_matrix(head, i, j, batch)) &
-              * sqrt(1 / real(self % head_size))
+              * self % scaling_factor
         else
           jacobian(head, i, j, batch) = &
               - self % attention_matrix(head, i, j, batch) &
               * self % attention_matrix(head, i, j, batch) &
-              * sqrt(1 / real(self % head_size))
+              * self % scaling_factor
         end if
       end do
       ! attention normalization delta, the last step of softmax derivative:
@@ -267,7 +269,7 @@ contains
     allocate(output(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
 
     ! scale dowm by square root of each head's size
-    self % attention_matrix = self % attention_matrix * sqrt(1 / real(self % head_size))
+    self % attention_matrix = self % attention_matrix * self % scaling_factor
     ! attention mask is used to mask out some of the tokens if necessary
     if (present(attention_mask)) then
       self % attention_matrix = self % attention_matrix + attention_mask
@@ -316,6 +318,8 @@ contains
         self % n_heads, self % sequence_length, self % head_size, self % batch_size&
     ))
     allocate(self % output(self % sequence_length, self % model_dimension, self % batch_size))
+
+    self % scaling_factor = sqrt(1 / real(self % head_size))
 
     allocate(self % q_input(self % sequence_length, self % model_dimension, self % batch_size))
     allocate(self % k_input(self % sequence_length, self % model_dimension, self % batch_size))
