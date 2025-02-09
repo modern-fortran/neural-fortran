@@ -18,8 +18,8 @@ program test_multihead_attention_layer
   call test_multihead_attention_scaled_dot_product_attention(attention, split_heads_output, ok)
   call test_multihead_attention_combine_heads(attention, attention % sdpa, ok)
   call test_multihead_attention_forward(attention, ok)
-  call test_multihead_attention_forward_reallife_shape(ok)
   call test_multihead_attention_backward(attention, ok)
+  call test_multihead_attention_forward_reallife_shape(ok)
 
 contains
   subroutine test_multihead_attention_split_heads(attention, input, ok, output)
@@ -189,18 +189,31 @@ contains
     type(multihead_attention_layer), intent(in out) :: attention
     logical, intent(in out) :: ok
     real :: input(3, 4, 1) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4, 1])
-    real :: gradient(3, 4, 1) = reshape(&
-        [.1, .1, .1, 3., 3., 3., 2., .1, 2., 3., .1, 3., 2., 2., .1, 3., 3., 3.], [3, 4, 1]&
-    )
+    real :: gradient(3, 4, 1) = reshape([0.1, 3. , 2. , 0.1, 3. , 3. , 0.1, 2. , 0.1, 3. , 0.1, 3. ], [3, 4, 1])
+    real :: expected_output_flat(12) = [&
+        0.489710003, 0.240968466, -3.35404873E-02, 0.489710003,&
+        0.240968466, -3.35404873E-02, 0.489710003, 0.240968466,&
+        -3.35404873E-02, 0.489710003, 0.240968466, -3.35404873E-02&
+    ]
     real :: expected_shape(3) = [3, 4, 1]
+    real :: output(3, 4, 1)
+    real :: output_flat(12)
     real :: output_shape(3)
 
     call attention % backward(input, gradient)
 
-    output_shape = shape(attention % output_layer % gradient)
+    ! sample for Self Attention: sum of output gradients
+    output = attention % query_layer % gradient + attention % key_layer % gradient + attention % value_layer % gradient
+
+    output_shape = shape(output)
     if (.not. all(output_shape.eq.expected_shape)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect shape.. failed'
+    end if
+    output_flat = reshape(output, shape(output_flat))
+    if (.not. all(output_flat.eq.expected_output_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'backward returned incorrect values.. failed'
     end if
   end subroutine test_multihead_attention_backward
 end program test_multihead_attention_layer
