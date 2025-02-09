@@ -124,20 +124,23 @@ contains
     real, allocatable :: v_heads(:, :, :, :)
     real, allocatable :: k_heads(:, :, :, :)
     real, allocatable :: q_heads(:, :, :, :)
+    real, allocatable :: dv(:, :, :, :)
     real, allocatable :: d_sdpa(:, :, :, :)
-    real, allocatable :: jacobian(:, :, :, :)
+    real, allocatable :: jacobian(:, :, :)
     real, allocatable :: d_normalize(:, :, :, :)
     real, allocatable :: d_attn_matrix(:, :, :, :)
     real, allocatable :: dk(:, :, :, :)
-    integer :: batch, head, i, j
+    integer :: batch, head, seq, i, j
 
     ! allocate temporary storages for backward computation
     allocate(d_output(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
     allocate(v_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
     allocate(k_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
     allocate(q_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+
+    allocate(dv(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
     allocate(d_sdpa(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
-    allocate(jacobian(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
+    allocate(jacobian(self % sequence_length, self % sequence_length, self % sequence_length))
     allocate(d_normalize(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
     allocate(d_attn_matrix(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
     allocate(dk(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
@@ -153,40 +156,49 @@ contains
 
     ! iterate over heads to calculate deltas for each of them
     do concurrent(batch = 1: self % batch_size, head = 1: self % n_heads)
-      ! calculate delta for value
+      dv(head, :, :, batch) = matmul(transpose(self % attention_matrix(head, :, :, batch)), d_output(head, :, :, batch))
+
+      ! calculate delta for attention matrix
       d_sdpa(head, :, :, batch) = matmul(d_output(head, :, :, batch), transpose(v_heads(head, :, :, batch)))
 
-      ! this monstrosity is scaled derivative of softmax
-      do concurrent(i = 1: self % sequence_length, j = 1: self % sequence_length)
+      ! this monstrosity below is scaled derivative of softmax
+      do concurrent(seq = 1: self % sequence_length, i = 1: self % sequence_length, j = 1: self % sequence_length)
         ! jacobian matrix is used to calculate derivative of softmax (temporary storage)
         ! the idea behind this if-else is that for diagonal elements, the jacobian temp
-        ! should be: `softmax(x) * (1 - softmax(x))`
-        ! for off-diagonal: `-softmax^2(x)`
+        ! should be: `softmax(x_i) * (1 - softmax(x_i))`
+        ! for off-diagonal: `-softmax(x_i) * softmax(x_j)`
         ! For computational efficiency (avoid more temp storages), scaling is also done here
         if (i == j) then
-          jacobian(head, i, j, batch) = &
-              self % attention_matrix(head, i, j, batch) &
-              * (1 - self % attention_matrix(head, i, j, batch)) &
+          jacobian(seq, i, j) = &
+              self % attention_matrix(head, seq, i, batch) &
+              * (1 - self % attention_matrix(head, seq, i, batch)) &
               * self % scaling_factor
         else
-          jacobian(head, i, j, batch) = &
-              - self % attention_matrix(head, i, j, batch) &
-              * self % attention_matrix(head, i, j, batch) &
+          jacobian(seq, i, j) = &
+              - self % attention_matrix(head, seq, i, batch) &
+              * self % attention_matrix(head, seq, j, batch) &
               * self % scaling_factor
         end if
       end do
+
       ! attention normalization delta, the last step of softmax derivative:
       ! multiply temp jacobian matrix by the output of softmax
-      d_normalize(head, :, :, batch) = matmul(d_sdpa(head, :, :, batch), jacobian(head, :, :, batch))
+      do concurrent(seq = 1: self % sequence_length)
+        d_normalize(head, seq, :, batch) = reshape(matmul(&
+            reshape(d_sdpa(head, seq, :, batch), [1, self % sequence_length]),&
+            jacobian(seq, :, :)&
+        ), [self % sequence_length])
+      end do
 
       ! calculate delta for query
       d_attn_matrix(head, :, :, batch) = matmul(d_normalize(head, :, :, batch), k_heads(head, :, :, batch))
+
       ! calculate delta for key, attention matrix should be transposed unlike for query
       dk(head, :, :, batch) = matmul(transpose(d_normalize(head, :, :, batch)), q_heads(head, :, :, batch))
     end do
 
     ! calculate deltas for input layers
-    call self % value_layer % backward(self % v_input, self % combine_heads(d_sdpa))
+    call self % value_layer % backward(self % v_input, self % combine_heads(dv))
     call self % key_layer % backward(self % k_input, self % combine_heads(dk))
     call self % query_layer % backward(self % q_input, self % combine_heads(d_attn_matrix))
 
