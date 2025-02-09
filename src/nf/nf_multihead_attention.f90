@@ -120,16 +120,27 @@ contains
     real, intent(in) :: input(:, :, :)
     real, intent(in) :: gradient(:, :, :)
 
-    real :: d_output(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    real :: v_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    real :: k_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    real :: q_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    real :: d_sdpa(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
-    real :: jacobian(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
-    real :: d_normalize(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
-    real :: d_attn_matrix(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    real :: dk(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real, allocatable :: d_output(:, :, :, :)
+    real, allocatable :: v_heads(:, :, :, :)
+    real, allocatable :: k_heads(:, :, :, :)
+    real, allocatable :: q_heads(:, :, :, :)
+    real, allocatable :: d_sdpa(:, :, :, :)
+    real, allocatable :: jacobian(:, :, :, :)
+    real, allocatable :: d_normalize(:, :, :, :)
+    real, allocatable :: d_attn_matrix(:, :, :, :)
+    real, allocatable :: dk(:, :, :, :)
     integer :: batch, head, i, j
+
+    ! allocate temporary storages for backward computation
+    allocate(d_output(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(v_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(k_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(q_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(d_sdpa(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
+    allocate(jacobian(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
+    allocate(d_normalize(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
+    allocate(d_attn_matrix(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(dk(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
 
     ! calculate output layer delta
     call self % output_layer % backward(input, gradient)
@@ -178,6 +189,17 @@ contains
     call self % value_layer % backward(self % v_input, self % combine_heads(d_sdpa))
     call self % key_layer % backward(self % k_input, self % combine_heads(dk))
     call self % query_layer % backward(self % q_input, self % combine_heads(d_attn_matrix))
+
+    ! free temporary storages
+    deallocate(d_output)
+    deallocate(v_heads)
+    deallocate(k_heads)
+    deallocate(q_heads)
+    deallocate(d_sdpa)
+    deallocate(jacobian)
+    deallocate(d_normalize)
+    deallocate(d_attn_matrix)
+    deallocate(dk)
   end subroutine backward
 
   module subroutine forward(self, query, key, value)
