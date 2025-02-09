@@ -179,6 +179,7 @@ contains
   end subroutine backward
 
   module subroutine forward(self, query, key, value)
+    !! General forward prop for MultiHead Attention Mechenism
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
 
@@ -192,16 +193,21 @@ contains
     self % k_input = key
     self % v_input = value
 
+    ! run inputs through linear layers (trainable params)
     call self % query_layer % forward(query)
     call self % key_layer % forward(key)
     call self % value_layer % forward(value)
 
+    ! split attention heads for more efficient computation
     q = self % split_heads(self % query_layer % output)
     k = self % split_heads(self % key_layer % output)
     v = self % split_heads(self % value_layer % output)
 
+    ! create key by value matrix
     call self % create_attention_matrix(q, k)
+    ! apply softmax and scaling
     call self % normalize_attention_matrix()
+    ! multiply attention matrix by value
     call self % scaled_dot_product_attention(v)
 
     call self % output_layer % forward(self % combine_heads(self % sdpa))
