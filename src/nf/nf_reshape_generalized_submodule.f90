@@ -9,9 +9,17 @@ contains
   pure module function reshape_layer_cons(output_shape) result(res)
     integer, intent(in) :: output_shape(:)
     type(reshape_generalized_layer) :: res
-    allocate(res % output_shape(size(output_shape)))
-    res % output_shape = output_shape
+    
+    ! Check if output_shape is scalar (size 1)
+    if (size(output_shape) == 1) then
+        allocate(res % output_shape(1))
+        res % output_shape = output_shape
+    else
+        allocate(res % output_shape(size(output_shape)))
+        res % output_shape = output_shape
+    end if
   end function reshape_layer_cons
+
 
   pure module subroutine backward(self, input, gradient)
     class(reshape_generalized_layer), intent(in out) :: self
@@ -56,14 +64,22 @@ contains
     
     self % input_shape = input_shape
     
-    ! Allocate gradient buffer based on input size
-    allocate(self % gradient(product(input_shape)))
+    !! Handle scalar input (size 1) or non-scalar
+    if (size(input_shape) == 1) then
+        allocate(self % gradient(1))
+    else
+        allocate(self % gradient(product(input_shape)))
+    end if
     self % gradient = 0
     
-    ! Allocate output buffer based on output_shape
-    allocate(self % output(product(self % output_shape)))
+    !! Handle scalar output_shape (size 1) or non-scalar
+    if (size(self % output_shape) == 1) then
+        allocate(self % output(1))
+    else
+        allocate(self % output(product(self % output_shape)))
+    end if
     self % output = 0
-  
-  end subroutine init
+end subroutine init
+
 
 end submodule nf_reshape_layer_generalized_submodule

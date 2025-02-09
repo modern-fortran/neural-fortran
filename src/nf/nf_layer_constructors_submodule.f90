@@ -162,14 +162,16 @@ contains
   end function reshape
 
   module function reshape_generalized(output_shape) result(res)
-    integer, intent(in) :: output_shape(:)
+    integer, intent(in) :: output_shape(:)  !! Always treat as an array
     type(layer) :: res
-
+    
     res % name = 'reshape_generalized'
     res % layer_shape = output_shape
 
     allocate(res % p, source=reshape_generalized_layer(output_shape))
-  
+
   end function reshape_generalized
+  
+  
 
 end submodule nf_layer_constructors_submodule
