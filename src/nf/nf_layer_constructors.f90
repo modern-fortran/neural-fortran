@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape
+  public :: conv2d, dense, flatten, input, locally_connected_1d, maxpool2d, reshape
 
   interface input
 
@@ -154,6 +154,33 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function maxpool2d
+
+    module function locally_connected_1d(filters, kernel_size, activation) result(res)
+      !! 2-d convolutional layer constructor.
+      !!
+      !! This layer is for building 2-d convolutional network.
+      !! Although the established convention is to call these layers 2-d,
+      !! the shape of the data is actuall 3-d: image width, image height,
+      !! and the number of channels.
+      !! A conv2d layer must not be the first layer in the network.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: conv2d, layer
+      !! type(layer) :: conv2d_layer
+      !! conv2d_layer = dense(filters=32, kernel_size=3)
+      !! conv2d_layer = dense(filters=32, kernel_size=3, activation='relu')
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_size
+        !! Width of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function locally_connected_1d
 
     module function reshape(output_shape) result(res)
       !! Rank-1 to rank-any reshape layer constructor.
