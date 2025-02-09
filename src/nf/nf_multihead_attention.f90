@@ -55,9 +55,10 @@ module nf_multihead_attention_layer
   interface
 
     module subroutine backward(self, input, gradient)
-      !! Apply the backward gradient descent pass.
-      !! Only weight and bias gradients are updated in this subroutine,
-      !! while the weights and biases themselves are untouched.
+      !! General backprop for MultiHead Attention mechanism
+      !! Might be used for both Self and Cross Attention
+      !! Self Attention: sum output gradients
+      !! Cross Attention: use them separately
       class(multihead_attention_layer), intent(in out) :: self
         !! Dense layer instance
       real, intent(in) :: input(:, :, :)
@@ -67,6 +68,10 @@ module nf_multihead_attention_layer
     end subroutine backward
 
     module subroutine forward(self, query, key, value)
+      !! General forward propagation for MultiHead Attention Mechanism
+      !! Might be used for both Self and Cross Attention
+      !! Self Attention: pass the same value thrice
+      !! Cross Attention: pass three values for your query, key and value
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
     end subroutine forward
@@ -76,9 +81,7 @@ module nf_multihead_attention_layer
       !!
       !! This is a deferred procedure from the `base_layer` abstract type.
       class(multihead_attention_layer), intent(in out) :: self
-        !! Dense layer instance
       integer, intent(in) :: input_shape(:)
-        !! Shape of the input layer
     end subroutine init
 
   end interface
@@ -115,7 +118,6 @@ contains
   end function multihead_attention_layer_cons
 
   module subroutine backward(self, input, gradient)
-    !! General backprop for MultiHead Attention mechanism
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :, :)
     real, intent(in) :: gradient(:, :, :)
@@ -214,7 +216,6 @@ contains
   end subroutine backward
 
   module subroutine forward(self, query, key, value)
-    !! General forward prop for MultiHead Attention Mechenism
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
 
@@ -261,17 +262,8 @@ contains
     !! Split inputs into heads
     !!
     !! Example with two heads:
-    !! input (1, 3, 4):
-    !! [[[0.  , 0.3 , 0.6 , 0.9 ],
-    !!   [0.1 , 0.4 , 0.7 , 0.11],
-    !!   [0.2 , 0.5 , 0.8 , 0.12]]]
-    !! output (1, 2, 3, 2)
-    !! [[[[0.  , 0.3 ],
-    !     [0.1 , 0.4 ],
-    !     [0.2 , 0.5 ]],
-    !    [[0.6 , 0.9 ],
-    !     [0.7 , 0.11],
-    !     [0.8 , 0.12]]]]
+    !! input (3, 4, 1)
+    !! output (2, 3, 2, 1)
     class(multihead_attention_layer) :: self
     real :: input(:, :, :)
     real :: output(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
