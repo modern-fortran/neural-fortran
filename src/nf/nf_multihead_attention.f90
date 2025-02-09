@@ -209,7 +209,7 @@ contains
     allocate(output(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
 
     ! scale dowm by square root of each head's size
-    self % attention_matrix = self % attention_matrix / sqrt(real(self % head_size))
+    self % attention_matrix = self % attention_matrix * sqrt(1 / real(self % head_size))
     ! attention mask is used to mask out some of the tokens if necessary
     if (present(attention_mask)) then
       self % attention_matrix = self % attention_matrix + attention_mask
