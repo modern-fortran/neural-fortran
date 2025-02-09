@@ -141,10 +141,18 @@ contains
     real :: output(attention % sequence_length, attention % model_dimension, attention % batch_size)
     real :: output_flat(12)
     integer :: output_shape(3)
+    integer :: attn_weights_shape(4)
+    real :: attn_weights_flat(18)
     integer :: expected_shape(3) = [3, 4, 1]
     real :: expected_output_flat(12) = [&
         0.982241452, 1.00407875, 1.00444126, 0.982241452, 1.00407875, 1.00444126,&
         0.982241452, 1.00407875, 1.00444126, 0.982241452, 1.00407875, 1.00444126&
+    ]
+    integer :: expected_attn_weights_shape(4) = [2, 3, 3, 1]
+    real :: expected_attn_weights_flat(18) = [&
+        7.89450705E-02, 7.89450705E-02, 2.28110179E-02, 2.28110179E-02, 2.18846574E-02, 2.18846574E-02,&
+        0.447508544, 0.447508544, 0.464612424, 0.464612424, 0.464721352, 0.464721352,&
+        0.473546445, 0.473546445, 0.512576580, 0.512576580, 0.513393998, 0.513393998&
     ]
 
     call attention % forward(input, input, input)
@@ -158,6 +166,17 @@ contains
     if (.not. all(output_flat.eq.expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
+    end if
+
+    attn_weights_shape = shape(attention % attention_matrix)
+    if (.not. all(attn_weights_shape.eq.expected_attn_weights_shape)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect attention weights shape.. failed'
+    end if
+    attn_weights_flat = reshape(attention % attention_matrix, shape(attn_weights_flat))
+    if (.not. all(attn_weights_flat.eq.expected_attn_weights_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect attention weights values.. failed'
     end if
   end subroutine test_multihead_attention_forward
 
