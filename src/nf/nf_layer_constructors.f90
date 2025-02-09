@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, locally_connected_1d, maxpool2d, reshape
+  public :: conv2d, dense, flatten, input, locally_connected_1d, maxpool2d, reshape, reshape_generalized
 
   interface input
 
@@ -192,6 +192,12 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function reshape
+
+    module function reshape_generalized(output_shape) result(res)
+      integer, intent(in) :: output_shape
+      type(layer) :: res
+
+    end function reshape_generalized
 
   end interface
 

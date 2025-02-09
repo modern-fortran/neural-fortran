@@ -48,6 +48,4 @@ contains
 
   end subroutine init
 
-  
-
 end submodule nf_reshape_layer_submodule

@@ -6,6 +6,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_optimizers, only: optimizer_base_type

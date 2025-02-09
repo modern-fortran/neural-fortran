@@ -20,7 +20,7 @@ program cnn_mnist
   
     net = network([ &
       input(784), &
-      reshape([1,784]), &
+      reshape([1,28,28]), &
       locally_connected_1d(filters=8, kernel_size=2, activation=relu()), &
       dense(10, activation=softmax()) &
     ])

@@ -9,6 +9,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_reshape_layer_generalized, only: reshape_generalized_layer
   use nf_activation, only: activation_function, relu, sigmoid
 
   implicit none
@@ -159,5 +160,16 @@ contains
     end if
 
   end function reshape
+
+  module function reshape_generalized(output_shape) result(res)
+    integer, intent(in) :: output_shape(:)
+    type(layer) :: res
+
+    res % name = 'reshape_generalized'
+    res % layer_shape = output_shape
+
+    allocate(res % p, source=reshape_generalized_layer(output_shape))
+  
+  end function reshape_generalized
 
 end submodule nf_layer_constructors_submodule
