@@ -207,11 +207,14 @@ contains
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
 
-    real :: q(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    real :: k(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    real :: v(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    real :: attention_matrix(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
-    real :: dot_product_attention(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real, allocatable :: q(:, :, :, :)
+    real, allocatable :: k(:, :, :, :)
+    real, allocatable :: v(:, :, :, :)
+
+    ! allocate storage for intermidiate stages
+    allocate(q(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(k(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(v(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
 
     self % q_input = query
     self % k_input = key
@@ -236,6 +239,11 @@ contains
 
     call self % output_layer % forward(self % combine_heads(self % sdpa))
     self % output = self % output_layer % output
+
+    ! free temp vars from memory
+    deallocate(q)
+    deallocate(k)
+    deallocate(v)
   end subroutine forward
 
   module function split_heads(self, input) result(output)
