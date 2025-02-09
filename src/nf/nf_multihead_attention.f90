@@ -60,11 +60,8 @@ module nf_multihead_attention_layer
       !! Self Attention: sum output gradients
       !! Cross Attention: use them separately
       class(multihead_attention_layer), intent(in out) :: self
-        !! Dense layer instance
       real, intent(in) :: input(:, :, :)
-        !! Input from the previous layer
       real, intent(in) :: gradient(:, :, :)
-        !! Gradient from the next layer
     end subroutine backward
 
     module subroutine forward(self, query, key, value)
