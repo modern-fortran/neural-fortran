@@ -113,17 +113,69 @@ contains
   end function multihead_attention_layer_cons
 
   module subroutine backward(self, input, gradient)
+    !! General backprop for MultiHead Attention mechanism
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :, :)
     real, intent(in) :: gradient(:, :, :)
 
+    real :: d_output(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real :: v_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real :: k_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real :: q_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real :: d_sdpa(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
+    real :: jacobian(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
+    real :: d_normalize(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size)
+    real :: d_attn_matrix(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    real :: dk(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
+    integer :: batch, head, i, j
+
+    ! calculate output layer delta
     call self % output_layer % backward(input, gradient)
 
-    ! FIXME: calculate gradient for softmax
+    ! split heads from output gradient
+    d_output = self % split_heads(self % output_layer % gradient)
+    v_heads = self % split_heads(self % value_layer % output)
+    k_heads = self % split_heads(self % key_layer % output)
+    q_heads = self % split_heads(self % query_layer % output)
 
-    call self % value_layer % backward(self % v_input, self % output_layer % gradient)
-    call self % key_layer % backward(self % k_input, self % output_layer % gradient)
-    call self % query_layer % backward(self % q_input, self % output_layer % gradient)
+    ! iterate over heads to calculate deltas for each of them
+    do concurrent(batch = 1: self % batch_size, head = 1: self % n_heads)
+      ! calculate delta for value
+      d_sdpa(head, :, :, batch) = matmul(d_output(head, :, :, batch), transpose(v_heads(head, :, :, batch)))
+
+      ! this monstrosity is scaled derivative of softmax
+      do concurrent(i = 1: self % sequence_length, j = 1: self % sequence_length)
+        ! jacobian matrix is used to calculate derivative of softmax (temporary storage)
+        ! the idea behind this if-else is that for diagonal elements, the jacobian temp
+        ! should be: `softmax(x) * (1 - softmax(x))`
+        ! for off-diagonal: `-softmax^2(x)`
+        ! For computational efficiency (avoid more temp storages), scaling is also done here
+        if (i == j) then
+          jacobian(head, i, j, batch) = &
+              self % attention_matrix(head, i, j, batch) &
+              * (1 - self % attention_matrix(head, i, j, batch)) &
+              * sqrt(1 / real(self % head_size))
+        else
+          jacobian(head, i, j, batch) = &
+              - self % attention_matrix(head, i, j, batch) &
+              * self % attention_matrix(head, i, j, batch) &
+              * sqrt(1 / real(self % head_size))
+        end if
+      end do
+      ! attention normalization delta, the last step of softmax derivative:
+      ! multiply temp jacobian matrix by the output of softmax
+      d_normalize(head, :, :, batch) = matmul(d_sdpa(head, :, :, batch), jacobian(head, :, :, batch))
+
+      ! calculate delta for query
+      d_attn_matrix(head, :, :, batch) = matmul(d_normalize(head, :, :, batch), k_heads(head, :, :, batch))
+      ! calculate delta for key, attention matrix should be transposed unlike for query
+      dk(head, :, :, batch) = matmul(transpose(d_normalize(head, :, :, batch)), q_heads(head, :, :, batch))
+    end do
+
+    ! calculate deltas for input layers
+    call self % value_layer % backward(self % v_input, self % combine_heads(d_sdpa))
+    call self % key_layer % backward(self % k_input, self % combine_heads(dk))
+    call self % query_layer % backward(self % q_input, self % combine_heads(d_attn_matrix))
   end subroutine backward
 
   module subroutine forward(self, query, key, value)
