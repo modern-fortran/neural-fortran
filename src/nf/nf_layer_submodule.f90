@@ -9,6 +9,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_reshape_layer_generalized, only: reshape_generalized_layer
   use nf_optimizers, only: optimizer_base_type
 
 contains
@@ -293,6 +294,8 @@ contains
         num_params = 0
       type is (reshape3d_layer)
         num_params = 0
+      type is (reshape_generalized_layer)
+        num_params = 0
       class default
         error stop 'Unknown layer type.'
     end select
@@ -318,6 +321,8 @@ contains
         ! No parameters to get.
       type is (reshape3d_layer)
         ! No parameters to get.
+      type is (reshape_generalized_layer)
+        ! No parameters to get.
       class default
         error stop 'Unknown layer type.'
     end select
@@ -342,6 +347,8 @@ contains
       type is (flatten_layer)
         ! No gradients to get.
       type is (reshape3d_layer)
+        ! No gradients to get.
+      type is (reshape_generalized_layer)
         ! No gradients to get.
       class default
         error stop 'Unknown layer type.'
@@ -399,7 +406,12 @@ contains
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
-
+      
+      type is (reshape_generalized_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+        
           class default
         error stop 'Unknown layer type.'
     end select

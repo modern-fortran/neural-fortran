@@ -11,7 +11,7 @@ contains
     type(reshape_generalized_layer) :: res
     
     ! Check if output_shape is scalar (size 1)
-    if (size(output_shape) == 1) then
+    if (size(output_shape) == 0) then
         allocate(res % output_shape(1))
         res % output_shape = output_shape
     else

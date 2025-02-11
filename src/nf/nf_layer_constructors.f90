@@ -194,7 +194,7 @@ module nf_layer_constructors
     end function reshape
 
     module function reshape_generalized(output_shape) result(res)
-      integer, intent(in) :: output_shape
+      integer, intent(in) :: output_shape(:)
       type(layer) :: res
 
     end function reshape_generalized

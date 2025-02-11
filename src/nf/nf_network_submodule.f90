@@ -9,7 +9,7 @@ submodule(nf_network) nf_network_submodule
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv2d, dense, flatten, input, locally_connected_1d, maxpool2d, reshape
+  use nf_layer_constructors, only: conv2d, dense, flatten, input, locally_connected_1d, maxpool2d, reshape, reshape_generalized
   use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
