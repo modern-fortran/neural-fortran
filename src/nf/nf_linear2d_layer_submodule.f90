@@ -77,7 +77,7 @@ contains
 
     real, pointer :: w_(:) => null()
 
-    w_(1:size(self % weights)) => self % weights
+    w_(1: product(shape(self % weights))) => self % weights
 
     params = [ &
       w_, &
@@ -93,7 +93,7 @@ contains
 
     real, pointer :: dw_(:) => null()
 
-    dw_(1:size(self % dw)) => self % dw
+    dw_(1: product(shape(self % dw))) => self % dw
 
     gradients = [ &
       dw_, &
