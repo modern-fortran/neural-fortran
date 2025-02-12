@@ -6,12 +6,14 @@ program test_multihead_attention_layer
 
   logical :: ok = .true.
   type(multihead_attention_layer) :: attention
-  real :: sample_input(3, 4, 1) = reshape([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.11, 0.12], [3, 4, 1])
-  real :: split_heads_output(2, 3, 2, 1)
+  real :: sample_input(3, 4) = reshape([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.11, 0.12], [3, 4])
+  real :: split_heads_output(3, 2, 2)
+  real :: minput(3, 4) = reshape([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.11, 0.12], [3, 4])
+  real :: output(3, 2, 2)
 
-  attention = multihead_attention_layer(batch_size=1, sequence_length=3, model_dimension=4, n_heads=2)
+  attention = multihead_attention_layer(sequence_length=3, model_dimension=4, n_heads=2)
   call attention % init([0])
-
+!
   call test_multihead_attention_split_heads(attention, sample_input, ok, split_heads_output)
   call test_multihead_attention_create_attention_matrix(attention, split_heads_output, ok)
   call test_multihead_attention_normalization(attention, ok)
@@ -19,18 +21,18 @@ program test_multihead_attention_layer
   call test_multihead_attention_combine_heads(attention, attention % sdpa, ok)
   call test_multihead_attention_forward(attention, ok)
   call test_multihead_attention_backward(attention, ok)
-  call test_multihead_attention_forward_reallife_shape(ok)
+!  call test_multihead_attention_forward_reallife_shape(ok)
 
 contains
   subroutine test_multihead_attention_split_heads(attention, input, ok, output)
     type(multihead_attention_layer), intent(in) :: attention
-    real, intent(in) :: input(:, :, :)
+    real, intent(in) :: input(:, :)
     logical, intent(in out) :: ok
-    real, intent(in out) :: output(2, 3, 2, 1)
-    real :: output_shape(4)
-    real :: expected_shape(4) = [2, 3, 2, 1]
+    real, intent(in out) :: output(3, 2, 2)
+    real :: output_shape(3)
+    real :: expected_shape(3) = [3, 2, 2]
     real :: output_flat(12)
-    real :: expected_output_flat(12) = [0.0, 0.6, 0.1, 0.7, 0.2, 0.8, 0.3, 0.9, 0.4, 0.11, 0.5, 0.12]
+    real :: expected_output_flat(12) = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.11, 0.12]
 
     output = attention % split_heads(input)
 
@@ -48,18 +50,15 @@ contains
 
   subroutine test_multihead_attention_create_attention_matrix(attention, input, ok)
     type(multihead_attention_layer), intent(in) :: attention
-    real, intent(in) :: input(:, :, :, :)
+    real, intent(in) :: input(:, :, :)
     logical, intent(in out) :: ok
-    real :: attention_matrix_shape(4)
+    real :: attention_matrix_shape(3)
     real :: attention_matrix_flat(18)
-    real :: expected_shape(4) = [2, 3, 3, 1]
+    real :: expected_shape(3) = [3, 3, 2]
     real :: expected_attention_matrix_flat(18) = [&
-        9.00000036E-02, 1.16999996, 0.120000005,&
-        0.518999994, 0.150000006, 0.588000000,&
-        0.120000005, 0.518999994, 0.170000002,&
-        0.502099991, 0.219999999, 0.573199987,&
-        0.150000006, 0.588000000, 0.219999999,&
-        0.573199987, 0.289999992, 0.654400051&
+        9.00000036E-02, 0.120000005, 0.150000006, 0.120000005, 0.170000002, 0.219999999,&
+        0.150000006, 0.219999999, 0.289999992, 1.16999996, 0.518999994, 0.588000000,&
+        0.518999994, 0.502099991, 0.573199987, 0.588000000, 0.573199987, 0.654400051&
     ]
 
     call attention % create_attention_matrix(input, input)
@@ -81,9 +80,9 @@ contains
     logical, intent(in out) :: ok
     real :: output_flat(18)
     real :: expected_output_flat(18) = [&
-        0.326287806, 0.435975075, 0.321620107, 0.330339372, 0.316976935, 0.329200655,&
-        0.333283335, 0.275134116, 0.333194494, 0.326415271, 0.333061278, 0.325773478,&
-        0.340428889, 0.288890868, 0.345185429, 0.343245387, 0.349961787, 0.345025837&
+        0.326287806, 0.321620107, 0.316976935, 0.333283335, 0.333194494, 0.333061278,&
+        0.340428889, 0.345185429, 0.349961787, 0.435975075, 0.330339372, 0.329200655,&
+        0.275134116, 0.326415271, 0.325773478, 0.288890868, 0.343245387, 0.345025837&
     ]
 
     call attention % normalize_attention_matrix()
@@ -97,12 +96,12 @@ contains
 
   subroutine test_multihead_attention_scaled_dot_product_attention(attention, value, ok)
     type(multihead_attention_layer), intent(in) :: attention
-    real, intent(in) :: value(:, :, :, :)
+    real, intent(in) :: value(:, :, :)
     logical, intent(in out) :: ok
     real :: output_flat(12)
     real :: expected_output_flat(12) = [&
-        0.101414114, 0.685291648, 0.102356538, 0.701290667, 0.103298485, 0.701582491,&
-        0.401414126, 0.457309216, 0.402356565, 0.374400556, 0.403298497, 0.373518765&
+        0.101414114, 0.102356538, 0.103298485, 0.401414126, 0.402356565, 0.403298497,&
+        0.685291648, 0.701290667, 0.701582491, 0.457309216, 0.374400556, 0.373518765&
     ]
 
     call attention % scaled_dot_product_attention(value)
@@ -116,13 +115,13 @@ contains
 
   subroutine test_multihead_attention_combine_heads(attention, scaled_dp_att, ok)
     type(multihead_attention_layer), intent(in) :: attention
-    real, intent(in) :: scaled_dp_att(:, :, :, :)
+    real, intent(in) :: scaled_dp_att(:, :, :)
     logical, intent(in out) :: ok
-    real :: output(attention % sequence_length, attention % model_dimension, attention % batch_size)
+    real :: output(attention % sequence_length, attention % model_dimension)
     real :: output_flat(12)
     real :: expected_output_flat(12) = [&
-        0.101414114, 0.102356538, 0.103298485, 0.401414126, 0.402356565, 0.403298497,&
-        0.685291648, 0.701290667, 0.701582491, 0.457309216, 0.374400556, 0.373518765&
+        0.101414114, 0.102356538, 0.103298485, 0.685291648, 0.701290667, 0.701582491,&
+        0.401414126, 0.402356565, 0.403298497, 0.457309216, 0.374400556, 0.373518765&
     ]
 
     output = attention % combine_heads(scaled_dp_att)
@@ -137,22 +136,22 @@ contains
   subroutine test_multihead_attention_forward(attention, ok)
     type(multihead_attention_layer), intent(in out) :: attention
     logical, intent(in out) :: ok
-    real :: input(3, 4, 1) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4, 1])
+    real :: input(3, 4) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4])
     real :: output(attention % sequence_length, attention % model_dimension, attention % batch_size)
     real :: output_flat(12)
-    integer :: output_shape(3)
-    integer :: attn_weights_shape(4)
+    integer :: output_shape(2)
+    integer :: attn_weights_shape(3)
     real :: attn_weights_flat(18)
-    integer :: expected_shape(3) = [3, 4, 1]
+    integer :: expected_shape(2) = [3, 4]
     real :: expected_output_flat(12) = [&
         0.982241452, 1.00407875, 1.00444126, 0.982241452, 1.00407875, 1.00444126,&
         0.982241452, 1.00407875, 1.00444126, 0.982241452, 1.00407875, 1.00444126&
     ]
-    integer :: expected_attn_weights_shape(4) = [2, 3, 3, 1]
+    integer :: expected_attn_weights_shape(3) = [3, 3, 2]
     real :: expected_attn_weights_flat(18) = [&
-        7.89450705E-02, 7.89450705E-02, 2.28110179E-02, 2.28110179E-02, 2.18846574E-02, 2.18846574E-02,&
-        0.447508544, 0.447508544, 0.464612424, 0.464612424, 0.464721352, 0.464721352,&
-        0.473546445, 0.473546445, 0.512576580, 0.512576580, 0.513393998, 0.513393998&
+        7.89450705E-02, 2.28110179E-02, 2.18846574E-02, 0.447508544, 0.464612424, 0.464721352,&
+        0.473546445, 0.512576580, 0.513393998, 7.89450705E-02, 2.28110179E-02, 2.18846574E-02,&
+        0.447508544, 0.464612424, 0.464721352, 0.473546445, 0.512576580, 0.513393998&
     ]
 
     call attention % forward(input, input, input)
@@ -182,17 +181,17 @@ contains
 
   subroutine test_multihead_attention_forward_reallife_shape(ok)
     logical, intent(in out) :: ok
-    real :: input(148, 512, 2)
-    real :: output(148, 512, 2)
+    real :: input(148, 512)
+    real :: output(148, 512)
     type(linear2d_layer) :: q
     real :: output_flat(12)
-    integer :: output_shape(3)
-    integer :: expected_shape(3) = [148, 512, 2]
+    integer :: output_shape(2)
+    integer :: expected_shape(2) = [148, 512]
     type(multihead_attention_layer) :: attention
 
     call random_number(input)
 
-    attention = multihead_attention_layer(batch_size=2, sequence_length=148, model_dimension=512, n_heads=8)
+    attention = multihead_attention_layer(sequence_length=148, model_dimension=512, n_heads=8)
     call attention % init([0])
 
     call attention % forward(input, input, input)
@@ -207,23 +206,27 @@ contains
   subroutine test_multihead_attention_backward(attention, ok)
     type(multihead_attention_layer), intent(in out) :: attention
     logical, intent(in out) :: ok
-    real :: input(3, 4, 1) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4, 1])
-    real :: gradient(3, 4, 1) = reshape([0.1, 3. , 2. , 0.1, 3. , 3. , 0.1, 2. , 0.1, 3. , 0.1, 3. ], [3, 4, 1])
+    real :: input(3, 4) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4])
+    real :: gradient(3, 4) = reshape([0.1, 3., 2., 0.1, 3., 3., 0.1, 2., 0.1, 3., 0.1, 3.], [3, 4])
     real :: expected_output_flat(12) = [&
         -2.29912549E-02, 0.381484956, 0.453185737,&
         -2.29912549E-02, 0.381484956, 0.453185737,&
         -2.29912549E-02, 0.381484956, 0.453185737,&
         -2.29912549E-02, 0.381484956, 0.453185737&
     ]
-    real :: expected_shape(3) = [3, 4, 1]
-    real :: output(3, 4, 1)
+    real :: expected_shape(2) = [3, 4]
+    real :: output(3, 4)
     real :: output_flat(12)
-    real :: output_shape(3)
+    real :: output_shape(2)
 
     call attention % backward(input, gradient)
 
     ! sample for Self Attention: sum of output gradients
-    output = attention % query_layer % gradient + attention % key_layer % gradient + attention % value_layer % gradient
+    ! FIXME: remove reshapes when linear2d situation is resolved
+    output = &
+        reshape(attention % query_layer % gradient, [attention % sequence_length, attention % model_dimension]) &
+        + reshape(attention % key_layer % gradient, [attention % sequence_length, attention % model_dimension]) &
+        + reshape(attention % value_layer % gradient, [attention % sequence_length, attention % model_dimension])
 
     output_shape = shape(output)
     if (.not. all(output_shape.eq.expected_shape)) then

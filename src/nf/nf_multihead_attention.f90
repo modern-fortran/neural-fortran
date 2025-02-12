@@ -22,15 +22,15 @@ module nf_multihead_attention_layer
 
     type(softmax) :: softmax_func
 
-    real, allocatable :: attention_matrix(:, :, :, :)
-    real, allocatable :: sdpa(:, :, :, :)
-    real, allocatable :: output(:, :, :)
+    real, allocatable :: attention_matrix(:, :, :)
+    real, allocatable :: sdpa(:, :, :)
+    real, allocatable :: output(:, :)
 
     real :: scaling_factor
 
-    real, allocatable :: q_input(:, :, :)
-    real, allocatable :: k_input(:, :, :)
-    real, allocatable :: v_input(:, :, :)
+    real, allocatable :: q_input(:, :)
+    real, allocatable :: k_input(:, :)
+    real, allocatable :: v_input(:, :)
   contains
 
     procedure :: backward
@@ -60,8 +60,8 @@ module nf_multihead_attention_layer
       !! Self Attention: sum output gradients
       !! Cross Attention: use them separately
       class(multihead_attention_layer), intent(in out) :: self
-      real, intent(in) :: input(:, :, :)
-      real, intent(in) :: gradient(:, :, :)
+      real, intent(in) :: input(:, :)
+      real, intent(in) :: gradient(:, :)
     end subroutine backward
 
     module subroutine forward(self, query, key, value)
@@ -70,7 +70,7 @@ module nf_multihead_attention_layer
       !! Self Attention: pass the same value thrice
       !! Cross Attention: pass three values for your query, key and value
       class(multihead_attention_layer), intent(in out) :: self
-      real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
+      real, intent(in) :: query(:, :), key(:, :), value(:, :)
     end subroutine forward
 
     module subroutine init(self, input_shape)
@@ -84,11 +84,9 @@ module nf_multihead_attention_layer
   end interface
 
 contains
-  module function multihead_attention_layer_cons(&
-      batch_size, sequence_length, model_dimension, n_heads) result(res)
-    integer, intent(in) :: batch_size, sequence_length, model_dimension, n_heads
+  module function multihead_attention_layer_cons(sequence_length, model_dimension, n_heads) result(res)
+    integer, intent(in) :: sequence_length, model_dimension, n_heads
     type(multihead_attention_layer) :: res
-    res % batch_size = batch_size
     res % sequence_length = sequence_length
     res % model_dimension = model_dimension
     res % n_heads = n_heads
@@ -99,13 +97,10 @@ contains
     end if
     res % head_size = model_dimension / n_heads
 
-    res % query_layer = linear2d_layer(&
-        sequence_length=sequence_length, in_features=model_dimension,&
-        out_features=model_dimension, batch_size=batch_size&
-      )
-    res % key_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, batch_size)
-    res % value_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, batch_size)
-    res % output_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, batch_size)
+    res % query_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, 1)
+    res % key_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, 1)
+    res % value_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, 1)
+    res % output_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, 1)
     call res % query_layer % init([0])
     call res % key_layer % init([0])
     call res % value_layer % init([0])
@@ -116,49 +111,56 @@ contains
 
   module subroutine backward(self, input, gradient)
     class(multihead_attention_layer), intent(in out) :: self
-    real, intent(in) :: input(:, :, :)
-    real, intent(in) :: gradient(:, :, :)
+    real, intent(in) :: input(:, :)
+    real, intent(in) :: gradient(:, :)
 
-    real, allocatable :: d_output(:, :, :, :)
-    real, allocatable :: v_heads(:, :, :, :)
-    real, allocatable :: k_heads(:, :, :, :)
-    real, allocatable :: q_heads(:, :, :, :)
-    real, allocatable :: dv(:, :, :, :)
+    real, allocatable :: d_output(:, :, :)
+    real, allocatable :: v_heads(:, :, :)
+    real, allocatable :: k_heads(:, :, :)
+    real, allocatable :: q_heads(:, :, :)
+    real, allocatable :: dv(:, :, :)
     real, allocatable :: d_sdpa(:, :)
     real, allocatable :: jacobian(:, :)
-    real, allocatable :: d_normalize(:, :, :, :)
-    real, allocatable :: dq(:, :, :, :)
-    real, allocatable :: dk(:, :, :, :)
-    integer :: batch, head, seq, i, j
+    real, allocatable :: d_normalize(:, :, :)
+    real, allocatable :: dq(:, :, :)
+    real, allocatable :: dk(:, :, :)
+    integer :: head, seq, i, j
 
     ! allocate temporary storages for backward computation
-    allocate(d_output(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
-    allocate(v_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
-    allocate(k_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
-    allocate(q_heads(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(d_output(self % sequence_length, self % head_size, self % n_heads))
+    allocate(v_heads(self % sequence_length, self % head_size, self % n_heads))
+    allocate(k_heads(self % sequence_length, self % head_size, self % n_heads))
+    allocate(q_heads(self % sequence_length, self % head_size, self % n_heads))
 
-    allocate(dv(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(dv(self % sequence_length, self % head_size, self % n_heads))
     allocate(d_sdpa(self % sequence_length, self % sequence_length))
     allocate(jacobian(self % sequence_length, self % sequence_length))
-    allocate(d_normalize(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
-    allocate(dq(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
-    allocate(dk(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(d_normalize(self % sequence_length, self % sequence_length, self % n_heads))
+    allocate(dq(self % sequence_length, self % head_size, self % n_heads))
+    allocate(dk(self % sequence_length, self % head_size, self % n_heads))
 
     ! calculate output layer delta
-    call self % output_layer % backward(input, gradient)
+    ! FIXME: remove reshapes when linear2d situation is resolved
+    call self % output_layer % backward(&
+        reshape(input, [self % sequence_length, self % model_dimension, 1]),&
+        reshape(gradient, [self % sequence_length, self % model_dimension, 1])&
+    )
 
     ! split heads from output gradient
-    d_output = self % split_heads(self % output_layer % gradient)
-    v_heads = self % split_heads(self % value_layer % output)
-    k_heads = self % split_heads(self % key_layer % output)
-    q_heads = self % split_heads(self % query_layer % output)
+    ! FIXME: remove reshapes when linear2d situation is resolved
+    d_output = self % split_heads(&
+        reshape(self % output_layer % gradient, [self % sequence_length, self % model_dimension]))
+    v_heads = self % split_heads(&
+        reshape(self % value_layer % output, [self % sequence_length, self % model_dimension]))
+    k_heads = self % split_heads(reshape(self % key_layer % output, [self % sequence_length, self % model_dimension]))
+    q_heads = self % split_heads(reshape(self % query_layer % output, [self % sequence_length, self % model_dimension]))
 
     ! iterate over heads to calculate deltas for each of them
-    do concurrent(batch = 1: self % batch_size, head = 1: self % n_heads)
-      dv(head, :, :, batch) = matmul(transpose(self % attention_matrix(head, :, :, batch)), d_output(head, :, :, batch))
+    do concurrent(head = 1: self % n_heads)
+      dv(:, :, head) = matmul(transpose(self % attention_matrix(:, :, head)), d_output(:, :, head))
 
       ! calculate delta for attention matrix
-      d_sdpa = matmul(d_output(head, :, :, batch), transpose(v_heads(head, :, :, batch)))
+      d_sdpa = matmul(d_output(:, :, head), transpose(v_heads(:, :, head)))
 
       ! this monstrosity below is scaled derivative of softmax
       do concurrent(seq = 1: self % sequence_length)
@@ -170,35 +172,45 @@ contains
           ! for off-diagonal: `-softmax(x_i) * softmax(x_j)`
           if (i == j) then
             jacobian(i, j) = &
-                self % attention_matrix(head, seq, i, batch) &
-                * (1 - self % attention_matrix(head, seq, i, batch))
+                self % attention_matrix(seq, i, head) &
+                * (1 - self % attention_matrix(seq, i, head))
           else
             jacobian(i, j) = &
-                - self % attention_matrix(head, seq, i, batch) &
-                * self % attention_matrix(head, seq, j, batch)
+                - self % attention_matrix(seq, i, head) &
+                * self % attention_matrix(seq, j, head)
           end if
         end do
         ! attention normalization delta, the last step of softmax derivative:
         ! multiply output of softmax by temp jacobian matrix
         ! For computational efficiency (avoid more temp storages), scaling is also done here
         ! reshapes: [3] -> [1, 3] @ [3, 3] = [1, 3] -> [3]
-        d_normalize(head, seq, :, batch) = reshape(matmul(&
+        d_normalize(seq, :, head) = reshape(matmul(&
             reshape(d_sdpa(seq, :), [1, self % sequence_length]),&
             jacobian * self % scaling_factor&
         ), [self % sequence_length])
       end do
 
       ! calculate delta for query
-      dq(head, :, :, batch) = matmul(d_normalize(head, :, :, batch), k_heads(head, :, :, batch))
+      dq(:, :, head) = matmul(d_normalize(:, :, head), k_heads(:, :, head))
 
       ! calculate delta for key, attention matrix should be transposed unlike for query
-      dk(head, :, :, batch) = matmul(transpose(d_normalize(head, :, :, batch)), q_heads(head, :, :, batch))
+      dk(:, :, head) = matmul(transpose(d_normalize(:, :, head)), q_heads(:, :, head))
     end do
 
     ! calculate deltas for input layers
-    call self % value_layer % backward(self % v_input, self % combine_heads(dv))
-    call self % key_layer % backward(self % k_input, self % combine_heads(dk))
-    call self % query_layer % backward(self % q_input, self % combine_heads(dq))
+    ! FIXME: remove reshapes when linear2d situation is resolved
+    call self % value_layer % backward(&
+        reshape(self % v_input, [self % sequence_length, self % model_dimension, 1]),&
+        reshape(self % combine_heads(dv), [self % sequence_length, self % model_dimension, 1])&
+    )
+    call self % key_layer % backward(&
+        reshape(self % k_input, [self % sequence_length, self % model_dimension, 1]),&
+        reshape(self % combine_heads(dk), [self % sequence_length, self % model_dimension, 1])&
+    )
+    call self % query_layer % backward(&
+        reshape(self % q_input, [self % sequence_length, self % model_dimension, 1]),&
+        reshape(self % combine_heads(dq), [self % sequence_length, self % model_dimension, 1])&
+    )
 
     ! free temporary storages
     deallocate(d_output)
@@ -214,30 +226,32 @@ contains
 
   module subroutine forward(self, query, key, value)
     class(multihead_attention_layer), intent(in out) :: self
-    real, intent(in) :: query(:, :, :), key(:, :, :), value(:, :, :)
+    real, intent(in) :: query(:, :), key(:, :), value(:, :)
 
-    real, allocatable :: q(:, :, :, :)
-    real, allocatable :: k(:, :, :, :)
-    real, allocatable :: v(:, :, :, :)
+    real, allocatable :: q(:, :, :)
+    real, allocatable :: k(:, :, :)
+    real, allocatable :: v(:, :, :)
 
     ! allocate storage for intermidiate stages
-    allocate(q(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
-    allocate(k(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
-    allocate(v(self % n_heads, self % sequence_length, self % head_size, self % batch_size))
+    allocate(q(self % sequence_length, self % head_size, self % n_heads))
+    allocate(k(self % sequence_length, self % head_size, self % n_heads))
+    allocate(v(self % sequence_length, self % head_size, self % n_heads))
 
     self % q_input = query
     self % k_input = key
     self % v_input = value
 
     ! run inputs through linear layers (trainable params)
-    call self % query_layer % forward(query)
-    call self % key_layer % forward(key)
-    call self % value_layer % forward(value)
+    ! FIXME: remove reshapes when linear2d situation is resolved
+    call self % query_layer % forward(reshape(query, [self % sequence_length, self % model_dimension, 1]))
+    call self % key_layer % forward(reshape(key, [self % sequence_length, self % model_dimension, 1]))
+    call self % value_layer % forward(reshape(value, [self % sequence_length, self % model_dimension, 1]))
 
     ! split attention heads for more efficient computation
-    q = self % split_heads(self % query_layer % output)
-    k = self % split_heads(self % key_layer % output)
-    v = self % split_heads(self % value_layer % output)
+    ! FIXME: remove reshapes when linear2d situation is resolved
+    q = self % split_heads(reshape(self % query_layer % output, [self % sequence_length, self % model_dimension]))
+    k = self % split_heads(reshape(self % key_layer % output, [self % sequence_length, self % model_dimension]))
+    v = self % split_heads(reshape(self % value_layer % output,  [self % sequence_length, self % model_dimension]))
 
     ! create key by value matrix
     call self % create_attention_matrix(q, k)
@@ -246,8 +260,10 @@ contains
     ! multiply attention matrix by value
     call self % scaled_dot_product_attention(v)
 
-    call self % output_layer % forward(self % combine_heads(self % sdpa))
-    self % output = self % output_layer % output
+    ! FIXME: remove reshapes when linear2d situation is resolved
+    call self % output_layer % forward(&
+        reshape(self % combine_heads(self % sdpa), [self % sequence_length, self % model_dimension, 1]))
+    self % output = reshape(self % output_layer % output, [self % sequence_length, self % model_dimension])
 
     ! free temp vars from memory
     deallocate(q)
@@ -262,41 +278,36 @@ contains
     !! input (3, 4, 1)
     !! output (2, 3, 2, 1)
     class(multihead_attention_layer) :: self
-    real :: input(:, :, :)
-    real :: output(self % n_heads, self % sequence_length, self % head_size, self % batch_size)
-    ! FIXME: if anybody knows how to also swap first two dims in one go, pls tell me
-    output = reshape(&
-      input,&
-      [self % n_heads, self % sequence_length, self % head_size, self % batch_size],&
-      order=[2, 4, 3, 1]&
-    )
+    real :: input(:, :)
+    real :: output(self % sequence_length, self % head_size, self % n_heads)
+    output = reshape(input, [self % sequence_length, self % head_size, self % n_heads])
   end function split_heads
 
   module subroutine create_attention_matrix(self, query, key)
     !! Create attention matrix for query and key
     !! Output dimensions: n_heads, sequence_length, sequence_length, batch_size
     class(multihead_attention_layer) :: self
-    real :: query(:, :, :, :)
-    real :: key(:, :, :, :)
-    integer :: i, j
+    real :: query(:, :, :)
+    real :: key(:, :, :)
+    integer :: head
     ! create attention matrix for each sequence in each batch
-    do concurrent(i = 1: self % batch_size, j = 1: self % n_heads)
-      self % attention_matrix(j, :, :, i) = matmul(query(j, :, :, i), transpose(key(j, :, :, i)))
+    do concurrent(head = 1: self % n_heads)
+      self % attention_matrix(:, :, head) = matmul(query(:, :, head), transpose(key(:, :, head)))
     end do
   end subroutine create_attention_matrix
 
   module subroutine normalize_attention_matrix(self, attention_mask)
     !! Create attention matrix for query and key
-    !! Output dims: n_heads, sequence_length, sequence_length, batch_size
+    !! Output dims: sequence_length, sequence_length, n_heads
     class(multihead_attention_layer) :: self
-    !! (batch_size, n_heads, sequence_length, sequence_length)
-    real, optional :: attention_mask(:, :, :, :)
-    !! (batch_size, n_heads, sequence_length, sequence_length)
-    real, allocatable :: output(:, :, :, :)
-    integer :: batch, head, seq
+    !! (sequence_length, sequence_length, n_heads)
+    real, optional :: attention_mask(:, :, :)
+    !! (sequence_length, sequence_length, n_heads)
+    real, allocatable :: output(:, :, :)
+    integer :: head, seq
 
     ! temporary storage
-    allocate(output(self % n_heads, self % sequence_length, self % sequence_length, self % batch_size))
+    allocate(output(self % sequence_length, self % sequence_length, self % n_heads))
 
     ! scale dowm by square root of each head's size
     self % attention_matrix = self % attention_matrix * self % scaling_factor
@@ -305,8 +316,8 @@ contains
       self % attention_matrix = self % attention_matrix + attention_mask
     end if
     ! softmax by last sequnce_length
-    do concurrent(batch = 1: self % batch_size, head = 1: self % n_heads, seq = 1: self % sequence_length)
-      output(head, seq, :, batch) = self % softmax_func % eval_1d(self % attention_matrix(head, seq, :, batch))
+    do concurrent(head = 1: self % n_heads, seq = 1: self % sequence_length)
+      output(seq, :, head) = self % softmax_func % eval_1d(self % attention_matrix(seq, :, head))
     end do
     self % attention_matrix = output
 
@@ -317,23 +328,23 @@ contains
     !! Create scaled dot product attention
     !! Output dims: n_heads, sequence_length, head_size, batch_size
     class(multihead_attention_layer) :: self
-    real :: value(:, :, :, :)
-    integer :: batch, head
+    real :: value(:, :, :)
+    integer :: head
 
-    do concurrent(batch = 1: self % batch_size, head = 1: self % n_heads)
-      self % sdpa(head, :, :, batch) = matmul(self % attention_matrix(head, :, :, batch), value(head, :, :, batch))
+    do concurrent(head = 1: self % n_heads)
+      self % sdpa(:, :, head) = matmul(self % attention_matrix(:, :, head), value(:, :, head))
     end do
   end subroutine scaled_dot_product_attention
 
   module function combine_heads(self, input) result(output)
     class(multihead_attention_layer) :: self
-    real :: input(:, :, :, :)
-    !! (n_heads, sequence_length, head_size, batch_size)
-    real :: output(self % sequence_length, self % model_dimension, self % batch_size)
-    integer :: batch, seq
+    real :: input(:, :, :)
+    !! (sequence_length, head_size, n_heads)
+    real :: output(self % sequence_length, self % model_dimension)
+    integer :: seq
 
-    do concurrent(batch = 1: self % batch_size, seq = 1: self % sequence_length)
-      output(seq, :, batch) = reshape(transpose(input(:, seq, :, batch)), [self % model_dimension])
+    do concurrent(seq = 1: self % sequence_length)
+      output(seq, :) = reshape(transpose(input(seq, :, :)), [self % model_dimension])
     end do
   end function combine_heads
 
@@ -341,18 +352,14 @@ contains
     class(multihead_attention_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
-    allocate(self % attention_matrix(&
-        self % n_heads, self % sequence_length, self % sequence_length, self % batch_size&
-    ))
-    allocate(self % sdpa(&
-        self % n_heads, self % sequence_length, self % head_size, self % batch_size&
-    ))
-    allocate(self % output(self % sequence_length, self % model_dimension, self % batch_size))
+    allocate(self % attention_matrix(self % sequence_length, self % sequence_length, self % n_heads))
+    allocate(self % sdpa(self % sequence_length, self % head_size, self % n_heads))
+    allocate(self % output(self % sequence_length, self % model_dimension))
 
     self % scaling_factor = sqrt(1 / real(self % head_size))
 
-    allocate(self % q_input(self % sequence_length, self % model_dimension, self % batch_size))
-    allocate(self % k_input(self % sequence_length, self % model_dimension, self % batch_size))
-    allocate(self % v_input(self % sequence_length, self % model_dimension, self % batch_size))
+    allocate(self % q_input(self % sequence_length, self % model_dimension))
+    allocate(self % k_input(self % sequence_length, self % model_dimension))
+    allocate(self % v_input(self % sequence_length, self % model_dimension))
   end subroutine init
 end module nf_multihead_attention_layer
