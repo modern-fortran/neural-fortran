@@ -20,11 +20,8 @@ program cnn_mnist
   
     net = network([ &
       input(784), &
-      reshape([1, 28, 28]), &
-      conv2d(filters=8, kernel_size=3, activation=relu()), &
-      maxpool2d(pool_size=2), &
-      conv2d(filters=16, kernel_size=3, activation=relu()), &
-      maxpool2d(pool_size=2), &
+      reshape_generalized([28, 28]), &
+      locally_connected_1d(filters=8, kernel_size=3, activation=relu()), &
       dense(10, activation=softmax()) &
     ])
   

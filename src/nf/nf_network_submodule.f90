@@ -8,6 +8,7 @@ submodule(nf_network) nf_network_submodule
   use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_reshape_layer_generalized, only: reshape_generalized_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, locally_connected_1d, maxpool2d, reshape, reshape_generalized
   use nf_loss, only: quadratic
@@ -76,6 +77,9 @@ contains
             type is(reshape3d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
+            type is(reshape_generalized_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
             class default
               n = n + 1
           end select
@@ -142,6 +146,8 @@ contains
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(reshape3d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(reshape_generalized_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if
