@@ -40,6 +40,10 @@ module nf_multihead_attention_layer
     procedure :: normalize_attention_matrix
     procedure :: scaled_dot_product_attention
     procedure :: combine_heads
+    procedure :: get_num_params
+    procedure :: get_params
+    procedure :: get_gradients
+    procedure :: set_params
     procedure :: init
 
   end type multihead_attention_layer
@@ -347,6 +351,90 @@ contains
       output(seq, :) = reshape(transpose(input(seq, :, :)), [self % model_dimension])
     end do
   end function combine_heads
+
+  module function get_num_params(self) result(num_params)
+    class(multihead_attention_layer) :: self
+    integer :: num_params
+
+    num_params = &
+        self % query_layer % get_num_params() &
+        + self % key_layer % get_num_params() &
+        + self % value_layer % get_num_params() &
+        + self % output_layer % get_num_params()
+  end function get_num_params
+
+  module function get_params(self) result(params)
+    class(multihead_attention_layer), intent(in), target :: self
+    real, allocatable :: params(:)
+
+    params = [&
+        self % query_layer % weights,&
+        self % key_layer % weights,&
+        self % value_layer % weights,&
+        self % output_layer % weights,&
+        self % query_layer % biases,&
+        self % key_layer % biases,&
+        self % value_layer % biases,&
+        self % output_layer % biases&
+    ]
+  end function get_params
+
+  module function get_gradients(self) result(gradients)
+    class(multihead_attention_layer), intent(in), target :: self
+    real, allocatable :: gradients(:)
+
+    gradients = [ &
+        self % query_layer % dw,&
+        self % key_layer % dw,&
+        self % value_layer % dw,&
+        self % output_layer % dw,&
+        self % query_layer % db,&
+        self % key_layer % db,&
+        self % value_layer % db,&
+        self % output_layer % db&
+    ]
+  end function get_gradients
+
+  module subroutine set_params(self, params)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, intent(in), target :: params(:)
+    real, pointer :: p_(:,:) => null()
+    integer :: i, j, window
+
+    ! check if the number of parameters is correct
+    if (size(params) /= self % get_num_params()) then
+      error stop 'Error: number of parameters does not match'
+    end if
+
+    ! FIXME: looks clumsy, better ideas?
+    window = self % model_dimension * self % model_dimension
+    i = 1
+    j = window
+    self % query_layer % weights = reshape(params(i: j), [self % model_dimension, self % model_dimension])
+    i = j + 1
+    j = i + window - 1
+    self % key_layer % weights = reshape(params(i: j), [self % model_dimension, self % model_dimension])
+    i = j + 1
+    j = i + window - 1
+    self % value_layer % weights = reshape(params(i: j), [self % model_dimension, self % model_dimension])
+    i = j + 1
+    j = i + window - 1
+    self % output_layer % weights = reshape(params(i: j), [self % model_dimension, self % model_dimension])
+
+    window = self % model_dimension
+    i = j + 1
+    j = i + window - 1
+    self % query_layer % biases = params(i: j)
+    i = j + 1
+    j = i + window - 1
+    self % key_layer % biases = params(i: j)
+    i = j + 1
+    j = i + window - 1
+    self % value_layer % biases = params(i: j)
+    i = j + 1
+    j = i + window - 1
+    self % output_layer % biases = params(i: j)
+  end subroutine set_params
 
   module subroutine init(self, input_shape)
     class(multihead_attention_layer), intent(in out) :: self
