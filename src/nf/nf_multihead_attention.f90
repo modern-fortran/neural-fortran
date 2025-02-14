@@ -31,6 +31,7 @@ module nf_multihead_attention_layer
     real, allocatable :: q_input(:, :)
     real, allocatable :: k_input(:, :)
     real, allocatable :: v_input(:, :)
+    real, allocatable :: o_input(:, :)
   contains
 
     procedure :: backward
@@ -146,7 +147,7 @@ contains
     ! calculate output layer delta
     ! FIXME: remove reshapes when linear2d situation is resolved
     call self % output_layer % backward(&
-        reshape(input, [self % sequence_length, self % model_dimension, 1]),&
+        reshape(self % o_input, [self % sequence_length, self % model_dimension, 1]),&
         reshape(gradient, [self % sequence_length, self % model_dimension, 1])&
     )
 
@@ -265,8 +266,8 @@ contains
     call self % scaled_dot_product_attention(v)
 
     ! FIXME: remove reshapes when linear2d situation is resolved
-    call self % output_layer % forward(&
-        reshape(self % combine_heads(self % sdpa), [self % sequence_length, self % model_dimension, 1]))
+    self % o_input = self % combine_heads(self % sdpa)
+    call self % output_layer % forward(reshape(self % o_input, [self % sequence_length, self % model_dimension, 1]))
     self % output = reshape(self % output_layer % output, [self % sequence_length, self % model_dimension])
 
     ! free temp vars from memory
@@ -449,5 +450,6 @@ contains
     allocate(self % q_input(self % sequence_length, self % model_dimension))
     allocate(self % k_input(self % sequence_length, self % model_dimension))
     allocate(self % v_input(self % sequence_length, self % model_dimension))
+    allocate(self % o_input(self % sequence_length, self % model_dimension))
   end subroutine init
 end module nf_multihead_attention_layer
