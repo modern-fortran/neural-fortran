@@ -48,8 +48,8 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(maxpool2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
-          type is(linear2d_layer)
-            call this_layer % backward(prev_layer % output, gradient)
+!          type is(linear2d_layer)
+!            call this_layer % backward(prev_layer % output, gradient)
         end select
 
     end select
@@ -119,11 +119,11 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
-      type is(linear2d_layer)
-        select type(prev_layer => previous % p)
-          type is(input3d_layer)
-            call this_layer % backward(prev_layer % output, gradient)
-        end select
+!      type is(linear2d_layer)
+!        select type(prev_layer => previous % p)
+!          type is(input3d_layer)
+!            call this_layer % backward(prev_layer % output, gradient)
+!        end select
 
     end select
 
@@ -191,8 +191,8 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(reshape3d_layer)
             call this_layer % forward(prev_layer % output)
-          type is(linear2d_layer)
-            call this_layer % forward(prev_layer % output)
+!          type is(linear2d_layer)
+!            call this_layer % forward(prev_layer % output)
         end select
 
       type is(reshape3d_layer)
@@ -207,13 +207,13 @@ contains
             call this_layer % forward(prev_layer % output)
         end select
 
-      type is(linear2d_layer)
-        select type(prev_layer => input % p)
-          type is(input3d_layer)
-            call this_layer % forward(prev_layer % output)
-          type is(linear2d_layer)
-            call this_layer % forward(prev_layer % output)
-        end select
+!      type is(linear2d_layer)
+!        select type(prev_layer => input % p)
+!          type is(input3d_layer)
+!            call this_layer % forward(prev_layer % output)
+!          type is(linear2d_layer)
+!            call this_layer % forward(prev_layer % output)
+!        end select
 
     end select
 
@@ -347,8 +347,8 @@ contains
         num_params = 0
       type is (reshape3d_layer)
         num_params = 0
-      type is (linear2d_layer)
-        num_params = this_layer % get_num_params()
+!      type is (linear2d_layer)
+!        num_params = this_layer % get_num_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -376,8 +376,8 @@ contains
         ! No parameters to get.
       type is (reshape3d_layer)
         ! No parameters to get.
-      type is (linear2d_layer)
-        params = this_layer % get_params()
+!      type is (linear2d_layer)
+!        params = this_layer % get_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -405,8 +405,8 @@ contains
         ! No gradients to get.
       type is (reshape3d_layer)
         ! No gradients to get.
-      type is (linear2d_layer)
-        gradients = this_layer % get_gradients()
+!      type is (linear2d_layer)
+!        gradients = this_layer % get_gradients()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -472,8 +472,8 @@ contains
           class default
         error stop 'Unknown layer type.'
 
-    type is (linear2d_layer)
-        call this_layer % set_params(params)
+!    type is (linear2d_layer)
+!        call this_layer % set_params(params)
     end select
 
   end subroutine set_params
