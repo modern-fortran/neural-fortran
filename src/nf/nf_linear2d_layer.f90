@@ -13,8 +13,8 @@ module nf_linear2d_layer
 
     real, allocatable :: weights(:, :)
     real, allocatable :: biases(:)
-    real, allocatable :: output(:, :, :)
-    real, allocatable :: gradient(:, :, :) ! input gradient
+    real, allocatable :: output(:, :)
+    real, allocatable :: gradient(:, :) ! input gradient
     real, allocatable :: dw(:, :) ! weight gradients
     real, allocatable :: db(:) ! bias gradients
 
@@ -32,9 +32,9 @@ module nf_linear2d_layer
 
   interface linear2d_layer
     module function linear2d_layer_cons(&
-        sequence_length, in_features, out_features, batch_size&
+        sequence_length, in_features, out_features&
     ) result(res)
-      integer, intent(in) :: batch_size, sequence_length, in_features, out_features
+      integer, intent(in) :: sequence_length, in_features, out_features
       type(linear2d_layer) :: res
     end function linear2d_layer_cons
   end interface linear2d_layer
@@ -42,13 +42,13 @@ module nf_linear2d_layer
   interface
     pure module subroutine forward(self, input)
       class(linear2d_layer), intent(in out) :: self
-      real, intent(in) :: input(:, :, :)
+      real, intent(in) :: input(:, :)
     end subroutine forward
 
     pure module subroutine backward(self, input, gradient)
       class(linear2d_layer), intent(in out) :: self
-      real, intent(in) :: input(:, :, :)
-      real, intent(in) :: gradient(:, :, :)
+      real, intent(in) :: input(:, :)
+      real, intent(in) :: gradient(:, :)
     end subroutine backward
 
     module subroutine init(self, input_shape)
