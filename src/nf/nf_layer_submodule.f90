@@ -217,6 +217,23 @@ contains
   end subroutine get_output_1d
 
 
+  pure module subroutine get_output_2d(self, output)
+    implicit none
+    class(layer), intent(in) :: self
+    real, allocatable, intent(out) :: output(:,:)
+
+    select type(this_layer => self % p)
+
+      type is(input2d_layer)
+        allocate(output, source=this_layer % output)
+      class default
+        error stop '1-d output can only be read from an input1d, dense, or flatten layer.'
+
+    end select
+
+  end subroutine get_output_2d
+
+
   pure module subroutine get_output_3d(self, output)
     implicit none
     class(layer), intent(in) :: self
