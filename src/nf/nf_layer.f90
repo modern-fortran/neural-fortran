@@ -35,11 +35,12 @@ module nf_layer
 
     ! Specific subroutines for different array ranks
     procedure, private :: backward_1d
+    procedure, private :: backward_2d
     procedure, private :: backward_3d
     procedure, private :: get_output_1d
     procedure, private :: get_output_3d
 
-    generic :: backward => backward_1d, backward_3d
+    generic :: backward => backward_1d, backward_2d, backward_3d
     generic :: get_output => get_output_1d, get_output_3d
 
   end type layer
@@ -58,6 +59,19 @@ module nf_layer
       real, intent(in) :: gradient(:)
         !! Array of gradient values from the next layer
     end subroutine backward_1d
+
+    pure module subroutine backward_2d(self, previous, gradient)
+      !! Apply a backward pass on the layer.
+      !! This changes the internal state of the layer.
+      !! This is normally called internally by the `network % backward`
+      !! method.
+      class(layer), intent(in out) :: self
+        !! Layer instance
+      class(layer), intent(in) :: previous
+        !! Previous layer instance
+      real, intent(in) :: gradient(:, :)
+        !! Array of gradient values from the next layer
+    end subroutine backward_2d
 
     pure module subroutine backward_3d(self, previous, gradient)
       !! Apply a backward pass on the layer.

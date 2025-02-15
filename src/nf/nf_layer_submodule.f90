@@ -5,6 +5,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
+  use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
@@ -50,6 +51,17 @@ contains
 
   end subroutine backward_1d
 
+
+  pure module subroutine backward_2d(self, previous, gradient)
+    implicit none
+    class(layer), intent(in out) :: self
+    class(layer), intent(in) :: previous
+    real, intent(in) :: gradient(:, :)
+
+    ! Backward pass from a 2-d layer downstream currently implemented
+    ! only for dense and flatten layers
+    ! CURRENTLY NO LAYERS, tbd: pull/197 and pull/199
+  end subroutine backward_2d
 
   pure module subroutine backward_3d(self, previous, gradient)
     implicit none
@@ -280,6 +292,8 @@ contains
     select type (this_layer => self % p)
       type is (input1d_layer)
         num_params = 0
+      type is (input2d_layer)
+        num_params = 0
       type is (input3d_layer)
         num_params = 0
       type is (dense_layer)
@@ -305,6 +319,8 @@ contains
     select type (this_layer => self % p)
       type is (input1d_layer)
          ! No parameters to get.
+      type is (input2d_layer)
+         ! No parameters to get.
       type is (input3d_layer)
          ! No parameters to get.
       type is (dense_layer)
@@ -329,6 +345,8 @@ contains
 
     select type (this_layer => self % p)
       type is (input1d_layer)
+        ! No gradients to get.
+      type is (input2d_layer)
         ! No gradients to get.
       type is (input3d_layer)
         ! No gradients to get.
@@ -369,6 +387,11 @@ contains
     select type (this_layer => self % p)
 
       type is (input1d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (input2d_layer)
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
