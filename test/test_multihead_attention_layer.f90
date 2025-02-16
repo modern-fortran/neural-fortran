@@ -2,6 +2,7 @@ program test_multihead_attention_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf_multihead_attention_layer, only: multihead_attention_layer
   use nf_self_attention_layer, only: self_attention_layer
+  use nf_cross_attention_layer, only: cross_attention_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_optimizers, only: sgd
   implicit none
@@ -26,6 +27,7 @@ program test_multihead_attention_layer
   call test_multihead_attention_update_gradients(attention, ok)
   call test_multihead_attention_forward_reallife_shape(ok)
   call test_self_attention(ok)
+  call test_cross_attention(ok)
 
 contains
   subroutine test_multihead_attention_split_heads(attention, input, ok, output)
@@ -318,4 +320,50 @@ contains
       write(stderr, '(a)') 'backward returned incorrect values.. failed'
     end if
   end subroutine test_self_attention
+
+  subroutine test_cross_attention(ok)
+    logical, intent(in out) :: ok
+    type(cross_attention_layer) :: attention
+    real :: query(2, 3) = reshape([-1., 0., 17., .4, 5., .6], [2, 3])
+    real :: key_value(2, 3) = reshape([0.1, -.2, 0.3, 4., 15., 0.5], [2, 3])
+    real :: input(2, 2, 3)
+    real :: output(2, 2, 3)
+    real :: output_flat(6)
+    real :: expected_output_flat(6) = [&
+        0.600311756, 0.471662223, 0.600311756, 0.471662223, 0.600311756, 0.471662223&
+    ]
+    real :: gradient(2, 3) = reshape([1., 2., .17, 4., .5, 6.], [2, 3])
+    real :: query_gradient_flat(6)
+    real :: key_value_gradient_flat(6)
+    real :: expected_query_gradient_flat(6) = [&
+        1.48406753E-03, 0.184446245, 1.48406753E-03, 0.184446245, 1.48406753E-03, 0.184446245&
+    ]
+    real :: expected_key_value_gradient_flat(6) = [&
+        0.303095698, 0.107004307, 0.303095698, 0.107004307, 0.303095698, 0.107004307&
+    ]
+    input(1, :, :) = query
+    input(2, :, :) = key_value
+
+    attention = cross_attention_layer(sequence_length=2, model_dimension=3, n_heads=1)
+    call attention % init([0])
+
+    call attention % forward(input)
+    output_flat = reshape(attention % output, shape(output_flat))
+    if (.not. all(output_flat.eq.expected_output_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect values.. failed'
+    end if
+
+    call attention % backward(input, gradient)
+    query_gradient_flat = reshape(attention % gradient(1, :, :), shape(query_gradient_flat))
+    if (.not. all(query_gradient_flat.eq.expected_query_gradient_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'backward returned incorrect query values.. failed'
+    end if
+    key_value_gradient_flat = reshape(attention % gradient(2, :, :), shape(key_value_gradient_flat))
+    if (.not. all(key_value_gradient_flat.eq.expected_key_value_gradient_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'backward returned incorrect key-value values.. failed'
+    end if
+  end subroutine test_cross_attention
 end program test_multihead_attention_layer
