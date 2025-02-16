@@ -17,7 +17,15 @@ program test_linear2d_layer
   call test_linear2d_layer_backward(linear, ok, sample_input, sample_gradient)
   call test_linear2d_layer_gradient_updates(ok)
 
+  if (ok) then
+    print '(a)', 'test_linear2d_layer: All tests passed.'
+  else
+    write(stderr, '(a)') 'test_linear2d_layer: One or more tests failed.'
+    stop 1
+  end if
+
 contains
+
   subroutine test_linear2d_layer_forward(linear, ok, input)
     type(linear2d_layer), intent(in out) :: linear
     logical, intent(in out) :: ok
@@ -161,4 +169,5 @@ contains
       write(stderr, '(a)') 'incorrect updated biases.. failed'
     end if
   end subroutine test_linear2d_layer_gradient_updates
+
 end program test_linear2d_layer
