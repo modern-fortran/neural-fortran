@@ -151,7 +151,6 @@ contains
             else
               call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
             end if
-
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
 
@@ -283,6 +282,10 @@ contains
     select type(output_layer => self % layers(num_layers) % p)
       type is(dense_layer)
         res = output_layer % output
+      type is(flatten_layer)
+        res = output_layer % output
+      class default
+        error stop 'network % output not implemented for this output layer'
     end select
 
   end function predict_2d
