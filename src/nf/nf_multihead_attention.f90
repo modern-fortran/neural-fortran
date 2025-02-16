@@ -12,8 +12,7 @@ module nf_multihead_attention_layer
   type, extends(base_layer) :: multihead_attention_layer
 
     !! Concrete implementation of a multihead attention layer type
-
-    integer :: batch_size, sequence_length, model_dimension, n_heads, head_size
+    integer :: sequence_length, model_dimension, n_heads, head_size
 
     type(linear2d_layer) :: query_layer
     type(linear2d_layer) :: key_layer
@@ -45,14 +44,14 @@ module nf_multihead_attention_layer
     procedure :: get_params
     procedure :: get_gradients
     procedure :: set_params
-    procedure :: init
-
+    procedure :: init_base
+    procedure :: init => init_base ! in case general MHA needs to be used
   end type multihead_attention_layer
 
   interface multihead_attention_layer
-    module function multihead_attention_layer_cons(batch_size, sequence_length, model_dimension, n_heads) result(res)
+    module function multihead_attention_layer_cons(sequence_length, model_dimension, n_heads) result(res)
       !! This function returns the `multihead_attention_layer` instance.
-      integer, intent(in) :: batch_size, sequence_length, model_dimension, n_heads
+      integer, intent(in) :: sequence_length, model_dimension, n_heads
       type(multihead_attention_layer) :: res
     end function multihead_attention_layer_cons
   end interface multihead_attention_layer
@@ -270,7 +269,7 @@ contains
 
   module subroutine create_attention_matrix(self, query, key)
     !! Create attention matrix for query and key
-    !! Output dimensions: n_heads, sequence_length, sequence_length, batch_size
+    !! Output dimensions: sequence_length, sequence_length, n_heads
     class(multihead_attention_layer) :: self
     real :: query(:, :, :)
     real :: key(:, :, :)
@@ -311,7 +310,7 @@ contains
 
   module subroutine scaled_dot_product_attention(self, value)
     !! Create scaled dot product attention
-    !! Output dims: n_heads, sequence_length, head_size, batch_size
+    !! Output dims: sequence_length, head_size, n_heads
     class(multihead_attention_layer) :: self
     real :: value(:, :, :)
     integer :: head
@@ -417,7 +416,7 @@ contains
     self % output_layer % biases = params(i: j)
   end subroutine set_params
 
-  module subroutine init(self, input_shape)
+  module subroutine init_base(self, input_shape)
     class(multihead_attention_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
@@ -431,5 +430,5 @@ contains
     allocate(self % k_input(self % sequence_length, self % model_dimension))
     allocate(self % v_input(self % sequence_length, self % model_dimension))
     allocate(self % o_input(self % sequence_length, self % model_dimension))
-  end subroutine init
+  end subroutine init_base
 end module nf_multihead_attention_layer
