@@ -4,7 +4,6 @@ submodule(nf_layer) nf_layer_submodule
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
-  use nf_flatten2d_layer, only: flatten2d_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
@@ -49,15 +48,7 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(maxpool2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
-        end select
-
-      type is(flatten2d_layer)
-
-        ! Upstream layers permitted: linear2d_layer
-        select type(prev_layer => previous % p)
           type is(linear2d_layer)
-            call this_layer % backward(prev_layer % output, gradient)
-          type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
@@ -204,13 +195,7 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(reshape3d_layer)
             call this_layer % forward(prev_layer % output)
-        end select
-
-      type is(flatten2d_layer)
-        select type(prev_layer => input % p)
           type is(linear2d_layer)
-            call this_layer % forward(prev_layer % output)
-          type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
@@ -253,8 +238,6 @@ contains
       type is(dense_layer)
         allocate(output, source=this_layer % output)
       type is(flatten_layer)
-        allocate(output, source=this_layer % output)
-      type is(flatten2d_layer)
         allocate(output, source=this_layer % output)
       class default
         error stop '1-d output can only be read from an input1d, dense, or flatten layer.'
@@ -327,8 +310,6 @@ contains
         self % layer_shape = shape(this_layer % output)
       type is(flatten_layer)
         self % layer_shape = shape(this_layer % output)
-      type is(flatten2d_layer)
-        self % layer_shape = shape(this_layer % output)
     end select
 
     self % input_layer_shape = input % layer_shape
@@ -372,8 +353,6 @@ contains
         num_params = 0
       type is (flatten_layer)
         num_params = 0
-      type is (flatten2d_layer)
-        num_params = 0
       type is (reshape3d_layer)
         num_params = 0
       type is (linear2d_layer)
@@ -402,8 +381,6 @@ contains
       type is (maxpool2d_layer)
         ! No parameters to get.
       type is (flatten_layer)
-        ! No parameters to get.
-      type is (flatten2d_layer)
         ! No parameters to get.
       type is (reshape3d_layer)
         ! No parameters to get.
@@ -434,8 +411,6 @@ contains
         ! No gradients to get.
       type is (flatten_layer)
         ! No parameters to get.
-      type is (flatten2d_layer)
-        ! No gradients to get.
       type is (reshape3d_layer)
         ! No gradients to get.
       type is (linear2d_layer)
@@ -496,11 +471,6 @@ contains
           // 'on a zero-parameter layer; nothing to do.'
 
       type is (flatten_layer)
-        ! No parameters to set.
-        write(stderr, '(a)') 'Warning: calling set_params() ' &
-          // 'on a zero-parameter layer; nothing to do.'
-
-      type is (flatten2d_layer)
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
