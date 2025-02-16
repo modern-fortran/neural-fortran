@@ -18,7 +18,8 @@ module nf_flatten_layer
     integer, allocatable :: input_shape(:)
     integer :: output_size
 
-    real, allocatable :: gradient(:,:,:)
+    real, allocatable :: gradient_2d(:,:)
+    real, allocatable :: gradient_3d(:,:,:)
     real, allocatable :: output(:)
 
   contains
@@ -40,23 +41,23 @@ module nf_flatten_layer
   interface
 
     pure module subroutine backward(self, input, gradient)
-      !! Apply the backward pass to the flatten layer.
-      !! This is a reshape operation from 1-d gradient to 3-d input.
+      !! Apply the backward pass to the flatten layer for 2D and 3D input.
+      !! This is a reshape operation from 1-d gradient to 2-d and 3-d input.
       class(flatten_layer), intent(in out) :: self
         !! Flatten layer instance
-      real, intent(in) :: input(:,:,:)
+      real, intent(in) :: input(..)
         !! Input from the previous layer
       real, intent(in) :: gradient(:)
         !! Gradient from the next layer
     end subroutine backward
 
     pure module subroutine forward(self, input)
-      !! Propagate forward the layer.
+      !! Propagate forward the layer for 2D or 3D input.
       !! Calling this subroutine updates the values of a few data components
       !! of `flatten_layer` that are needed for the backward pass.
       class(flatten_layer), intent(in out) :: self
         !! Dense layer instance
-      real, intent(in) :: input(:,:,:)
+      real, intent(in) :: input(..)
         !! Input from the previous layer
     end subroutine forward
 

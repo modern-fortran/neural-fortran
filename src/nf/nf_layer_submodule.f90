@@ -37,8 +37,10 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool2d
         select type(prev_layer => previous % p)
+          type is(input2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
           type is(input3d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(conv2d_layer)
@@ -168,8 +170,10 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input3d, conv2d, maxpool2d, reshape3d
+        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool2d, reshape3d
         select type(prev_layer => input % p)
+          type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
           type is(conv2d_layer)

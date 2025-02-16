@@ -3,16 +3,18 @@ program test_flatten_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf, only: dense, flatten, input, layer, network
   use nf_flatten_layer, only: flatten_layer
+  use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
 
   implicit none
 
   type(layer) :: test_layer, input_layer
   type(network) :: net
-  real, allocatable :: gradient(:,:,:)
+  real, allocatable :: gradient_3d(:,:,:), gradient_2d(:,:)
   real, allocatable :: output(:)
   logical :: ok = .true.
 
+  ! Test 3D input
   test_layer = flatten()
 
   if (.not. test_layer % name == 'flatten') then
@@ -59,12 +61,47 @@ program test_flatten_layer
   call test_layer % backward(input_layer, real([1, 2, 3, 4]))
 
   select type(this_layer => test_layer % p); type is(flatten_layer)
-    gradient = this_layer % gradient
+    gradient_3d = this_layer % gradient_3d
   end select
 
-  if (.not. all(gradient == reshape(real([1, 2, 3, 4]), [1, 2, 2]))) then
+  if (.not. all(gradient_3d == reshape(real([1, 2, 3, 4]), [1, 2, 2]))) then
     ok = .false.
     write(stderr, '(a)') 'flatten layer correctly propagates backward.. failed'
+  end if
+
+  ! Test 2D input
+  test_layer = flatten()
+  input_layer = input(2, 3)
+  call test_layer % init(input_layer)
+
+  if (.not. all(test_layer % layer_shape == [6])) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer has an incorrect output shape for 2D input.. failed'
+  end if
+
+  ! Test forward pass - reshaping from 2-d to 1-d
+  select type(this_layer => input_layer % p); type is(input2d_layer)
+    call this_layer % set(reshape(real([1, 2, 3, 4, 5, 6]), [2, 3]))
+  end select
+
+  call test_layer % forward(input_layer)
+  call test_layer % get_output(output)
+
+  if (.not. all(output == [1, 2, 3, 4, 5, 6])) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer correctly propagates forward for 2D input.. failed'
+  end if
+
+  ! Test backward pass - reshaping from 1-d to 2-d
+  call test_layer % backward(input_layer, real([1, 2, 3, 4, 5, 6]))
+
+  select type(this_layer => test_layer % p); type is(flatten_layer)
+    gradient_2d = this_layer % gradient_2d
+  end select
+
+  if (.not. all(gradient_2d == reshape(real([1, 2, 3, 4, 5, 6]), [2, 3]))) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer correctly propagates backward for 2D input.. failed'
   end if
 
   net = network([ &
