@@ -56,12 +56,13 @@ contains
     implicit none
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: previous
-    real, intent(in) :: gradient(:, :)
+    real, intent(in) :: gradient(:,:)
 
     ! Backward pass from a 2-d layer downstream currently implemented
     ! only for dense and flatten layers
     ! CURRENTLY NO LAYERS, tbd: pull/197 and pull/199
   end subroutine backward_2d
+
 
   pure module subroutine backward_3d(self, previous, gradient)
     implicit none
