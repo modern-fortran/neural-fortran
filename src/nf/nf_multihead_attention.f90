@@ -34,8 +34,8 @@ module nf_multihead_attention_layer
     real, allocatable :: o_input(:, :)
   contains
 
-    procedure :: backward
-    procedure :: forward
+    procedure :: common_backward
+    procedure :: common_forward
     procedure :: split_heads
     procedure :: create_attention_matrix
     procedure :: normalize_attention_matrix
@@ -59,7 +59,7 @@ module nf_multihead_attention_layer
 
   interface
 
-    module subroutine backward(self, input, gradient)
+    module subroutine common_backward(self, input, gradient)
       !! General backprop for MultiHead Attention mechanism
       !! Might be used for both Self and Cross Attention
       !! Self Attention: sum output gradients
@@ -67,16 +67,16 @@ module nf_multihead_attention_layer
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: input(:, :)
       real, intent(in) :: gradient(:, :)
-    end subroutine backward
+    end subroutine common_backward
 
-    module subroutine forward(self, query, key, value)
+    module subroutine common_forward(self, query, key, value)
       !! General forward propagation for MultiHead Attention Mechanism
       !! Might be used for both Self and Cross Attention
       !! Self Attention: pass the same value thrice
       !! Cross Attention: pass three values for your query, key and value
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: query(:, :), key(:, :), value(:, :)
-    end subroutine forward
+    end subroutine common_forward
 
     module subroutine init(self, input_shape)
       !! Initialize the layer data structures.
@@ -114,7 +114,7 @@ contains
     res % softmax_func = softmax()
   end function multihead_attention_layer_cons
 
-  module subroutine backward(self, input, gradient)
+  module subroutine common_backward(self, input, gradient)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
     real, intent(in) :: gradient(:, :)
@@ -210,9 +210,9 @@ contains
     deallocate(d_normalize)
     deallocate(dq)
     deallocate(dk)
-  end subroutine backward
+  end subroutine common_backward
 
-  module subroutine forward(self, query, key, value)
+  module subroutine common_forward(self, query, key, value)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :), key(:, :), value(:, :)
 
@@ -254,7 +254,7 @@ contains
     deallocate(q)
     deallocate(k)
     deallocate(v)
-  end subroutine forward
+  end subroutine common_forward
 
   module function split_heads(self, input) result(output)
     !! Split inputs into heads

@@ -14,7 +14,7 @@ program test_multihead_attention_layer
 
   attention = multihead_attention_layer(sequence_length=3, model_dimension=4, n_heads=2)
   call attention % init([0])
-!
+
   call test_multihead_attention_split_heads(attention, sample_input, ok, split_heads_output)
   call test_multihead_attention_create_attention_matrix(attention, split_heads_output, ok)
   call test_multihead_attention_normalization(attention, ok)
@@ -23,7 +23,7 @@ program test_multihead_attention_layer
   call test_multihead_attention_forward(attention, ok)
   call test_multihead_attention_backward(attention, ok)
   call test_multihead_attention_update_gradients(attention, ok)
-!  call test_multihead_attention_forward_reallife_shape(ok)
+  call test_multihead_attention_forward_reallife_shape(ok)
 
 contains
   subroutine test_multihead_attention_split_heads(attention, input, ok, output)
@@ -156,7 +156,7 @@ contains
         0.447508544, 0.464612424, 0.464721352, 0.473546445, 0.512576580, 0.513393998&
     ]
 
-    call attention % forward(input, input, input)
+    call attention % common_forward(input, input, input)
 
     output_shape = shape(attention % output)
     if (.not. all(output_shape.eq.expected_shape)) then
@@ -196,7 +196,7 @@ contains
     attention = multihead_attention_layer(sequence_length=148, model_dimension=512, n_heads=8)
     call attention % init([0])
 
-    call attention % forward(input, input, input)
+    call attention % common_forward(input, input, input)
 
     output_shape = shape(attention % output)
     if (.not. all(output_shape.eq.expected_shape)) then
@@ -221,7 +221,7 @@ contains
     real :: output_flat(12)
     real :: output_shape(2)
 
-    call attention % backward(input, gradient)
+    call attention % common_backward(input, gradient)
 
     ! sample for Self Attention: sum of output gradients
     ! FIXME: remove reshapes when linear2d situation is resolved
@@ -271,7 +271,7 @@ contains
     call optim % minimize(parameters, attention % get_gradients())
     call attention % set_params(parameters)
 
-    call attention % forward(&
+    call attention % common_forward(&
         reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4]),&
         reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4]),&
         reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4])&
