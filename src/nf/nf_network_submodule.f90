@@ -6,10 +6,13 @@ submodule(nf_network) nf_network_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
+  use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
+  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool1d, maxpool2d, reshape, reshape2d
   use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
@@ -74,6 +77,12 @@ contains
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(reshape3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(maxpool1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(reshape2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             class default
@@ -142,6 +151,10 @@ contains
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(reshape3d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(maxpool1d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(reshape2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if

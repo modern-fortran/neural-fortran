@@ -7,8 +7,11 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
+  use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_reshape2d_layer, only: reshape2d_layer
   use nf_activation, only: activation_function, relu, sigmoid
 
   implicit none
@@ -39,6 +42,31 @@ contains
     )
 
   end function conv2d
+
+  module function locally_connected_1d(filters, kernel_size, activation) result(res)
+    integer, intent(in) :: filters
+    integer, intent(in) :: kernel_size
+    class(activation_function), intent(in), optional :: activation
+    type(layer) :: res
+
+    class(activation_function), allocatable :: activation_tmp
+
+    res % name = 'locally_connected_1d'
+
+    if (present(activation)) then
+      allocate(activation_tmp, source=activation)
+    else
+      allocate(activation_tmp, source=relu())
+    end if
+
+    res % activation = activation_tmp % get_name()
+
+    allocate( &
+      res % p, &
+      source=locally_connected_1d_layer(filters, kernel_size, activation_tmp) &
+    )
+
+  end function locally_connected_1d
 
 
   module function dense(layer_size, activation) result(res)
@@ -103,6 +131,33 @@ contains
     res % initialized = .true.
   end function input3d
 
+  module function maxpool1d(pool_size, stride) result(res)
+    integer, intent(in) :: pool_size
+    integer, intent(in), optional :: stride
+    integer :: stride_
+    type(layer) :: res
+
+    if (pool_size < 2) &
+      error stop 'pool_size must be >= 2 in a maxpool1d layer'
+
+    ! Stride defaults to pool_size if not provided
+    if (present(stride)) then
+      stride_ = stride
+    else
+      stride_ = pool_size
+    end if
+
+    if (stride_ < 1) &
+      error stop 'stride must be >= 1 in a maxpool1d layer'
+
+    res % name = 'maxpool1d'
+
+    allocate( &
+      res % p, &
+      source=maxpool1d_layer(pool_size, stride_) &
+    )
+
+  end function maxpool1d
 
   module function maxpool2d(pool_size, stride) result(res)
     integer, intent(in) :: pool_size
@@ -147,5 +202,20 @@ contains
     end if
 
   end function reshape
+
+  module function reshape2d(output_shape) result(res)
+    integer, intent(in) :: output_shape(:)
+    type(layer) :: res
+
+    res % name = 'reshape2d'
+    res % layer_shape = output_shape
+
+    if (size(output_shape) == 2) then
+      allocate(res % p, source=reshape2d_layer(output_shape))
+    else
+      error stop 'size(output_shape) of the reshape layer must == 2'
+    end if
+
+  end function reshape2d
 
 end submodule nf_layer_constructors_submodule

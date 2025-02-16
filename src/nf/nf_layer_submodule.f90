@@ -7,7 +7,10 @@ submodule(nf_layer) nf_layer_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
+  use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_optimizers, only: optimizer_base_type
 
@@ -60,7 +63,33 @@ contains
 
     ! Backward pass from a 2-d layer downstream currently implemented
     ! only for dense and flatten layers
-    ! CURRENTLY NO LAYERS, tbd: pull/197 and pull/199
+    
+    select type(this_layer => self % p)
+
+      type is(locally_connected_1d_layer)
+
+        select type(prev_layer => previous % p)
+          type is(maxpool1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(reshape2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(locally_connected_1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+      
+      type is(maxpool1d_layer)
+
+        select type(prev_layer => previous % p)
+          type is(maxpool1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(reshape2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(locally_connected_1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+      
+      end select
+
   end subroutine backward_2d
 
 
@@ -151,6 +180,34 @@ contains
           type is(reshape3d_layer)
             call this_layer % forward(prev_layer % output)
         end select
+      
+      type is(locally_connected_1d_layer)
+
+        ! Upstream layers permitted: input2d, locally_connected_1d, maxpool1d, reshape2d
+        select type(prev_layer => input % p)
+          type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(locally_connected_1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape2d_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+      
+      type is(maxpool1d_layer)
+
+        ! Upstream layers permitted: input1d, locally_connected_1d, maxpool1d, reshape2d
+        select type(prev_layer => input % p)
+          type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(locally_connected_1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape2d_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
 
       type is(maxpool2d_layer)
 
@@ -226,6 +283,12 @@ contains
     select type(this_layer => self % p)
 
       type is(input2d_layer)
+        allocate(output, source=this_layer % output)
+      type is(maxpool1d_layer)
+        allocate(output, source=this_layer % output)
+      type is(locally_connected_1d_layer)
+        allocate(output, source=this_layer % output)
+      type is(reshape2d_layer)
         allocate(output, source=this_layer % output)
       class default
         error stop '1-d output can only be read from an input1d, dense, or flatten layer.'
@@ -318,9 +381,15 @@ contains
         num_params = this_layer % get_num_params()
       type is (conv2d_layer)
         num_params = this_layer % get_num_params()
+      type is (locally_connected_1d_layer)
+        num_params = this_layer % get_num_params()
+      type is (maxpool1d_layer)
+        num_params = 0
       type is (maxpool2d_layer)
         num_params = 0
       type is (flatten_layer)
+        num_params = 0
+      type is (reshape2d_layer)
         num_params = 0
       type is (reshape3d_layer)
         num_params = 0
@@ -345,9 +414,15 @@ contains
         params = this_layer % get_params()
       type is (conv2d_layer)
         params = this_layer % get_params()
+      type is (locally_connected_1d_layer)
+        params = this_layer % get_params()
+      type is (maxpool1d_layer)
+        ! No parameters to get.
       type is (maxpool2d_layer)
         ! No parameters to get.
       type is (flatten_layer)
+        ! No parameters to get.
+      type is (reshape2d_layer)
         ! No parameters to get.
       type is (reshape3d_layer)
         ! No parameters to get.
@@ -372,9 +447,15 @@ contains
         gradients = this_layer % get_gradients()
       type is (conv2d_layer)
         gradients = this_layer % get_gradients()
+      type is (locally_connected_1d_layer)
+        gradients = this_layer % get_gradients()
+      type is (maxpool1d_layer)
+        ! No gradients to get.
       type is (maxpool2d_layer)
         ! No gradients to get.
       type is (flatten_layer)
+        ! No gradients to get.
+      type is (reshape2d_layer)
         ! No gradients to get.
       type is (reshape3d_layer)
         ! No gradients to get.
@@ -424,6 +505,14 @@ contains
 
       type is (conv2d_layer)
         call this_layer % set_params(params)
+      
+      type is (locally_connected_1d_layer)
+        call this_layer % set_params(params)
+      
+      type is (maxpool1d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
 
       type is (maxpool2d_layer)
         ! No parameters to set.
@@ -431,6 +520,11 @@ contains
           // 'on a zero-parameter layer; nothing to do.'
 
       type is (flatten_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+        
+      type is (reshape2d_layer)
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'

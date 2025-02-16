@@ -38,8 +38,12 @@ add_library(neural-fortran
   src/nf/nf_layer_constructors_submodule.f90
   src/nf/nf_layer.f90
   src/nf/nf_layer_submodule.f90
+  src/nf/nf_locally_connected_1d_submodule.f90
+  src/nf/nf_locally_connected_1d.f90
   src/nf/nf_loss.f90
   src/nf/nf_loss_submodule.f90
+  src/nf/nf_maxpool1d_layer.f90
+  src/nf/nf_maxpool1d_layer_submodule.f90
   src/nf/nf_maxpool2d_layer.f90
   src/nf/nf_maxpool2d_layer_submodule.f90
   src/nf/nf_metrics.f90
@@ -51,6 +55,8 @@ add_library(neural-fortran
   src/nf/nf_random.f90
   src/nf/nf_reshape_layer.f90
   src/nf/nf_reshape_layer_submodule.f90
+  src/nf/nf_reshape2d_layer.f90
+  src/nf/nf_reshape2d_layer_submodule.f90
   src/nf/io/nf_io_binary.f90
   src/nf/io/nf_io_binary_submodule.f90
 )
