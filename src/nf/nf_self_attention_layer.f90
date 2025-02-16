@@ -7,6 +7,11 @@ module nf_self_attention_layer
   implicit none
 
   type, extends(multihead_attention_layer) :: self_attention_layer
+    !! Self Attention Layer
+    !! Source:
+    !! Parikh, A. P., Taeckstroem, O., Das, D., & Uszkoreit, J. (2016)
+    !! A decomposable attention model for natural language inference.
+    !! https://arxiv.org/pdf/1606.01933
     real, allocatable :: gradient(:, :)
   contains
     procedure :: forward
@@ -50,6 +55,8 @@ contains
   end function self_attention_layer_cons
 
   module subroutine backward(self, input, gradient)
+    !! Self Attention back propagation
+    !! Returns sum of Query, Key and Value gradients
     class(self_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
     real, intent(in) :: gradient(:, :)
@@ -62,6 +69,9 @@ contains
   end subroutine backward
 
   module subroutine forward(self, input)
+    !! Cross Attention forward propagation
+    !! Passes input three times into MultiHead Attention
+    !! Input Shape: (sequence_length, model_dimension)
     class(self_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
 

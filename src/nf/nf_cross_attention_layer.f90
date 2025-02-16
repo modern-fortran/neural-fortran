@@ -7,6 +7,11 @@ module nf_cross_attention_layer
   implicit none
 
   type, extends(multihead_attention_layer) :: cross_attention_layer
+    !! Cross Attention Layer
+    !! Source:
+    !! Bahdanau, D. (2014)
+    !! Neural machine translation by jointly learning to align and translate.
+    !! https://arxiv.org/pdf/1409.0473
     real, allocatable :: gradient(:, :, :)
   contains
     procedure :: forward
@@ -50,6 +55,7 @@ contains
   end function cross_attention_layer_cons
 
   module subroutine backward(self, input, gradient)
+    !! Cross Attention Back propagation
     class(cross_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :, :)
     real, intent(in) :: gradient(:, :)
@@ -60,6 +66,9 @@ contains
   end subroutine backward
 
   module subroutine forward(self, input)
+    !! Cross Attention Forward propagation
+    !! Input Shape (kind, sequence_length, model_dimension)
+    !! where kind is 1 for Query and 2 for Key-Value
     class(cross_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :, :)
 
