@@ -156,8 +156,8 @@ contains
 
           type is(reshape3d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-!          type is(linear2d_layer)
-!            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(linear2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if
 
