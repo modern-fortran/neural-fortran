@@ -1,6 +1,7 @@
 program test_multihead_attention_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf_multihead_attention_layer, only: multihead_attention_layer
+  use nf_self_attention_layer, only: self_attention_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_optimizers, only: sgd
   implicit none
@@ -13,7 +14,7 @@ program test_multihead_attention_layer
   real :: output(3, 2, 2)
 
   attention = multihead_attention_layer(sequence_length=3, model_dimension=4, n_heads=2)
-  call attention % init([0])
+  call attention % init_base([0])
 
   call test_multihead_attention_split_heads(attention, sample_input, ok, split_heads_output)
   call test_multihead_attention_create_attention_matrix(attention, split_heads_output, ok)
@@ -24,6 +25,7 @@ program test_multihead_attention_layer
   call test_multihead_attention_backward(attention, ok)
   call test_multihead_attention_update_gradients(attention, ok)
   call test_multihead_attention_forward_reallife_shape(ok)
+  call test_self_attention(ok)
 
 contains
   subroutine test_multihead_attention_split_heads(attention, input, ok, output)
@@ -139,7 +141,7 @@ contains
     type(multihead_attention_layer), intent(in out) :: attention
     logical, intent(in out) :: ok
     real :: input(3, 4) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4])
-    real :: output(attention % sequence_length, attention % model_dimension, attention % batch_size)
+    real :: output(attention % sequence_length, attention % model_dimension)
     real :: output_flat(12)
     integer :: output_shape(2)
     integer :: attn_weights_shape(3)
@@ -194,7 +196,7 @@ contains
     call random_number(input)
 
     attention = multihead_attention_layer(sequence_length=148, model_dimension=512, n_heads=8)
-    call attention % init([0])
+    call attention % init_base([0])
 
     call attention % common_forward(input, input, input)
 
@@ -283,4 +285,37 @@ contains
       write(stderr, '(a)') 'incorrect output after parameters update.. failed'
     end if
   end subroutine test_multihead_attention_update_gradients
+
+  subroutine test_self_attention(ok)
+    logical, intent(in out) :: ok
+    type(self_attention_layer) :: attention
+    real :: input(2, 3) = reshape([-1., 0., 17., .4, 5., .6], [2, 3])
+    real :: output(2, 3)
+    real :: output_flat(6)
+    real :: expected_output_flat(6) = [&
+        0.772716165, 0.577548742, 0.772716165, 0.577548742, 0.772716165, 0.577548742&
+    ]
+    real :: gradient(2, 3) = reshape([1., 2., .17, 4., .5, 6.], [2, 3])
+    real :: gradient_flat(6)
+    real :: expected_gradient_flat(6) = [&
+        0.350671142, 0.607403040, 0.350671142, 0.607403040, 0.350671142, 0.607403040&
+    ]
+
+    attention = self_attention_layer(sequence_length=2, model_dimension=3, n_heads=1)
+    call attention % init([0])
+
+    call attention % forward(input)
+    output_flat = reshape(attention % output, shape(output_flat))
+    if (.not. all(output_flat.eq.expected_output_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect values.. failed'
+    end if
+
+    call attention % backward(input, gradient)
+    gradient_flat = reshape(attention % gradient, shape(gradient_flat))
+    if (.not. all(gradient_flat.eq.expected_gradient_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'backward returned incorrect values.. failed'
+    end if
+  end subroutine test_self_attention
 end program test_multihead_attention_layer
