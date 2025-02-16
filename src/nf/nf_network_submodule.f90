@@ -144,12 +144,20 @@ contains
         select type(next_layer => self % layers(n + 1) % p)
           type is(dense_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+
           type is(conv2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+
           type is(flatten_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+            if (size(self % layers(n) % layer_shape) == 2) then
+              call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
+            else
+              call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
+            end if
+
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+
           type is(reshape3d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(maxpool1d_layer)
