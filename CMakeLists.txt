@@ -28,8 +28,6 @@ add_library(neural-fortran
   src/nf/nf_dense_layer_submodule.f90
   src/nf/nf_flatten_layer.f90
   src/nf/nf_flatten_layer_submodule.f90
-  src/nf/nf_flatten2d_layer.f90
-  src/nf/nf_flatten2d_layer_submodule.f90
   src/nf/nf_input1d_layer.f90
   src/nf/nf_input1d_layer_submodule.f90
   src/nf/nf_input2d_layer.f90
