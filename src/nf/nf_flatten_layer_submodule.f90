@@ -15,34 +15,33 @@ contains
   end function flatten_layer_cons
 
 
-  pure module subroutine backward_2d(self, input, gradient)
+  pure module subroutine backward(self, input, gradient)
     class(flatten_layer), intent(in out) :: self
-    real, intent(in) :: input(:,:)
+    real, intent(in) :: input(..)
     real, intent(in) :: gradient(:)
-    self % gradient_2d = reshape(gradient, shape(input))
-  end subroutine backward_2d
+    select rank(input)
+      rank(2)
+        self % gradient_2d = reshape(gradient, shape(input))
+      rank(3)
+        self % gradient_3d = reshape(gradient, shape(input))
+      rank default
+        error stop "Unsupported rank of input"
+    end select
+  end subroutine backward
 
 
-  pure module subroutine backward_3d(self, input, gradient)
+  pure module subroutine forward(self, input)
     class(flatten_layer), intent(in out) :: self
-    real, intent(in) :: input(:,:,:)
-    real, intent(in) :: gradient(:)
-    self % gradient_3d = reshape(gradient, shape(input))
-  end subroutine backward_3d
-
-
-  pure module subroutine forward_2d(self, input)
-    class(flatten_layer), intent(in out) :: self
-    real, intent(in) :: input(:,:)
-    self % output = pack(input, .true.)
-  end subroutine forward_2d
-
-
-  pure module subroutine forward_3d(self, input)
-    class(flatten_layer), intent(in out) :: self
-    real, intent(in) :: input(:,:,:)
-    self % output = pack(input, .true.)
-  end subroutine forward_3d
+    real, intent(in) :: input(..)
+    select rank(input)
+      rank(2)
+        self % output = pack(input, .true.)
+      rank(3)
+        self % output = pack(input, .true.)
+      rank default
+        error stop "Unsupported rank of input"
+    end select
+  end subroutine forward
 
 
   module subroutine init(self, input_shape)
