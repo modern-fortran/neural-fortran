@@ -18,13 +18,20 @@ module nf_flatten_layer
     integer, allocatable :: input_shape(:)
     integer :: output_size
 
-    real, allocatable :: gradient(:,:,:)
+    real, allocatable :: gradient_2d(:,:)
+    real, allocatable :: gradient_3d(:,:,:)
     real, allocatable :: output(:)
 
   contains
 
-    procedure :: backward
-    procedure :: forward
+    procedure :: backward_2d
+    procedure :: backward_3d
+    generic :: backward => backward_2d, backward_3d
+
+    procedure :: forward_2d
+    procedure :: forward_3d
+    generic :: forward => forward_2d, forward_3d
+
     procedure :: init
 
   end type flatten_layer
@@ -39,8 +46,19 @@ module nf_flatten_layer
 
   interface
 
-    pure module subroutine backward(self, input, gradient)
-      !! Apply the backward pass to the flatten layer.
+    pure module subroutine backward_2d(self, input, gradient)
+      !! Apply the backward pass to the flatten layer for 2D input.
+      !! This is a reshape operation from 1-d gradient to 2-d input.
+      class(flatten_layer), intent(in out) :: self
+        !! Flatten layer instance
+      real, intent(in) :: input(:,:)
+        !! Input from the previous layer
+      real, intent(in) :: gradient(:)
+        !! Gradient from the next layer
+    end subroutine backward_2d
+
+    pure module subroutine backward_3d(self, input, gradient)
+      !! Apply the backward pass to the flatten layer for 3D input.
       !! This is a reshape operation from 1-d gradient to 3-d input.
       class(flatten_layer), intent(in out) :: self
         !! Flatten layer instance
@@ -48,17 +66,27 @@ module nf_flatten_layer
         !! Input from the previous layer
       real, intent(in) :: gradient(:)
         !! Gradient from the next layer
-    end subroutine backward
+    end subroutine backward_3d
 
-    pure module subroutine forward(self, input)
-      !! Propagate forward the layer.
+    pure module subroutine forward_2d(self, input)
+      !! Propagate forward the layer for 2D input.
+      !! Calling this subroutine updates the values of a few data components
+      !! of `flatten_layer` that are needed for the backward pass.
+      class(flatten_layer), intent(in out) :: self
+        !! Dense layer instance
+      real, intent(in) :: input(:,:)
+        !! Input from the previous layer
+    end subroutine forward_2d
+
+    pure module subroutine forward_3d(self, input)
+      !! Propagate forward the layer for 3D input.
       !! Calling this subroutine updates the values of a few data components
       !! of `flatten_layer` that are needed for the backward pass.
       class(flatten_layer), intent(in out) :: self
         !! Dense layer instance
       real, intent(in) :: input(:,:,:)
         !! Input from the previous layer
-    end subroutine forward
+    end subroutine forward_3d
 
     module subroutine init(self, input_shape)
       !! Initialize the layer data structures.
