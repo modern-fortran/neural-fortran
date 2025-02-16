@@ -5,10 +5,12 @@ foreach(execid
   parametric_activation
   dense_layer
   conv2d_layer
+  maxpool1d_layer
   maxpool2d_layer
   flatten_layer
   insert_flatten
   reshape_layer
+  reshape2d_layer
   dense_network
   get_set_network_params
   conv2d_network

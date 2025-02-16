@@ -73,18 +73,21 @@ contains
             type is(conv2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
+            !type is(locally_connected_1d_layer)
+              !res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              !n = n + 1
             type is(maxpool2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(reshape3d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
-            type is(maxpool1d_layer)
-              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
-              n = n + 1
-            type is(reshape2d_layer)
-              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
-              n = n + 1
+            !type is(maxpool1d_layer)
+            !  res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+            !  n = n + 1
+            !type is(reshape2d_layer)
+            !  res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+            !  n = n + 1
             class default
               n = n + 1
           end select

@@ -340,6 +340,10 @@ contains
         self % layer_shape = shape(this_layer % output)
       type is(maxpool2d_layer)
         self % layer_shape = shape(this_layer % output)
+      type is(locally_connected_1d_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(maxpool1d_layer)
+        self % layer_shape = shape(this_layer % output)
       type is(flatten_layer)
         self % layer_shape = shape(this_layer % output)
     end select
