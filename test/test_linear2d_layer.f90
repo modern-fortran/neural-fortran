@@ -58,7 +58,7 @@ contains
     real :: dw_shape(2)
     real :: db_shape(1)
     real :: gradient_flat(12)
-    real :: dw_flat(4)
+    integer :: dw_flat(4)  ! cpu imprecision workaround
     real :: expected_gradient_shape(2) = [3, 4]
     real :: expected_dw_shape(2) = [4, 1]
     real :: expected_db_shape(1) = [1]
@@ -67,7 +67,7 @@ contains
         0.2, 0.3, 0.2, 0.2,&
         0.3, 0.2, 0.2, 0.3&
     ]
-    real :: expected_dw_flat(4) = [0.7, 0.7, 1.4, 1.4]
+    integer :: expected_dw_flat(4) = [7, 7, 14, 14]  ! cpu imprecision workaround
     real :: expected_db(1) = [7]
 
     call linear % backward(input, gradient)
@@ -93,7 +93,7 @@ contains
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect gradient values.. failed'
     end if
-    dw_flat = reshape(linear % dw, shape(dw_flat))
+    dw_flat = nint(reshape(linear % dw, shape(dw_flat)) * 10)
     if (.not. all(dw_flat.eq.expected_dw_flat)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect dw values.. failed'
