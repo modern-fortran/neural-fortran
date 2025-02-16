@@ -1,6 +1,6 @@
 program test_dropout_layer
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: dropout, input, layer, network
+  use nf, only: dense, dropout, input, layer, network
   use nf_dropout_layer, only: dropout_layer
   type(layer) :: layer1
   type(network) :: net
@@ -119,6 +119,44 @@ program test_dropout_layer
       write(stderr, '(a)') 'dropout layer output sum should match input sum within tolerance.. failed'
     end if
   end block forward_pass
+
+
+  training: block
+    real :: x(10), y(5)
+    real :: tolerance = 1e-3
+    integer :: n
+    integer, parameter :: num_iterations = 100000
+
+    call random_number(x)
+    y = [0.1234, 0.2345, 0.3456, 0.4567, 0.5678]
+
+    net = network([ &
+      input(10), &
+      dropout(0.5, training=.true.), &
+      dense(5) &
+    ])
+
+    do n = 1, num_iterations
+      !select type(dropout_l => net % layers(2) % p)
+      !  type is(dropout_layer)
+      !    print *, dropout_l % training, dropout_l % mask
+      !end select
+      call net % forward(x)
+      call net % backward(y)
+      call net % update()
+      !print *, n, net % predict(x)
+
+      if (all(abs(net % predict(x) - y) < tolerance)) exit
+    end do
+
+    if (.not. n <= num_iterations) then
+      write(stderr, '(a)') &
+        'dense network should converge in simple training.. failed'
+      ok = .false.
+    end if
+
+  end block training
+
 
   if (ok) then
     print '(a)', 'test_dropout_layer: All tests passed.'
