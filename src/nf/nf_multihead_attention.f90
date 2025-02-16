@@ -102,10 +102,10 @@ contains
     end if
     res % head_size = model_dimension / n_heads
 
-    res % query_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, 1)
-    res % key_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, 1)
-    res % value_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, 1)
-    res % output_layer = linear2d_layer(sequence_length, model_dimension, model_dimension, 1)
+    res % query_layer = linear2d_layer(sequence_length, model_dimension, model_dimension)
+    res % key_layer = linear2d_layer(sequence_length, model_dimension, model_dimension)
+    res % value_layer = linear2d_layer(sequence_length, model_dimension, model_dimension)
+    res % output_layer = linear2d_layer(sequence_length, model_dimension, model_dimension)
     call res % query_layer % init([0])
     call res % key_layer % init([0])
     call res % value_layer % init([0])
@@ -145,20 +145,13 @@ contains
     allocate(dk(self % sequence_length, self % head_size, self % n_heads))
 
     ! calculate output layer delta
-    ! FIXME: remove reshapes when linear2d situation is resolved
-    call self % output_layer % backward(&
-        reshape(self % o_input, [self % sequence_length, self % model_dimension, 1]),&
-        reshape(gradient, [self % sequence_length, self % model_dimension, 1])&
-    )
+    call self % output_layer % backward(self % o_input, gradient)
 
     ! split heads from output gradient
-    ! FIXME: remove reshapes when linear2d situation is resolved
-    d_output = self % split_heads(&
-        reshape(self % output_layer % gradient, [self % sequence_length, self % model_dimension]))
-    v_heads = self % split_heads(&
-        reshape(self % value_layer % output, [self % sequence_length, self % model_dimension]))
-    k_heads = self % split_heads(reshape(self % key_layer % output, [self % sequence_length, self % model_dimension]))
-    q_heads = self % split_heads(reshape(self % query_layer % output, [self % sequence_length, self % model_dimension]))
+    d_output = self % split_heads(self % output_layer % gradient)
+    v_heads = self % split_heads(self % value_layer % output)
+    k_heads = self % split_heads(self % key_layer % output)
+    q_heads = self % split_heads(self % query_layer % output)
 
     ! iterate over heads to calculate deltas for each of them
     do concurrent(head = 1: self % n_heads)
@@ -203,19 +196,9 @@ contains
     end do
 
     ! calculate deltas for input layers
-    ! FIXME: remove reshapes when linear2d situation is resolved
-    call self % value_layer % backward(&
-        reshape(self % v_input, [self % sequence_length, self % model_dimension, 1]),&
-        reshape(self % combine_heads(dv), [self % sequence_length, self % model_dimension, 1])&
-    )
-    call self % key_layer % backward(&
-        reshape(self % k_input, [self % sequence_length, self % model_dimension, 1]),&
-        reshape(self % combine_heads(dk), [self % sequence_length, self % model_dimension, 1])&
-    )
-    call self % query_layer % backward(&
-        reshape(self % q_input, [self % sequence_length, self % model_dimension, 1]),&
-        reshape(self % combine_heads(dq), [self % sequence_length, self % model_dimension, 1])&
-    )
+    call self % value_layer % backward(self % v_input, self % combine_heads(dv))
+    call self % key_layer % backward(self % k_input, self % combine_heads(dk))
+    call self % query_layer % backward(self % q_input, self % combine_heads(dq))
 
     ! free temporary storages
     deallocate(d_output)
@@ -247,16 +230,14 @@ contains
     self % v_input = value
 
     ! run inputs through linear layers (trainable params)
-    ! FIXME: remove reshapes when linear2d situation is resolved
-    call self % query_layer % forward(reshape(query, [self % sequence_length, self % model_dimension, 1]))
-    call self % key_layer % forward(reshape(key, [self % sequence_length, self % model_dimension, 1]))
-    call self % value_layer % forward(reshape(value, [self % sequence_length, self % model_dimension, 1]))
+    call self % query_layer % forward(query)
+    call self % key_layer % forward(key)
+    call self % value_layer % forward(value)
 
     ! split attention heads for more efficient computation
-    ! FIXME: remove reshapes when linear2d situation is resolved
-    q = self % split_heads(reshape(self % query_layer % output, [self % sequence_length, self % model_dimension]))
-    k = self % split_heads(reshape(self % key_layer % output, [self % sequence_length, self % model_dimension]))
-    v = self % split_heads(reshape(self % value_layer % output,  [self % sequence_length, self % model_dimension]))
+    q = self % split_heads(self % query_layer % output)
+    k = self % split_heads(self % key_layer % output)
+    v = self % split_heads(self % value_layer % output)
 
     ! create key by value matrix
     call self % create_attention_matrix(q, k)
@@ -265,10 +246,9 @@ contains
     ! multiply attention matrix by value
     call self % scaled_dot_product_attention(v)
 
-    ! FIXME: remove reshapes when linear2d situation is resolved
     self % o_input = self % combine_heads(self % sdpa)
-    call self % output_layer % forward(reshape(self % o_input, [self % sequence_length, self % model_dimension, 1]))
-    self % output = reshape(self % output_layer % output, [self % sequence_length, self % model_dimension])
+    call self % output_layer % forward(self % o_input)
+    self % output = self % output_layer % output
 
     ! free temp vars from memory
     deallocate(q)
