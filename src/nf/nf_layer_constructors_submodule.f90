@@ -4,6 +4,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
+  use nf_flatten2d_layer, only: flatten2d_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
@@ -70,6 +71,13 @@ contains
     res % name = 'flatten'
     allocate(res % p, source=flatten_layer())
   end function flatten
+
+
+  module function flatten2d() result(res)
+    type(layer) :: res
+    res % name = 'flatten2d'
+    allocate(res % p, source=flatten2d_layer())
+  end function flatten2d
 
 
   module function input1d(layer_size) result(res)
