@@ -10,7 +10,7 @@ program test_input3d_layer
   real, allocatable :: output(:,:,:)
   logical :: ok = .true.
 
-  test_layer = input([3, 32, 32])
+  test_layer = input(3, 32, 32)
 
   if (.not. test_layer % name == 'input') then
     ok = .false.

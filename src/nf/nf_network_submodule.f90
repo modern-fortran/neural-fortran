@@ -4,6 +4,7 @@ submodule(nf_network) nf_network_submodule
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
+  use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
@@ -160,7 +161,7 @@ contains
     integer :: i, n
     real, allocatable :: output(:,:)
 
-    output = self % predict(input_data)
+    output = self % predict_batch(input_data)
 
     n = 1
     if (present(metric)) n = n + 1
@@ -195,6 +196,23 @@ contains
     end do
 
   end subroutine forward_1d
+
+
+  module subroutine forward_2d(self, input)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:)
+    integer :: n
+
+    ! Set the input array into the input layer
+    select type(input_layer => self % layers(1) % p); type is(input2d_layer)
+      call input_layer % set(input)
+    end select
+
+    do n = 2, size(self % layers)
+      call self % layers(n) % forward(self % layers(n - 1))
+    end do
+
+  end subroutine forward_2d
 
 
   module subroutine forward_3d(self, input)
@@ -234,6 +252,24 @@ contains
     end select
 
   end function predict_1d
+
+
+  module function predict_2d(self, input) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:)
+    real, allocatable :: res(:)
+    integer :: num_layers
+
+    num_layers = size(self % layers)
+
+    call self % forward(input)
+
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(dense_layer)
+        res = output_layer % output
+    end select
+
+  end function predict_2d
 
 
   module function predict_3d(self, input) result(res)

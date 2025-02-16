@@ -5,6 +5,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_dense_layer, only: dense_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
+  use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
@@ -81,15 +82,27 @@ contains
   end function input1d
 
 
-  module function input3d(layer_shape) result(res)
-    integer, intent(in) :: layer_shape(3)
+  module function input2d(dim1, dim2) result(res)
+    integer, intent(in) :: dim1, dim2
     type(layer) :: res
     res % name = 'input'
-    res % layer_shape = layer_shape
+    res % layer_shape = [dim1, dim2]
     res % input_layer_shape = [integer ::]
-    allocate(res % p, source=input3d_layer(layer_shape))
+    allocate(res % p, source=input2d_layer([dim1, dim2]))
+    res % initialized = .true.
+  end function input2d
+
+
+  module function input3d(dim1, dim2, dim3) result(res)
+    integer, intent(in) :: dim1, dim2, dim3
+    type(layer) :: res
+    res % name = 'input'
+    res % layer_shape = [dim1, dim2, dim3]
+    res % input_layer_shape = [integer ::]
+    allocate(res % p, source=input3d_layer([dim1, dim2, dim3]))
     res % initialized = .true.
   end function input3d
+
 
   module function maxpool2d(pool_size, stride) result(res)
     integer, intent(in) :: pool_size
@@ -118,6 +131,7 @@ contains
     )
 
   end function maxpool2d
+
 
   module function reshape(output_shape) result(res)
     integer, intent(in) :: output_shape(:)
