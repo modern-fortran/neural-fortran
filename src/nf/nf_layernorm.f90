@@ -31,8 +31,6 @@ module nf_layernorm_layer
   contains
     procedure :: forward
     procedure :: backward
-    procedure :: spread_by_sequence
-    procedure :: spread_by_model_dim
     procedure :: init
   end type layernorm_layer
 
@@ -90,8 +88,11 @@ contains
     allocate(one_over_sigma(self % sequence_length, self % model_dimension))
     allocate(gradient_by_gamma_over_sigma(self % sequence_length, self % model_dimension))
 
-    one_over_sigma = (1 / self % spread_by_model_dim(self % sigma))
-    gradient_by_gamma_over_sigma = gradient * self % spread_by_sequence(self % gamma) * one_over_sigma
+    one_over_sigma = (1 / spread(self % sigma, dim=2, ncopies=self % model_dimension))
+    gradient_by_gamma_over_sigma = &
+        gradient &
+        * spread(self % gamma, dim=1, ncopies=self % sequence_length) &
+        * one_over_sigma
 
     ! d_output/d_gamma = sum(d_output/d_y * mu/sigma)
     self % d_gamma = sum(gradient * self % mu * one_over_sigma, dim=1)
@@ -107,31 +108,20 @@ contains
     !     - mu * sum(d_output/d_y * gamma * mu * sigma^(03)) / len
     self % gradient = &
         gradient_by_gamma_over_sigma &
-        - self % spread_by_model_dim(sum(gradient_by_gamma_over_sigma, dim=2)) / self % model_dimension &
-        - self % mu * self % spread_by_model_dim(sum(&
-            gradient_by_gamma_over_sigma * self % mu * (one_over_sigma ** 2),&
-            dim=2)&
-        ) / self % model_dimension
+        - spread(&
+            sum(gradient_by_gamma_over_sigma, dim=2),&
+            dim=2,&
+            ncopies=self % model_dimension&
+          ) / self % model_dimension &
+        - self % mu * spread(&
+            sum(gradient_by_gamma_over_sigma * self % mu * (one_over_sigma ** 2), dim=2),&
+            dim=2,&
+            ncopies=self % model_dimension&
+          ) / self % model_dimension
 
     deallocate(one_over_sigma)
     deallocate(gradient_by_gamma_over_sigma)
   end subroutine backward
-
-  pure function spread_by_sequence(self, input) result(output)
-    class(layernorm_layer), intent(in) :: self
-    real, intent(in) :: input(:)
-    real :: output(self % sequence_length, self % model_dimension)
-
-    output = spread(input, dim=1, ncopies=self % sequence_length)
-  end function spread_by_sequence
-
-  pure function spread_by_model_dim(self, input) result(output)
-    class(layernorm_layer), intent(in) :: self
-    real, intent(in) :: input(:)
-    real :: output(self % sequence_length, self % model_dimension)
-
-    output = spread(input, dim=2, ncopies=self % model_dimension)
-  end function spread_by_model_dim
 
   module subroutine init(self, input_shape)
     class(layernorm_layer), intent(in out) :: self
