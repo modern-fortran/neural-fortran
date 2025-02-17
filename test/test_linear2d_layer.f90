@@ -135,6 +135,8 @@ contains
 
     linear = linear2d_layer(out_features=2)
     call linear % init([3, 4])
+    linear % weights = 0.1
+    linear % biases = 0.11
     call linear % forward(input)
     call linear % backward(input, gradient)
 
