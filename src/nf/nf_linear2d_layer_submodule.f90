@@ -2,20 +2,22 @@ submodule(nf_linear2d_layer) nf_linear2d_layer_submodule
   use nf_base_layer, only: base_layer
   implicit none
 contains
-  module function linear2d_layer_cons(&
-      sequence_length, in_features, out_features&
-  ) result(res)
-    integer, intent(in) :: sequence_length, in_features, out_features
+  module function linear2d_layer_cons(out_features) result(res)
+    integer, intent(in) :: out_features
     type(linear2d_layer) :: res
 
-    res % in_features = in_features
     res % out_features = out_features
-    res % sequence_length = sequence_length
   end function linear2d_layer_cons
 
   module subroutine init(self, input_shape)
     class(linear2d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
+
+    if (size(input_shape) /= 2) then
+      error stop "Linear2D Layer accepts 2D input"
+    end if
+    self % sequence_length = input_shape(1)
+    self % in_features = input_shape(2)
 
     allocate(self % output(self % sequence_length, self % out_features))
     allocate(self % gradient(self % sequence_length, self % in_features))

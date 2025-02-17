@@ -8,12 +8,12 @@ program linear2d_example
     [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2], &
     [3, 4])
   real :: y(3) = [0.12, 0.1, 0.3]
-  integer, parameter :: num_iterations = 500
+  integer, parameter :: num_iterations = 5
   integer :: n
   
   net = network([ &
     input(3, 4), &
-    linear2d(3, 4, 1), &
+    linear2d(3, 1), &
     flatten() &
   ])
   

@@ -31,10 +31,8 @@ module nf_linear2d_layer
   end type linear2d_layer
 
   interface linear2d_layer
-    module function linear2d_layer_cons(&
-        sequence_length, in_features, out_features&
-    ) result(res)
-      integer, intent(in) :: sequence_length, in_features, out_features
+    module function linear2d_layer_cons(out_features) result(res)
+      integer, intent(in) :: out_features
       type(linear2d_layer) :: res
     end function linear2d_layer_cons
   end interface linear2d_layer

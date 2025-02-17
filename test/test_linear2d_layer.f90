@@ -6,12 +6,12 @@ program test_linear2d_layer
   logical :: ok = .true.
   real :: sample_input(3, 4) = reshape(&
       [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],&
-      [3, 4]) ! first batch are 0.1, second 0.2
+      [3, 4])
   real :: sample_gradient(3, 1) = reshape([2., 2., 3.], [3, 1])
   type(linear2d_layer) :: linear
 
-  linear = linear2d_layer(sequence_length=3, in_features=4, out_features=1)
-  call linear % init([4])
+  linear = linear2d_layer(out_features=1)
+  call linear % init([3, 4])
 
   call test_linear2d_layer_forward(linear, ok, sample_input)
   call test_linear2d_layer_backward(linear, ok, sample_input, sample_gradient)
@@ -131,8 +131,8 @@ contains
 
     integer :: i
 
-    linear = linear2d_layer(sequence_length=3, in_features=4, out_features=2, batch_size=1)
-    call linear % init([4])
+    linear = linear2d_layer(out_features=2)
+    call linear % init([3, 4])
     call linear % forward(input)
     call linear % backward(input, gradient)
 
