@@ -37,21 +37,17 @@ module nf_layernorm_layer
   end type layernorm_layer
 
   interface layernorm_layer
-    module function layernorm_layer_cons(sequence_length, model_dimension) &
+    module function layernorm_layer_cons() &
       result(res)
-      integer, intent(in) :: sequence_length, model_dimension
       type(layernorm_layer) :: res
     end function layernorm_layer_cons
   end interface layernorm_layer
 
 contains
-  module function layernorm_layer_cons(sequence_length, model_dimension) &
+  module function layernorm_layer_cons() &
     result(res)
-    integer, intent(in) :: sequence_length, model_dimension
     type(layernorm_layer) :: res
 
-    res % sequence_length = sequence_length
-    res % model_dimension = model_dimension
     res % eps = 1e-5
   end function layernorm_layer_cons
 
@@ -140,6 +136,12 @@ contains
   module subroutine init(self, input_shape)
     class(layernorm_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
+
+    if (size(input_shape) /= 2) then
+      error stop "LayerNorm Layer accepts 2D input"
+    end if
+    self % sequence_length = input_shape(1)
+    self % model_dimension = input_shape(2)
 
     ! default initialization from PyTorch
     allocate(self % gamma(self % model_dimension))
