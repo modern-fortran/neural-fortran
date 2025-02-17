@@ -35,7 +35,7 @@ contains
     res % n_heads = n_heads
   end function cross_attention_layer_cons
 
-  module subroutine backward(self, input, gradient)
+  pure module subroutine backward(self, input, gradient)
     !! Cross Attention Back propagation
     class(cross_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :, :)
@@ -46,7 +46,7 @@ contains
     self % gradient(2, :, :) = self % key_layer % gradient + self % value_layer % gradient
   end subroutine backward
 
-  module subroutine forward(self, input)
+  pure module subroutine forward(self, input)
     !! Cross Attention Forward propagation
     !! Input Shape (kind, sequence_length, model_dimension)
     !! where kind is 1 for Query and 2 for Key-Value

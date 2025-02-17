@@ -68,7 +68,7 @@ contains
   end subroutine test_multihead_attention_split_heads
 
   subroutine test_multihead_attention_create_attention_matrix(attention, input, ok)
-    type(multihead_attention_layer), intent(in) :: attention
+    type(multihead_attention_layer), intent(in out) :: attention
     real, intent(in) :: input(:, :, :)
     logical, intent(in out) :: ok
     real :: attention_matrix_shape(3)
@@ -95,7 +95,7 @@ contains
   end subroutine test_multihead_attention_create_attention_matrix
 
   subroutine test_multihead_attention_normalization(attention, ok)
-    type(multihead_attention_layer), intent(in) :: attention
+    type(multihead_attention_layer), intent(in out) :: attention
     logical, intent(in out) :: ok
     real :: output_flat(18)
     real :: expected_output_flat(18) = [&
@@ -114,7 +114,7 @@ contains
   end subroutine test_multihead_attention_normalization
 
   subroutine test_multihead_attention_scaled_dot_product_attention(attention, value, ok)
-    type(multihead_attention_layer), intent(in) :: attention
+    type(multihead_attention_layer), intent(in out) :: attention
     real, intent(in) :: value(:, :, :)
     logical, intent(in out) :: ok
     real :: output_flat(12)

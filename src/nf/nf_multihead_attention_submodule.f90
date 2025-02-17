@@ -14,7 +14,7 @@ contains
     res % n_heads = n_heads
   end function multihead_attention_layer_cons
 
-  module subroutine common_backward(self, input, gradient)
+  pure module subroutine common_backward(self, input, gradient)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
     real, intent(in) :: gradient(:, :)
@@ -112,7 +112,7 @@ contains
     deallocate(dk)
   end subroutine common_backward
 
-  module subroutine common_forward(self, query, key, value)
+  pure module subroutine common_forward(self, query, key, value)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :), key(:, :), value(:, :)
 
@@ -156,17 +156,17 @@ contains
     deallocate(v)
   end subroutine common_forward
 
-  module function split_heads(self, input) result(output)
-    class(multihead_attention_layer) :: self
-    real :: input(:, :)
+  pure module function split_heads(self, input) result(output)
+    class(multihead_attention_layer), intent(in) :: self
+    real, intent(in) :: input(:, :)
     real :: output(self % sequence_length, self % head_size, self % n_heads)
     output = reshape(input, [self % sequence_length, self % head_size, self % n_heads])
   end function split_heads
 
-  module subroutine create_attention_matrix(self, query, key)
-    class(multihead_attention_layer) :: self
-    real :: query(:, :, :)
-    real :: key(:, :, :)
+  pure module subroutine create_attention_matrix(self, query, key)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, intent(in) :: query(:, :, :)
+    real, intent(in) :: key(:, :, :)
     integer :: head
     ! create attention matrix for each sequence in each batch
     do concurrent(head = 1: self % n_heads)
@@ -174,9 +174,9 @@ contains
     end do
   end subroutine create_attention_matrix
 
-  module subroutine normalize_attention_matrix(self, attention_mask)
-    class(multihead_attention_layer) :: self
-    real, optional :: attention_mask(:, :, :)
+  pure module subroutine normalize_attention_matrix(self, attention_mask)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, optional, intent(in) :: attention_mask(:, :, :)
     real, allocatable :: output(:, :, :)
     integer :: head, seq
 
@@ -198,9 +198,9 @@ contains
     deallocate(output)
   end subroutine normalize_attention_matrix
 
-  module subroutine scaled_dot_product_attention(self, value)
-    class(multihead_attention_layer) :: self
-    real :: value(:, :, :)
+  pure module subroutine scaled_dot_product_attention(self, value)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, intent(in) :: value(:, :, :)
     integer :: head
 
     do concurrent(head = 1: self % n_heads)
@@ -208,9 +208,9 @@ contains
     end do
   end subroutine scaled_dot_product_attention
 
-  module function combine_heads(self, input) result(output)
-    class(multihead_attention_layer) :: self
-    real :: input(:, :, :)
+  pure module function combine_heads(self, input) result(output)
+    class(multihead_attention_layer), intent(in) :: self
+    real, intent(in) :: input(:, :, :)
     real :: output(self % sequence_length, self % model_dimension)
     integer :: seq
 
@@ -219,8 +219,8 @@ contains
     end do
   end function combine_heads
 
-  module function get_num_params(self) result(num_params)
-    class(multihead_attention_layer) :: self
+  elemental module function get_num_params(self) result(num_params)
+    class(multihead_attention_layer), intent(in) :: self
     integer :: num_params
 
     num_params = &

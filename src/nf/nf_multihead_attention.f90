@@ -60,7 +60,7 @@ module nf_multihead_attention_layer
 
   interface
 
-    module subroutine common_backward(self, input, gradient)
+    pure module subroutine common_backward(self, input, gradient)
       !! General backprop for MultiHead Attention mechanism
       !! Might be used for both Self and Cross Attention
       !! Self Attention: sum output gradients
@@ -70,7 +70,7 @@ module nf_multihead_attention_layer
       real, intent(in) :: gradient(:, :)
     end subroutine common_backward
 
-    module subroutine common_forward(self, query, key, value)
+    pure module subroutine common_forward(self, query, key, value)
       !! General forward propagation for MultiHead Attention Mechanism
       !! Might be used for both Self and Cross Attention
       !! Self Attention: pass the same value thrice
@@ -79,7 +79,7 @@ module nf_multihead_attention_layer
       real, intent(in) :: query(:, :), key(:, :), value(:, :)
     end subroutine common_forward
 
-    module subroutine init(self, input_shape)
+    pure module subroutine init(self, input_shape)
       !! Initialize the layer data structures.
       !!
       !! This is a deferred procedure from the `base_layer` abstract type.
@@ -87,55 +87,55 @@ module nf_multihead_attention_layer
       integer, intent(in) :: input_shape(:)
     end subroutine init
 
-    module function split_heads(self, input) result(output)
+    pure module function split_heads(self, input) result(output)
       !! Split inputs into heads
       !!
       !! Example with two heads:
       !! input (3, 4)
       !! output (3, 2, 2)
-      class(multihead_attention_layer) :: self
-      real :: input(:, :)
+      class(multihead_attention_layer), intent(in) :: self
+      real, intent(in) :: input(:, :)
       real :: output(self % sequence_length, self % head_size, self % n_heads)
     end function split_heads
 
-    module subroutine create_attention_matrix(self, query, key)
+    pure module subroutine create_attention_matrix(self, query, key)
       !! Create attention matrix for query and key
       !! Output dimensions: sequence_length, sequence_length, n_heads
-      class(multihead_attention_layer) :: self
-      real :: query(:, :, :)
-      real :: key(:, :, :)
+      class(multihead_attention_layer), intent(in out) :: self
+      real, intent(in) :: query(:, :, :)
+      real, intent(in) :: key(:, :, :)
       integer :: head
     end subroutine create_attention_matrix
 
-    module subroutine normalize_attention_matrix(self, attention_mask)
+    pure module subroutine normalize_attention_matrix(self, attention_mask)
       !! Create attention matrix for query and key
       !! Output dims: sequence_length, sequence_length, n_heads
-      class(multihead_attention_layer) :: self
+      class(multihead_attention_layer), intent(in out) :: self
       !! (sequence_length, sequence_length, n_heads)
-      real, optional :: attention_mask(:, :, :)
+      real, optional, intent(in) :: attention_mask(:, :, :)
       !! (sequence_length, sequence_length, n_heads)
       real, allocatable :: output(:, :, :)
       integer :: head, seq
     end subroutine normalize_attention_matrix
 
-    module subroutine scaled_dot_product_attention(self, value)
+    pure module subroutine scaled_dot_product_attention(self, value)
       !! Create scaled dot product attention
       !! Output dims: sequence_length, head_size, n_heads
-      class(multihead_attention_layer) :: self
-      real :: value(:, :, :)
+      class(multihead_attention_layer), intent(in out) :: self
+      real, intent(in) :: value(:, :, :)
       integer :: head
     end subroutine scaled_dot_product_attention
 
-    module function combine_heads(self, input) result(output)
-      class(multihead_attention_layer) :: self
-      real :: input(:, :, :)
+    pure module function combine_heads(self, input) result(output)
+      class(multihead_attention_layer), intent(in) :: self
+      real, intent(in) :: input(:, :, :)
       !! (sequence_length, head_size, n_heads)
       real :: output(self % sequence_length, self % model_dimension)
       integer :: seq
     end function combine_heads
 
-    module function get_num_params(self) result(num_params)
-      class(multihead_attention_layer) :: self
+    elemental module function get_num_params(self) result(num_params)
+      class(multihead_attention_layer), intent(in) :: self
       integer :: num_params
     end function get_num_params
 

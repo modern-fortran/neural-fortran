@@ -35,7 +35,7 @@ contains
     res % n_heads = n_heads
   end function self_attention_layer_cons
 
-  module subroutine backward(self, input, gradient)
+  pure module subroutine backward(self, input, gradient)
     !! Self Attention back propagation
     !! Returns sum of Query, Key and Value gradients
     class(self_attention_layer), intent(in out) :: self
@@ -49,7 +49,7 @@ contains
         + self % value_layer % gradient
   end subroutine backward
 
-  module subroutine forward(self, input)
+  pure module subroutine forward(self, input)
     !! Cross Attention forward propagation
     !! Passes input three times into MultiHead Attention
     !! Input Shape: (sequence_length, model_dimension)
