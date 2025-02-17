@@ -2,7 +2,9 @@ submodule(nf_linear2d_layer) nf_linear2d_layer_submodule
   use nf_base_layer, only: base_layer
   use nf_random, only: random_normal
   implicit none
+
 contains
+
   module function linear2d_layer_cons(out_features) result(res)
     integer, intent(in) :: out_features
     type(linear2d_layer) :: res
@@ -10,12 +12,13 @@ contains
     res % out_features = out_features
   end function linear2d_layer_cons
 
+
   module subroutine init(self, input_shape)
     class(linear2d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
     if (size(input_shape) /= 2) then
-      error stop "Linear2D Layer accepts 2D input"
+      error stop "linear2d layer requires 2D input."
     end if
     self % sequence_length = input_shape(1)
     self % in_features = input_shape(2)
@@ -30,40 +33,45 @@ contains
     call random_normal(self % biases)
 
     allocate(self % dw(self % in_features, self % out_features))
-    self % dw = 0.0
+    self % dw = 0
     allocate(self % db(self % out_features))
-    self % db = 0.0
+    self % db = 0
+
   end subroutine init
+
 
   pure module subroutine forward(self, input)
     class(linear2d_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
     integer :: i
 
-    self % output(:, :) = matmul(input(:, :), self % weights)
-    do concurrent(i = 1: self % sequence_length)
-      self % output(i, :) = self % output(i, :) + self % biases
+    self % output(:,:) = matmul(input(:,:), self % weights)
+    do concurrent(i = 1:self % sequence_length)
+      self % output(i,:) = self % output(i,:) + self % biases
     end do
+
   end subroutine forward
+
 
   pure module subroutine backward(self, input, gradient)
     class(linear2d_layer), intent(in out) :: self
-    real, intent(in) :: input(:, :)
-    real, intent(in) :: gradient(:, :)
+    real, intent(in) :: input(:,:)
+    real, intent(in) :: gradient(:,:)
     real :: db(self % out_features)
     real :: dw(self % in_features, self % out_features)
     integer :: i
 
-    self % dw = self % dw + matmul(transpose(input(:, :)), gradient(:, :))
-    self % db = self % db + sum(gradient(:, :), 1)
-    self % gradient(:, :) = matmul(gradient(:, :), transpose(self % weights))
+    self % dw = self % dw + matmul(transpose(input(:,:)), gradient(:,:))
+    self % db = self % db + sum(gradient(:,:), 1)
+    self % gradient(:,:) = matmul(gradient(:,:), transpose(self % weights))
   end subroutine backward
+
 
   pure module function get_num_params(self) result(num_params)
     class(linear2d_layer), intent(in) :: self
     integer :: num_params
 
-    ! Number of weigths times number of biases
+    ! Number of weights times number of biases
     num_params = self % in_features * self % out_features + self % out_features
 
   end function get_num_params
@@ -122,4 +130,5 @@ contains
     end associate
 
   end subroutine set_params
+
 end submodule nf_linear2d_layer_submodule
