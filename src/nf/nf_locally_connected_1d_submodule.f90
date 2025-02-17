@@ -18,7 +18,6 @@ contains
     res % filters = filters
     res % activation_name = activation % get_name()
     allocate( res % activation, source = activation )
-
   end function locally_connected_1d_layer_cons
 
   module subroutine init(self, input_shape)
@@ -29,16 +28,14 @@ contains
     self % channels = input_shape(1)
     self % width = input_shape(2) - self % kernel_size + 1
 
-    ! Output of shape filters x width
+    ! Output of shape: filters x width
     allocate(self % output(self % filters, self % width))
     self % output = 0
 
-    ! Kernel of shape filters x channels x kernel_size
+    ! Kernel of shape: filters x channels x kernel_size
     allocate(self % kernel(self % filters, self % channels, self % kernel_size))
-
-    ! Initialize the kernel with random values with a normal distribution
     call random_normal(self % kernel)
-    self % kernel = self % kernel / self % kernel_size ** 2
+    self % kernel = self % kernel / real(self % kernel_size**2)
 
     allocate(self % biases(self % filters))
     self % biases = 0
@@ -61,113 +58,93 @@ contains
     implicit none
     class(locally_connected_1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
-    integer :: input_width, input_channels
-    integer :: i, n, i_out
-    integer :: iws, iwe
-    integer :: half_window
+    integer :: input_channels, input_width
+    integer :: j, n
+    integer :: iws, iwe, half_window
 
-    ! Get input dimensions
     input_channels = size(input, dim=1)
     input_width    = size(input, dim=2)
-
-    ! For a kernel of odd size, half_window = kernel_size / 2 (integer division)
     half_window = self % kernel_size / 2
 
-    ! Loop over output indices rather than input indices.
-    do i_out = 1, self % width
-      ! Compute the corresponding center index in the input.
-      i = i_out + half_window
+    ! Loop over output positions.
+    do j = 1, self % width
+      ! Compute the input window corresponding to output index j.
+      ! In forward: center index = j + half_window, so window = indices j to j+kernel_size-1.
+      iws = j
+      iwe = j + self % kernel_size - 1
 
-      ! Define the window in the input corresponding to the filter kernel
-      iws = i - half_window
-      iwe = i + half_window
-
-      ! Compute the inner tensor product (sum of element-wise products)
-      ! for each filter across all channels and positions in the kernel.
-      do concurrent(n = 1:self % filters)
-        self % z(n, i_out) = sum(self % kernel(n, :, :) * input(:, iws:iwe))
+      ! For each filter, compute the convolution (inner product over channels and kernel width).
+      do concurrent (n = 1:self % filters)
+        self % z(n, j) = sum(self % kernel(n, :, :) * input(:, iws:iwe))
       end do
 
       ! Add the bias for each filter.
-      self % z(:, i_out) = self % z(:, i_out) + self % biases
+      self % z(:, j) = self % z(:, j) + self % biases
     end do
 
-    ! Apply the activation function to get the final output.
+    ! Apply the activation function.
     self % output = self % activation % eval(self % z)
   end subroutine forward
-
 
   pure module subroutine backward(self, input, gradient)
     implicit none
     class(locally_connected_1d_layer), intent(in out) :: self
-    real, intent(in) :: input(:,:)     ! shape: (channels, width)
-    real, intent(in) :: gradient(:,:)  ! shape: (filters, width)
-    
-    ! Local gradient arrays:
-    real :: db(self % filters)
-    real :: dw(self % filters, self % channels, self % kernel_size)
-    real :: gdz(self % filters, size(input, 2))
-    
-    integer :: i, n, k
-    integer :: input_channels, input_width
-    integer :: istart, iend
-    integer :: iws, iwe
-    integer :: half_window
-  
-    ! Get input dimensions.
+    ! 'input' has shape: (channels, input_width)
+    ! 'gradient' (dL/dy) has shape: (filters, output_width)
+    real, intent(in) :: input(:,:)
+    real, intent(in) :: gradient(:,:)
+
+    integer :: input_channels, input_width, output_width
+    integer :: j, n, k
+    integer :: iws, iwe, half_window
+    real :: gdz_val
+
+    ! Local arrays to accumulate gradients.
+    real :: gdz(self % filters, self % width)  ! local gradient (dL/dz)
+    real :: db_local(self % filters)
+    real :: dw_local(self % filters, self % channels, self % kernel_size)
+
+    ! Determine dimensions.
     input_channels = size(input, dim=1)
     input_width    = size(input, dim=2)
-  
-    ! For an odd-sized kernel, half_window = kernel_size / 2.
+    output_width   = self % width    ! Note: output_width = input_width - kernel_size + 1
+
     half_window = self % kernel_size / 2
-  
-    ! Define the valid output range so that the full input window is available.
-    istart = half_window + 1
-    iend   = input_width - half_window
-  
-    !---------------------------------------------------------------------
-    ! Compute the local gradient: gdz = (dL/dy) * sigma'(z)
-    ! We assume self%z stores the pre-activation values from the forward pass.
-    gdz = 0.0
-    gdz(:, istart:iend) = gradient(:, istart:iend) * self % activation % eval_prime(self % z(:, istart:iend))
-  
-    !---------------------------------------------------------------------
-    ! Compute gradient with respect to biases:
-    ! dL/db(n) = sum_{i in valid range} gdz(n, i)
-    do concurrent (n = 1:self % filters)
-      db(n) = sum(gdz(n, istart:iend))
+
+    !--- Compute the local gradient gdz = (dL/dy) * sigma'(z) for each output.
+    do j = 1, output_width
+       gdz(:, j) = gradient(:, j) * self % activation % eval_prime(self % z(:, j))
     end do
-  
-    ! Initialize weight gradient and input gradient accumulators.
-    dw = 0.0
-    self % gradient = 0.0  ! This array is assumed preallocated to shape (channels, width)
-  
-    !---------------------------------------------------------------------
-    ! Accumulate gradients over valid output positions.
-    ! For each output position i, determine the corresponding input window indices.
-    do concurrent (n = 1:self % filters, &
-                     k = 1:self % channels, &
-                     i = istart:iend)
-      ! The input window corresponding to output index i:
-      iws = i - half_window
-      iwe = i + half_window
-  
-      ! Weight gradient (dL/dw):
-      ! For each kernel element, the contribution is the product of the input in the window
-      ! and the local gradient at the output position i.
-      dw(n, k, :) = dw(n, k, :) + input(k, iws:iwe) * gdz(n, i)
-  
-      ! Input gradient (dL/dx):
-      ! Distribute the effect of the output gradient back onto the input window,
-      ! weighted by the kernel weights.
-      self % gradient(k, iws:iwe) = self % gradient(k, iws:iwe) + self % kernel(n, k, :) * gdz(n, i)
+
+    !--- Compute bias gradients: db(n) = sum_j gdz(n, j)
+    do n = 1, self % filters
+       db_local(n) = sum(gdz(n, :))
     end do
-  
-    !---------------------------------------------------------------------
-    ! Accumulate the computed gradients into the layer's stored gradients.
-    self % dw = self % dw + dw
-    self % db = self % db + db
-  
+
+    !--- Initialize weight gradient and input gradient accumulators.
+    dw_local = 0.0
+    self % gradient = 0.0
+
+    !--- Accumulate gradients over each output position.
+    ! In the forward pass the window for output index j was:
+    !   iws = j,  iwe = j + kernel_size - 1.
+    do n = 1, self % filters
+       do j = 1, output_width
+          iws = j
+          iwe = j + self % kernel_size - 1
+          do k = 1, self % channels
+             ! Weight gradient: accumulate contribution from the input window.
+             dw_local(n, k, :) = dw_local(n, k, :) + input(k, iws:iwe) * gdz(n, j)
+             ! Input gradient: propagate gradient back to the input window.
+             self % gradient(k, iws:iwe) = self % gradient(k, iws:iwe) + self % kernel(n, k, :) * gdz(n, j)
+          end do
+       end do
+    end do
+
+    !--- Update stored gradients.
+    self % dw = self % dw + dw_local
+    self % db = self % db + db_local
+
   end subroutine backward
 
   pure module function get_num_params(self) result(num_params)
@@ -197,11 +174,10 @@ contains
     real, intent(in) :: params(:)
 
     if (size(params) /= self % get_num_params()) then
-      error stop 'locally_connected_1d % set_params: Number of parameters does not match'
+      error stop 'locally_connected_1d_layer % set_params: Number of parameters does not match'
     end if
 
     self % kernel = reshape(params(:product(shape(self % kernel))), shape(self % kernel))
-
     associate(n => product(shape(self % kernel)))
       self % biases = params(n + 1 : n + self % filters)
     end associate

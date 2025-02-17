@@ -87,6 +87,12 @@ contains
           type is(locally_connected_1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
+
+      type is(reshape2d_layer) 
+        select type(prev_layer => previous % p) 
+          type is(input1d_layer) 
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
       
       end select
 
@@ -246,6 +252,12 @@ contains
           type is(dense_layer)
             call this_layer % forward(prev_layer % output)
           type is(flatten_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+      
+      type is(reshape2d_layer)
+        select type(prev_layer => input % p) 
+          type is(input1d_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
