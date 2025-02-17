@@ -4,12 +4,10 @@ submodule (nf_dropout_layer) nf_dropout_layer_submodule
 
 contains
 
-  module function dropout_layer_cons(rate, training) result(res)
+  module function dropout_layer_cons(rate) result(res)
     real, intent(in) :: rate
-    logical, intent(in), optional :: training
     type(dropout_layer) :: res
     res % dropout_rate = rate
-    if (present(training)) res % training = training
   end function dropout_layer_cons
 
 

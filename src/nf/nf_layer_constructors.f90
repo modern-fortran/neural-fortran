@@ -104,7 +104,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function dense
 
-    module function dropout(rate, training) result(res)
+    module function dropout(rate) result(res)
       !! Create a dropout layer with a given dropout rate.
       !!
       !! This layer is for randomly disabling neurons during training.
@@ -118,8 +118,6 @@ module nf_layer_constructors
       !! ```
       real, intent(in) :: rate
         !! Dropout rate - fraction of neurons to randomly disable during training
-      logical, intent(in), optional :: training
-        !! Training mode (default .false.)
       type(layer) :: res
         !! Resulting layer instance
     end function dropout

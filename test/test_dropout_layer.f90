@@ -24,9 +24,9 @@ program test_dropout_layer
         write(stderr, '(a)') 'dropout layer dropout rate should be 0.5.. failed'
       end if
 
-      if (layer1_p % training) then
+      if (.not. layer1_p % training) then
         ok = .false.
-        write(stderr, '(a)') 'dropout layer default training mode should be false.. failed'
+        write(stderr, '(a)') 'dropout layer default training mode should be true.. failed'
       end if
 
       if (layer1_p % input_size /= 0) then
@@ -40,25 +40,6 @@ program test_dropout_layer
         write(stderr, '(a)') 'dropout layer output array should not be allocated.. failed'
       end if
 
-  end select
-
-  ! Test setting training mode explicitly.
-  layer1 = dropout(0.5, training=.true.)
-  select type(layer1_p => layer1 % p)
-    type is(dropout_layer)
-      if (.not. layer1_p % training) then
-        ok = .false.
-        write(stderr, '(a)') 'dropout layer training mode should be true.. failed'
-      end if
-  end select
-
-  layer1 = dropout(0.5, training=.false.)
-  select type(layer1_p => layer1 % p)
-    type is(dropout_layer)
-      if (layer1_p % training) then
-        ok = .false.
-        write(stderr, '(a)') 'dropout layer training mode should be false.. failed'
-      end if
   end select
 
   ! Now we're gonna initialize a minimal network with an input layer and a
@@ -122,31 +103,27 @@ program test_dropout_layer
 
 
   training: block
-    real :: x(10), y(5)
+    real :: x(100), y(5)
     real :: tolerance = 1e-3
     integer :: n
-    integer, parameter :: num_iterations = 100000
+    integer, parameter :: num_iterations = 10000
 
     call random_number(x)
-    y = [0.1234, 0.2345, 0.3456, 0.4567, 0.5678]
+    y = [0.12345, 0.23456, 0.34567, 0.45678, 0.56789]
 
     net = network([ &
-      input(10), &
-      dropout(0.5, training=.true.), &
+      input(100), &
+      dropout(0.5), &
       dense(5) &
     ])
 
     do n = 1, num_iterations
-      !select type(dropout_l => net % layers(2) % p)
-      !  type is(dropout_layer)
-      !    print *, dropout_l % training, dropout_l % mask
-      !end select
       call net % forward(x)
       call net % backward(y)
       call net % update()
-      !print *, n, net % predict(x)
 
       if (all(abs(net % predict(x) - y) < tolerance)) exit
+
     end do
 
     if (.not. n <= num_iterations) then
