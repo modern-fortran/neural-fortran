@@ -8,11 +8,18 @@ program test_layernorm
   real :: sample_input(3, 4) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4])
   real :: sample_gradient(3, 4) = reshape([0.1, 3., 2., 0.1, 3., 3., 0.1, 2., 0.1, 3., 0.1, 3.], [3, 4])
 
-  layernorm = layernorm_layer(3, 4)
-  call layernorm % init([0])
+  layernorm = layernorm_layer()
+  call layernorm % init([3, 4])
 
   call test_layernorm_forward(layernorm, sample_input, ok)
   call test_layernorm_backward(layernorm, sample_input, sample_gradient, ok)
+
+  if (ok) then
+    print '(a)', 'test_layernorm_layer: All tests passed.'
+  else
+    write(stderr, '(a)') 'test_layernorm_layer: One or more tests failed.'
+    stop 1
+  end if
 
 contains
   subroutine test_layernorm_forward(layernorm, input, ok)
