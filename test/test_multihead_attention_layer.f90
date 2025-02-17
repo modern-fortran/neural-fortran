@@ -16,6 +16,7 @@ program test_multihead_attention_layer
 
   attention = multihead_attention_layer(sequence_length=3, model_dimension=4, n_heads=2)
   call attention % init_base([0])
+  call set_weights(attention)
 
   call test_multihead_attention_split_heads(attention, sample_input, ok, split_heads_output)
   call test_multihead_attention_create_attention_matrix(attention, split_heads_output, ok)
@@ -30,6 +31,18 @@ program test_multihead_attention_layer
   call test_cross_attention(ok)
 
 contains
+  subroutine set_weights(attention)
+    type(multihead_attention_layer), intent(in out) :: attention
+    attention % query_layer % weights = 0.1
+    attention % key_layer % weights = 0.1
+    attention % value_layer % weights = 0.1
+    attention % output_layer % weights = 0.1
+    attention % query_layer % biases = 0.11
+    attention % key_layer % biases = 0.11
+    attention % value_layer % biases = 0.11
+    attention % output_layer % biases = 0.11
+  end subroutine set_weights
+
   subroutine test_multihead_attention_split_heads(attention, input, ok, output)
     type(multihead_attention_layer), intent(in) :: attention
     real, intent(in) :: input(:, :)
@@ -199,6 +212,7 @@ contains
 
     attention = multihead_attention_layer(sequence_length=148, model_dimension=512, n_heads=8)
     call attention % init_base([0])
+    call set_weights(attention)
 
     call attention % common_forward(input, input, input)
 
@@ -305,6 +319,14 @@ contains
 
     attention = self_attention_layer(sequence_length=2, model_dimension=3, n_heads=1)
     call attention % init([0])
+    attention % query_layer % weights = 0.1
+    attention % key_layer % weights = 0.1
+    attention % value_layer % weights = 0.1
+    attention % output_layer % weights = 0.1
+    attention % query_layer % biases = 0.11
+    attention % key_layer % biases = 0.11
+    attention % value_layer % biases = 0.11
+    attention % output_layer % biases = 0.11
 
     call attention % forward(input)
     output_flat = reshape(attention % output, shape(output_flat))
@@ -346,6 +368,14 @@ contains
 
     attention = cross_attention_layer(sequence_length=2, model_dimension=3, n_heads=1)
     call attention % init([0])
+    attention % query_layer % weights = 0.1
+    attention % key_layer % weights = 0.1
+    attention % value_layer % weights = 0.1
+    attention % output_layer % weights = 0.1
+    attention % query_layer % biases = 0.11
+    attention % key_layer % biases = 0.11
+    attention % value_layer % biases = 0.11
+    attention % output_layer % biases = 0.11
 
     call attention % forward(input)
     output_flat = reshape(attention % output, shape(output_flat))

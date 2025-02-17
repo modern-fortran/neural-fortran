@@ -42,14 +42,14 @@ contains
     end if
     res % head_size = model_dimension / n_heads
 
-    res % query_layer = linear2d_layer(sequence_length, model_dimension, model_dimension)
-    res % key_layer = linear2d_layer(sequence_length, model_dimension, model_dimension)
-    res % value_layer = linear2d_layer(sequence_length, model_dimension, model_dimension)
-    res % output_layer = linear2d_layer(sequence_length, model_dimension, model_dimension)
-    call res % query_layer % init([0])
-    call res % key_layer % init([0])
-    call res % value_layer % init([0])
-    call res % output_layer % init([0])
+    res % query_layer = linear2d_layer(model_dimension)
+    res % key_layer = linear2d_layer(model_dimension)
+    res % value_layer = linear2d_layer(model_dimension)
+    res % output_layer = linear2d_layer(model_dimension)
+    call res % query_layer % init([sequence_length, model_dimension])
+    call res % key_layer % init([sequence_length, model_dimension])
+    call res % value_layer % init([sequence_length, model_dimension])
+    call res % output_layer % init([sequence_length, model_dimension])
 
     res % softmax_func = softmax()
   end function cross_attention_layer_cons
