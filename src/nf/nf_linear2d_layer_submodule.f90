@@ -1,5 +1,6 @@
 submodule(nf_linear2d_layer) nf_linear2d_layer_submodule
   use nf_base_layer, only: base_layer
+  use nf_random, only: random_normal
   implicit none
 contains
   module function linear2d_layer_cons(out_features) result(res)
@@ -23,10 +24,10 @@ contains
     allocate(self % gradient(self % sequence_length, self % in_features))
 
     allocate(self % weights(self % in_features, self % out_features))
-    self % weights = 0.1
+    call random_normal(self % weights)
 
     allocate(self % biases(self % out_features))
-    self%biases = 0.11
+    call random_normal(self % biases)
 
     allocate(self % dw(self % in_features, self % out_features))
     self % dw = 0.0

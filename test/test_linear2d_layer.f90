@@ -12,6 +12,8 @@ program test_linear2d_layer
 
   linear = linear2d_layer(out_features=1)
   call linear % init([3, 4])
+  linear % weights = 0.1
+  linear % biases = 0.11
 
   call test_linear2d_layer_forward(linear, ok, sample_input)
   call test_linear2d_layer_backward(linear, ok, sample_input, sample_gradient)
