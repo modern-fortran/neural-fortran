@@ -51,9 +51,9 @@ module nf_multihead_attention_layer
   end type multihead_attention_layer
 
   interface multihead_attention_layer
-    module function multihead_attention_layer_cons(sequence_length, model_dimension, n_heads) result(res)
+    module function multihead_attention_layer_cons(n_heads) result(res)
       !! This function returns the `multihead_attention_layer` instance.
-      integer, intent(in) :: sequence_length, model_dimension, n_heads
+      integer, intent(in) :: n_heads
       type(multihead_attention_layer) :: res
     end function multihead_attention_layer_cons
   end interface multihead_attention_layer

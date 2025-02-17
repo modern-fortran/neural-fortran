@@ -14,8 +14,8 @@ program test_multihead_attention_layer
   real :: minput(3, 4) = reshape([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.11, 0.12], [3, 4])
   real :: output(3, 2, 2)
 
-  attention = multihead_attention_layer(sequence_length=3, model_dimension=4, n_heads=2)
-  call attention % init_base([0])
+  attention = multihead_attention_layer(n_heads=2)
+  call attention % init_base([3, 4])
   call set_weights(attention)
 
   call test_multihead_attention_split_heads(attention, sample_input, ok, split_heads_output)
@@ -210,8 +210,8 @@ contains
 
     call random_number(input)
 
-    attention = multihead_attention_layer(sequence_length=148, model_dimension=512, n_heads=8)
-    call attention % init_base([0])
+    attention = multihead_attention_layer(n_heads=8)
+    call attention % init_base([148, 512])
     call set_weights(attention)
 
     call attention % common_forward(input, input, input)
@@ -317,8 +317,8 @@ contains
         0.350671142, 0.607403040, 0.350671142, 0.607403040, 0.350671142, 0.607403040&
     ]
 
-    attention = self_attention_layer(sequence_length=2, model_dimension=3, n_heads=1)
-    call attention % init([0])
+    attention = self_attention_layer(n_heads=1)
+    call attention % init([2, 3])
     attention % query_layer % weights = 0.1
     attention % key_layer % weights = 0.1
     attention % value_layer % weights = 0.1
@@ -366,8 +366,8 @@ contains
     input(1, :, :) = query
     input(2, :, :) = key_value
 
-    attention = cross_attention_layer(sequence_length=2, model_dimension=3, n_heads=1)
-    call attention % init([0])
+    attention = cross_attention_layer(n_heads=1)
+    call attention % init([2, 3])
     attention % query_layer % weights = 0.1
     attention % key_layer % weights = 0.1
     attention % value_layer % weights = 0.1

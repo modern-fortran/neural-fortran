@@ -20,38 +20,19 @@ module nf_self_attention_layer
   end type self_attention_layer
 
   interface self_attention_layer
-    module function self_attention_layer_cons(sequence_length, model_dimension, n_heads) result(res)
+    module function self_attention_layer_cons(n_heads) result(res)
       !! This function returns the `self_attention_layer` instance.
-      integer, intent(in) :: sequence_length, model_dimension, n_heads
+      integer, intent(in) :: n_heads
       type(self_attention_layer) :: res
     end function self_attention_layer_cons
   end interface self_attention_layer
 
 contains
-  module function self_attention_layer_cons(sequence_length, model_dimension, n_heads) result(res)
+  module function self_attention_layer_cons(n_heads) result(res)
     !! This function returns the `self_attention_layer` instance.
-    integer, intent(in) :: sequence_length, model_dimension, n_heads
+    integer, intent(in) :: n_heads
     type(self_attention_layer) :: res
-    res % sequence_length = sequence_length
-    res % model_dimension = model_dimension
     res % n_heads = n_heads
-
-    if (mod(model_dimension, n_heads) /= 0) then
-      write(stderr, '(a)'), 'Number of heads must be divisible by model dimension'
-      error stop
-    end if
-    res % head_size = model_dimension / n_heads
-
-    res % query_layer = linear2d_layer(model_dimension)
-    res % key_layer = linear2d_layer(model_dimension)
-    res % value_layer = linear2d_layer(model_dimension)
-    res % output_layer = linear2d_layer(model_dimension)
-    call res % query_layer % init([sequence_length, model_dimension])
-    call res % key_layer % init([sequence_length, model_dimension])
-    call res % value_layer % init([sequence_length, model_dimension])
-    call res % output_layer % init([sequence_length, model_dimension])
-
-    res % softmax_func = softmax()
   end function self_attention_layer_cons
 
   module subroutine backward(self, input, gradient)

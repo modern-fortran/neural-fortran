@@ -7,29 +7,11 @@ submodule(nf_multihead_attention_layer) nf_multihead_attention_layer_submodule
   implicit none
 
 contains
-  module function multihead_attention_layer_cons(sequence_length, model_dimension, n_heads) result(res)
-    integer, intent(in) :: sequence_length, model_dimension, n_heads
+  module function multihead_attention_layer_cons(n_heads) result(res)
+    integer, intent(in) :: n_heads
     type(multihead_attention_layer) :: res
-    res % sequence_length = sequence_length
-    res % model_dimension = model_dimension
+
     res % n_heads = n_heads
-
-    if (mod(model_dimension, n_heads) /= 0) then
-      write(stderr, '(a)'), 'Number of heads must be divisible by model dimension'
-      error stop
-    end if
-    res % head_size = model_dimension / n_heads
-
-    res % query_layer = linear2d_layer(model_dimension)
-    res % key_layer = linear2d_layer(model_dimension)
-    res % value_layer = linear2d_layer(model_dimension)
-    res % output_layer = linear2d_layer(model_dimension)
-    call res % query_layer % init([sequence_length, model_dimension])
-    call res % key_layer % init([sequence_length, model_dimension])
-    call res % value_layer % init([sequence_length, model_dimension])
-    call res % output_layer % init([sequence_length, model_dimension])
-
-    res % softmax_func = softmax()
   end function multihead_attention_layer_cons
 
   module subroutine common_backward(self, input, gradient)
@@ -324,6 +306,28 @@ contains
   module subroutine init_base(self, input_shape)
     class(multihead_attention_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
+
+    if (size(input_shape) /= 2) then
+      error stop "MultiHead Attention accepts 2D input"
+    end if
+    self % sequence_length = input_shape(1)
+    self % model_dimension = input_shape(2)
+
+    if (mod(self % model_dimension, self % n_heads) /= 0) then
+      write(stderr, '(a)'), 'Number of heads must be divisible by model dimension'
+      error stop
+    end if
+    self % head_size = self % model_dimension / self % n_heads
+    self % softmax_func = softmax()
+
+    self % query_layer = linear2d_layer(self % model_dimension)
+    self % key_layer = linear2d_layer(self % model_dimension)
+    self % value_layer = linear2d_layer(self % model_dimension)
+    self % output_layer = linear2d_layer(self % model_dimension)
+    call self % query_layer % init([self % sequence_length, self % model_dimension])
+    call self % key_layer % init([self % sequence_length, self % model_dimension])
+    call self % value_layer % init([self % sequence_length, self % model_dimension])
+    call self % output_layer % init([self % sequence_length, self % model_dimension])
 
     allocate(self % attention_matrix(self % sequence_length, self % sequence_length, self % n_heads))
     allocate(self % sdpa(self % sequence_length, self % head_size, self % n_heads))
