@@ -301,7 +301,7 @@ contains
       call this_layer % init(input % layer_shape)
     end select
 
-    ! The shape of conv2d, maxpool2d, or flatten layers is not known
+    ! The shape of linear2d, conv2d, maxpool2d, or flatten layers is not known
     ! until we receive an input layer.
     select type(this_layer => self % p)
       type is(conv2d_layer)
@@ -309,6 +309,8 @@ contains
       type is(maxpool2d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(flatten_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(linear2d_layer)
         self % layer_shape = shape(this_layer % output)
     end select
 

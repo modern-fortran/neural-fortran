@@ -11,11 +11,11 @@ module nf_linear2d_layer
   type, extends(base_layer) :: linear2d_layer
     integer :: sequence_length, in_features, out_features, batch_size
 
-    real, allocatable :: weights(:, :)
+    real, allocatable :: weights(:,:)
     real, allocatable :: biases(:)
-    real, allocatable :: output(:, :)
-    real, allocatable :: gradient(:, :) ! input gradient
-    real, allocatable :: dw(:, :) ! weight gradients
+    real, allocatable :: output(:,:)
+    real, allocatable :: gradient(:,:) ! input gradient
+    real, allocatable :: dw(:,:) ! weight gradients
     real, allocatable :: db(:) ! bias gradients
 
   contains
@@ -40,13 +40,13 @@ module nf_linear2d_layer
   interface
     pure module subroutine forward(self, input)
       class(linear2d_layer), intent(in out) :: self
-      real, intent(in) :: input(:, :)
+      real, intent(in) :: input(:,:)
     end subroutine forward
 
     pure module subroutine backward(self, input, gradient)
       class(linear2d_layer), intent(in out) :: self
-      real, intent(in) :: input(:, :)
-      real, intent(in) :: gradient(:, :)
+      real, intent(in) :: input(:,:)
+      real, intent(in) :: gradient(:,:)
     end subroutine backward
 
     module subroutine init(self, input_shape)

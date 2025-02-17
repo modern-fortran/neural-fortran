@@ -10,6 +10,7 @@ contains
     type(linear2d_layer) :: res
 
     res % out_features = out_features
+
   end function linear2d_layer_cons
 
 
@@ -34,6 +35,7 @@ contains
 
     allocate(self % dw(self % in_features, self % out_features))
     self % dw = 0
+
     allocate(self % db(self % out_features))
     self % db = 0
 

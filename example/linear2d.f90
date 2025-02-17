@@ -16,7 +16,7 @@ program linear2d_example
   
   net = network([ &
     input(3, 4), &
-    linear2d(3, 1), &
+    linear2d(1), &
     flatten() &
   ])
   
