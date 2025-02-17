@@ -9,6 +9,11 @@ module nf_embedding_layer
   public :: embedding_layer
 
   type, extends(base_layer) :: embedding_layer
+    !! Embedding Layer
+    !! Stores inputs as a trainable lookup table. Inputs are
+    !! integer indicies in a dictionary of `vocab_size`.
+    !! This layer converts them into a table of shape
+    !! (`sequence_length`, `model_dimension`)
     integer :: sequence_length, vocab_size, model_dimension
 
     real, allocatable :: weights(:, :)
@@ -29,24 +34,25 @@ module nf_embedding_layer
   end type embedding_layer
 
   interface embedding_layer
-    module function embedding_layer_cons(&
-        sequence_length, vocab_size, model_dimension&
-    ) result(res)
-      integer, intent(in) :: sequence_length, vocab_size, model_dimension
+    module function embedding_layer_cons(vocab_size, model_dimension) result(res)
+      integer, intent(in) :: vocab_size, model_dimension
       type(embedding_layer) :: res
     end function embedding_layer_cons
   end interface embedding_layer
 
   interface
     pure module subroutine forward(self, input)
+      !! Get vectors by indicis in the dictionary
       class(embedding_layer), intent(in out) :: self
       integer, intent(in) :: input(:)
     end subroutine forward
 
     pure module subroutine backward(self, input, gradient)
+      !! Update gradient at `input` indices
+      !! dw_i = W_i + d_output_i
       class(embedding_layer), intent(in out) :: self
       integer, intent(in) :: input(:)
-      real, intent(in) :: gradient(:)
+      real, intent(in) :: gradient(:, :)
     end subroutine backward
 
     module subroutine init(self, input_shape)
