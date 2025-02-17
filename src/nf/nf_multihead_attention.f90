@@ -10,8 +10,16 @@ module nf_multihead_attention_layer
   public :: multihead_attention_layer
 
   type, extends(base_layer) :: multihead_attention_layer
-
-    !! Concrete implementation of a multihead attention layer type
+    !! MultiHead Attention
+    !! Attention mechanism is widely used in Machine Learning, particularly in
+    !! Natural Language Processing, and is the basis of modern Language Models.
+    !! Attention creates Saliency Map between tokens that helps the model
+    !! achieve deeper contextual understanding of the data.
+    !! This implementation is based upon the Transformers article and
+    !! uses attention heads to help parallelize computations.
+    !! Source:
+    !! Waswani A. et al. Attention is all you need.
+    !! https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf
     integer :: sequence_length, model_dimension, n_heads, head_size
 
     type(linear2d_layer) :: query_layer
