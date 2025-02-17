@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape
+  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d
 
   interface input
 
@@ -184,6 +184,16 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function reshape
+
+    module function linear2d(out_features) result(res)
+      !! Rank-2 (sequence_length, out_features) linear layer constructor.
+      !! sequence_length is determined at layer initialization, based on the
+      !! output shape of the previous layer.
+      integer, intent(in) :: out_features
+        !! Number of output features
+      type(layer) :: res
+        !! Resulting layer instance
+    end function linear2d
 
   end interface
 
