@@ -30,8 +30,8 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Layer type | Constructor name | Supported input layers | Rank of output array | Forward pass | Backward pass |
 |------------|------------------|------------------------|----------------------|--------------|---------------|
 | Input | `input` | n/a | 1, 2, 3 | n/a | n/a |
-| Dense (fully-connected) | `dense` | `input1d`, `flatten` | 1 | ✅ | ✅ |
-| Dropout | `dropout` | Any | 1 | ✅ | ✅ |
+| Dense (fully-connected) | `dense` | `input1d`, `dense`, `dropout`, `flatten` | 1 | ✅ | ✅ |
+| Dropout | `dropout` | `dense`, `flatten`, `input1d` | 1 | ✅ | ✅ |
 | Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅(*) |
 | Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
 | Flatten | `flatten` | `input2d`, `input3d`, `conv2d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
