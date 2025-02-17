@@ -6,7 +6,7 @@ module nf_random
   implicit none
 
   private
-  public :: random_normal
+  public :: random_normal, random_he, random_xavier
 
   real, parameter :: pi = 4 * atan(1.d0)
 
@@ -23,4 +23,22 @@ contains
     x = sqrt(- 2 * log(u(1))) * cos(2 * pi * u(2))
   end subroutine random_normal
 
+  impure elemental subroutine random_he(x, n_prev)
+    !! Kaiming weight initialization
+    real, intent(in out) :: x
+    integer, intent(in) :: n_prev
+    call random_number(x)
+    x = x * sqrt(2. / n_prev)
+  end subroutine random_he
+
+  impure elemental subroutine random_xavier(x, n_prev)
+    !! Kaiming weight initialization
+    real, intent(in out) :: x
+    integer, intent(in) :: n_prev
+    real :: lower, upper
+    lower = -(1. / sqrt(real(n_prev)))
+    upper = 1. / sqrt(real(n_prev))
+    call random_number(x)
+    x = lower + x * (upper - lower)
+  end subroutine random_xavier
 end module nf_random
