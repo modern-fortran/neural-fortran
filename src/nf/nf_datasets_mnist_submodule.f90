@@ -50,9 +50,9 @@ contains
     real, allocatable, intent(in out), optional :: testing_labels(:)
 
     integer, parameter :: dtype = 4, image_size = 784
-    integer, parameter :: num_training_images = 50000
-    integer, parameter :: num_validation_images = 10000
-    integer, parameter :: num_testing_images = 10000
+    integer, parameter :: num_training_images = 500
+    integer, parameter :: num_validation_images = 100
+    integer, parameter :: num_testing_images = 100
     logical :: file_exists
 
     ! Check if MNIST data is present and download it if not.
