@@ -11,7 +11,7 @@ program test_conv2d_network
 
   ! 3-layer convolutional network
   net = network([ &
-    input([3, 32, 32]), &
+    input(3, 32, 32), &
     conv2d(filters=16, kernel_size=3), &
     conv2d(filters=32, kernel_size=3) &
   ])
@@ -48,7 +48,7 @@ program test_conv2d_network
     call random_number(sample_input)
 
     cnn = network([ &
-      input(shape(sample_input)), &
+      input(1, 5, 5), &
       conv2d(filters=1, kernel_size=3), &
       conv2d(filters=1, kernel_size=3), &
       dense(1) &
@@ -84,7 +84,7 @@ program test_conv2d_network
     y = [0.1234567]
 
     cnn = network([ &
-      input(shape(x)), &
+      input(1, 8, 8), &
       conv2d(filters=1, kernel_size=3), &
       maxpool2d(pool_size=2), &
       conv2d(filters=1, kernel_size=3), &
@@ -119,7 +119,7 @@ program test_conv2d_network
     y = [0.12345, 0.23456, 0.34567, 0.45678, 0.56789, 0.67890, 0.78901, 0.89012, 0.90123]
 
     cnn = network([ &
-      input(shape(x)), &
+      input(1, 12, 12), &
       conv2d(filters=1, kernel_size=3), & ! 1x12x12 input, 1x10x10 output
       maxpool2d(pool_size=2), &           ! 1x10x10 input, 1x5x5 output
       conv2d(filters=1, kernel_size=3), & ! 1x5x5 input, 1x3x3 output

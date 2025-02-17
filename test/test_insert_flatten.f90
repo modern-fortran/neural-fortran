@@ -9,7 +9,7 @@ program test_insert_flatten
   logical :: ok = .true.
 
   net = network([ &
-    input([3, 32, 32]), &
+    input(3, 32, 32), &
     dense(10) &
   ])
 
@@ -19,7 +19,7 @@ program test_insert_flatten
   end if
 
   net = network([ &
-    input([3, 32, 32]), &
+    input(3, 32, 32), &
     conv2d(filters=1, kernel_size=3), &
     dense(10) &
   ])
@@ -32,7 +32,7 @@ program test_insert_flatten
   end if
 
   net = network([ &
-    input([3, 32, 32]), &
+    input(3, 32, 32), &
     conv2d(filters=1, kernel_size=3), &
     maxpool2d(pool_size=2, stride=2), &
     dense(10) &

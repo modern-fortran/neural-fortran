@@ -2,7 +2,7 @@ name = "neural-fortran"
 version = "0.19.0"
 license = "MIT"
 author = "Milan Curcic"
-maintainer = "milancurcic@hey.com"
+maintainer = "mcurcic@miami.edu"
 copyright = "Copyright 2018-2025, neural-fortran contributors"
 
 [preprocess]

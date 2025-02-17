@@ -1,5 +1,6 @@
 foreach(execid
   input1d_layer
+  input2d_layer
   input3d_layer
   dropout_layer
   parametric_activation

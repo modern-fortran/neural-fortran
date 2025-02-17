@@ -31,15 +31,18 @@ module nf_network
 
     procedure, private :: evaluate_batch_1d
     procedure, private :: forward_1d
+    procedure, private :: forward_2d
     procedure, private :: forward_3d
     procedure, private :: predict_1d
+    procedure, private :: predict_2d
     procedure, private :: predict_3d
     procedure, private :: predict_batch_1d
     procedure, private :: predict_batch_3d
 
     generic :: evaluate => evaluate_batch_1d
-    generic :: forward => forward_1d, forward_3d
-    generic :: predict => predict_1d, predict_3d, predict_batch_1d, predict_batch_3d
+    generic :: forward => forward_1d, forward_2d, forward_3d
+    generic :: predict => predict_1d, predict_2d, predict_3d
+    generic :: predict_batch => predict_batch_1d, predict_batch_3d
 
   end type network
 
@@ -91,6 +94,20 @@ module nf_network
         !! 1-d input data
     end subroutine forward_1d
 
+    module subroutine forward_2d(self, input)
+      !! Apply a forward pass through the network.
+      !!
+      !! This changes the state of layers on the network.
+      !! Typically used only internally from the `train` method,
+      !! but can be invoked by the user when creating custom optimizers.
+      !!
+      !! This specific subroutine is for 1-d input data.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:)
+        !! 2-d input data
+    end subroutine forward_2d
+
     module subroutine forward_3d(self, input)
       !! Apply a forward pass through the network.
       !!
@@ -119,6 +136,16 @@ module nf_network
         !! Output of the network
     end function predict_1d
 
+    module function predict_2d(self, input) result(res)
+      !! Return the output of the network given the input 1-d array.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:)
+        !! Input data
+      real, allocatable :: res(:)
+        !! Output of the network
+    end function predict_2d
+
     module function predict_3d(self, input) result(res)
       !! Return the output of the network given the input 3-d array.
       class(network), intent(in out) :: self
@@ -128,7 +155,9 @@ module nf_network
       real, allocatable :: res(:)
         !! Output of the network
     end function predict_3d
+  end interface output
 
+  interface output_batch
     module function predict_batch_1d(self, input) result(res)
       !! Return the output of the network given an input batch of 3-d data.
       class(network), intent(in out) :: self
@@ -148,8 +177,7 @@ module nf_network
       real, allocatable :: res(:,:)
         !! Output of the network; the last dimension is the batch
     end function predict_batch_3d
-
-  end interface output
+  end interface output_batch
 
   interface
 

@@ -35,10 +35,10 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function input1d
 
-    module function input3d(layer_shape) result(res)
-      !! 3-d input layer constructor.
+    module function input2d(dim1, dim2) result(res)
+      !! 2-d input layer constructor.
       !!
-      !! This layer is for inputting 3-d data to the network.
+      !! This layer is for inputting 2-d data to the network.
       !! Currently, this layer must be followed by a conv2d layer.
       !! An input layer must be the first layer in the network.
       !!
@@ -50,10 +50,29 @@ module nf_layer_constructors
       !! ```
       !! use nf, only :: input, layer
       !! type(layer) :: input_layer
-      !! input_layer = input([28, 28, 1])
+      !! input_layer = input(28, 28)
       !! ```
-      integer, intent(in) :: layer_shape(3)
-        !! Shape of the input layer
+      integer, intent(in) :: dim1, dim2
+        !! First and second dimension sizes
+      type(layer) :: res
+        !! Resulting layer instance
+    end function input2d
+
+    module function input3d(dim1, dim2, dim3) result(res)
+      !! 3-d input layer constructor.
+      !!
+      !! This is a specific function that is available
+      !! under a generic name `input`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: input, layer
+      !! type(layer) :: input_layer
+      !! input_layer = input(28, 28, 1)
+      !! ```
+      integer, intent(in) :: dim1, dim2, dim3
+        !! First, second and third dimension sizes
       type(layer) :: res
         !! Resulting layer instance
     end function input3d
