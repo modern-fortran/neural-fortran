@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d
+  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d, self_attention
 
   interface input
 
@@ -194,6 +194,11 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function linear2d
+
+  module function self_attention(sequence_length, model_dimension, n_heads) result(res)
+    integer, intent(in) :: sequence_length, model_dimension, n_heads
+    type(layer) :: res
+  end function self_attention
 
   end interface
 

@@ -10,6 +10,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
+  use nf_self_attention_layer, only: self_attention_layer
   use nf_activation, only: activation_function, relu, sigmoid
 
   implicit none
@@ -159,5 +160,14 @@ contains
     allocate(res % p, source=linear2d_layer(out_features))
 
   end function linear2d
+
+  module function self_attention(sequence_length, model_dimension, n_heads) result(res)
+    integer, intent(in) :: sequence_length, model_dimension, n_heads
+    type(layer) :: res
+
+    res % name = 'self_attention'
+    res % layer_shape = [sequence_length, model_dimension]
+    allocate(res % p, source=self_attention_layer(n_heads))
+  end function self_attention
 
 end submodule nf_layer_constructors_submodule
