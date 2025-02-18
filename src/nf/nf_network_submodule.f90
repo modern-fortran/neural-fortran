@@ -9,6 +9,7 @@ submodule(nf_network) nf_network_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_linear2d_layer, only: linear2d_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
   use nf_loss, only: quadratic
@@ -130,6 +131,11 @@ contains
               self % layers(n - 1), &
               self % loss % derivative(output, this_layer % output) &
             )
+          type is(flatten_layer)
+            call self % layers(n) % backward( &
+              self % layers(n - 1), &
+              self % loss % derivative(output, this_layer % output) &
+            )
         end select
       else
         ! Hidden layer; take the gradient from the next layer
@@ -147,11 +153,12 @@ contains
             else
               call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
             end if
-
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
 
           type is(reshape3d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(linear2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if
