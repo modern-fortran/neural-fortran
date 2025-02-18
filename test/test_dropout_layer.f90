@@ -75,6 +75,40 @@ program test_dropout_layer
 
   end select
 
+  ! Test that the generated dropout mask matches the requested dropout rate.
+  test_mask: block
+    integer, parameter :: input_sizes(3) = [10, 100, 1000]
+    real, parameter :: dropout_rates(5) = [0., 0.2, 0.5, 0.8, 1.]
+    real, allocatable :: input_data(:)
+    integer :: i, j
+
+    do i = 1, size(input_sizes)
+      do j = 1, size(dropout_rates)
+
+        net = network([ &
+          input(input_sizes(i)), &
+          dropout(dropout_rates(j)) &
+        ])
+
+        if (allocated(input_data)) deallocate(input_data)
+        allocate(input_data(input_sizes(i)))
+        call random_number(input_data)
+
+        call net % forward(input_data)
+
+        select type(layer1_p => net % layers(2) % p)
+          type is(dropout_layer)
+            if (abs(sum(layer1_p % mask) / size(layer1_p % mask) - (1 - dropout_rates(j))) > 1e-6) then
+              ok = .false.
+              write(stderr, '(a)') 'actual dropout rate is equal to requested.. failed'
+            end if
+        end select
+      end do
+    end do
+
+  end block test_mask
+
+
   ! Now we're gonna run the forward pass and check that the dropout indeed
   ! drops according to the requested dropout rate.
   forward_pass: block

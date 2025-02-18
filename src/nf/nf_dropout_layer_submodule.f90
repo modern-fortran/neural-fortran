@@ -1,4 +1,5 @@
 submodule (nf_dropout_layer) nf_dropout_layer_submodule
+  use nf_random, only: shuffle
   !! This submodule implements the procedures defined in the
   !! nf_dropout_layer module.
 
@@ -37,12 +38,13 @@ contains
     ! Generate random mask for dropout, training mode only
     if (self % training) then
 
-      call random_number(self % mask)
-      where (self % mask < self % dropout_rate)
-        self % mask = 0
-      elsewhere
-        self % mask = 1
-      end where
+      ! Set the first dropout_rate number of elements to 0, the rest to 1,
+      ! and shuffle. Note that the selection of the elements rounds down to
+      ! the nearest integer, so in cases where size(input) * dropout_rate is
+      ! not an integer, the actual dropout rate will be slightly lower.
+      self % mask = 1
+      self % mask(:int(size(self % mask) * self % dropout_rate)) = 0
+      call shuffle(self % mask)
 
       ! Scale factor to preserve the input sum
       self % scale = sum(input) / sum(input * self % mask)
