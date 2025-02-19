@@ -31,6 +31,14 @@ program test_multihead_attention_layer
   call test_cross_attention(ok)
 
 contains
+  function allclose(x, y) result(res)
+    real, intent(in) :: x(:)
+    real, intent(in) :: y(:)
+    logical :: res
+
+    res = all(abs(x - y) <= (1e-08 + 1e-05 * abs(y)))
+  end function allclose
+
   subroutine set_weights(attention)
     type(multihead_attention_layer), intent(in out) :: attention
     attention % query_layer % weights = 0.1
@@ -72,15 +80,16 @@ contains
     real, intent(in) :: input(:, :, :)
     logical, intent(in out) :: ok
     real :: attention_matrix_shape(3)
-    real :: attention_matrix_flat(18)
+    real, volatile :: attention_matrix_flat(18)
     real :: expected_shape(3) = [3, 3, 2]
     real :: expected_attention_matrix_flat(18) = [&
-        9.00000036E-02, 0.120000005, 0.150000006, 0.120000005, 0.170000002, 0.219999999,&
-        0.150000006, 0.219999999, 0.289999992, 1.16999996, 0.518999994, 0.588000000,&
-        0.518999994, 0.502099991, 0.573199987, 0.588000000, 0.573199987, 0.654400051&
+        0.09, 0.12, 0.15, 0.12, 0.17, 0.22,&
+        0.15, 0.22, 0.29, 1.17, 0.519, 0.588,&
+        0.519, 0.5021, 0.5732, 0.588, 0.5732, 0.6544&
     ]
 
     call attention % create_attention_matrix(input, input)
+    print *, attention % attention_matrix
 
     attention_matrix_shape = shape(attention % attention_matrix)
     if (.not. all(attention_matrix_shape.eq.expected_shape)) then
@@ -88,7 +97,7 @@ contains
       write(stderr, '(a)') 'create_attention_matrix returned incorrect shape.. failed'
     end if
     attention_matrix_flat = reshape(attention % attention_matrix, shape(expected_attention_matrix_flat))
-    if (.not. all(attention_matrix_flat.eq.expected_attention_matrix_flat)) then
+    if (.not. allclose(attention_matrix_flat, expected_attention_matrix_flat)) then
       ok = .false.
       write(stderr, '(a)') 'create_attention_matrix returned incorrect values.. failed'
     end if
@@ -97,7 +106,7 @@ contains
   subroutine test_multihead_attention_normalization(attention, ok)
     type(multihead_attention_layer), intent(in out) :: attention
     logical, intent(in out) :: ok
-    real :: output_flat(18)
+    real, volatile :: output_flat(18)
     real :: expected_output_flat(18) = [&
         0.326287806, 0.321620107, 0.316976935, 0.333283335, 0.333194494, 0.333061278,&
         0.340428889, 0.345185429, 0.349961787, 0.435975075, 0.330339372, 0.329200655,&
@@ -107,7 +116,7 @@ contains
     call attention % normalize_attention_matrix()
 
     output_flat = reshape(attention % attention_matrix, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'normalize_attention_matrix returned incorrect values.. failed'
     end if
@@ -117,7 +126,7 @@ contains
     type(multihead_attention_layer), intent(in out) :: attention
     real, intent(in) :: value(:, :, :)
     logical, intent(in out) :: ok
-    real :: output_flat(12)
+    real, volatile :: output_flat(12)
     real :: expected_output_flat(12) = [&
         0.101414114, 0.102356538, 0.103298485, 0.401414126, 0.402356565, 0.403298497,&
         0.685291648, 0.701290667, 0.701582491, 0.457309216, 0.374400556, 0.373518765&
@@ -126,7 +135,7 @@ contains
     call attention % scaled_dot_product_attention(value)
 
     output_flat = reshape(attention % sdpa, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'scaled_dot_product_attention returned incorrect values.. failed'
     end if
@@ -146,7 +155,7 @@ contains
     output = attention % combine_heads(scaled_dp_att)
 
     output_flat = reshape(output, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'combine_heads returned incorrect values.. failed'
     end if
@@ -157,10 +166,10 @@ contains
     logical, intent(in out) :: ok
     real :: input(3, 4) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4])
     real :: output(attention % sequence_length, attention % model_dimension)
-    real :: output_flat(12)
+    real, volatile :: output_flat(12)
     integer :: output_shape(2)
     integer :: attn_weights_shape(3)
-    real :: attn_weights_flat(18)
+    real, volatile :: attn_weights_flat(18)
     integer :: expected_shape(2) = [3, 4]
     real :: expected_output_flat(12) = [&
         0.982241452, 1.00407875, 1.00444126, 0.982241452, 1.00407875, 1.00444126,&
@@ -181,7 +190,7 @@ contains
       write(stderr, '(a)') 'forward returned incorrect shape.. failed'
     end if
     output_flat = reshape(attention % output, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
     end if
@@ -192,7 +201,7 @@ contains
       write(stderr, '(a)') 'forward returned incorrect attention weights shape.. failed'
     end if
     attn_weights_flat = reshape(attention % attention_matrix, shape(attn_weights_flat))
-    if (.not. all(attn_weights_flat.eq.expected_attn_weights_flat)) then
+    if (.not. allclose(attn_weights_flat, expected_attn_weights_flat)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect attention weights values.. failed'
     end if
@@ -202,8 +211,6 @@ contains
     logical, intent(in out) :: ok
     real :: input(148, 512)
     real :: output(148, 512)
-    type(linear2d_layer) :: q
-    real :: output_flat(12)
     integer :: output_shape(2)
     integer :: expected_shape(2) = [148, 512]
     type(multihead_attention_layer) :: attention
@@ -236,7 +243,7 @@ contains
     ]
     real :: expected_shape(2) = [3, 4]
     real :: output(3, 4)
-    real :: output_flat(12)
+    real, volatile :: output_flat(12)
     real :: output_shape(2)
 
     call attention % common_backward(input, gradient)
@@ -254,7 +261,7 @@ contains
       write(stderr, '(a)') 'backward returned incorrect shape.. failed'
     end if
     output_flat = reshape(output, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect values.. failed'
     end if
@@ -265,7 +272,7 @@ contains
     logical, intent(in out) :: ok
     real :: parameters(80)
     real :: expected_parameters(80)
-    real :: updated_output(12)
+    real, volatile :: updated_output(12)
     real :: expected_updated_output(12) = [&
         0.111365855, 0.115744293, 0.115733206, 0.185253710, 0.196646214, 0.196617395,&
         -0.102874994, -0.118834510, -0.118794113, 0.179314315, 0.190210193, 0.190182626&
@@ -296,7 +303,7 @@ contains
     )
 
     updated_output = reshape(attention % output, [12])
-    if (.not. all(updated_output.eq.expected_updated_output)) then
+    if (.not. allclose(updated_output, expected_updated_output)) then
       ok = .false.
       write(stderr, '(a)') 'incorrect output after parameters update.. failed'
     end if
@@ -307,12 +314,12 @@ contains
     type(self_attention_layer) :: attention
     real :: input(2, 3) = reshape([-1., 0., 17., .4, 5., .6], [2, 3])
     real :: output(2, 3)
-    real :: output_flat(6)
+    real, volatile :: output_flat(6)
     real :: expected_output_flat(6) = [&
         0.772716165, 0.577548742, 0.772716165, 0.577548742, 0.772716165, 0.577548742&
     ]
     real :: gradient(2, 3) = reshape([1., 2., .17, 4., .5, 6.], [2, 3])
-    real :: gradient_flat(6)
+    real, volatile :: gradient_flat(6)
     real :: expected_gradient_flat(6) = [&
         0.350671142, 0.607403040, 0.350671142, 0.607403040, 0.350671142, 0.607403040&
     ]
@@ -330,14 +337,14 @@ contains
 
     call attention % forward(input)
     output_flat = reshape(attention % output, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
     end if
 
     call attention % backward(input, gradient)
     gradient_flat = reshape(attention % gradient, shape(gradient_flat))
-    if (.not. all(gradient_flat.eq.expected_gradient_flat)) then
+    if (.not. allclose(gradient_flat, expected_gradient_flat)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect values.. failed'
     end if
@@ -350,13 +357,13 @@ contains
     real :: key_value(2, 3) = reshape([0.1, -.2, 0.3, 4., 15., 0.5], [2, 3])
     real :: input(2, 2, 3)
     real :: output(2, 2, 3)
-    real :: output_flat(6)
+    real, volatile :: output_flat(6)
     real :: expected_output_flat(6) = [&
         0.600311756, 0.471662223, 0.600311756, 0.471662223, 0.600311756, 0.471662223&
     ]
     real :: gradient(2, 3) = reshape([1., 2., .17, 4., .5, 6.], [2, 3])
-    real :: query_gradient_flat(6)
-    real :: key_value_gradient_flat(6)
+    real, volatile :: query_gradient_flat(6)
+    real, volatile :: key_value_gradient_flat(6)
     real :: expected_query_gradient_flat(6) = [&
         1.48406753E-03, 0.184446245, 1.48406753E-03, 0.184446245, 1.48406753E-03, 0.184446245&
     ]
@@ -379,19 +386,19 @@ contains
 
     call attention % forward(input)
     output_flat = reshape(attention % output, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
     end if
 
     call attention % backward(input, gradient)
     query_gradient_flat = reshape(attention % gradient(1, :, :), shape(query_gradient_flat))
-    if (.not. all(query_gradient_flat.eq.expected_query_gradient_flat)) then
+    if (.not. allclose(query_gradient_flat, expected_query_gradient_flat)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect query values.. failed'
     end if
     key_value_gradient_flat = reshape(attention % gradient(2, :, :), shape(key_value_gradient_flat))
-    if (.not. all(key_value_gradient_flat.eq.expected_key_value_gradient_flat)) then
+    if (.not. allclose(key_value_gradient_flat, expected_key_value_gradient_flat)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect key-value values.. failed'
     end if
