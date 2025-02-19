@@ -9,6 +9,7 @@ submodule(nf_network) nf_network_submodule
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
+  use nf_embedding_layer, only: embedding_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
   use nf_loss, only: quadratic
@@ -44,7 +45,7 @@ contains
       error stop 'Error: A network must have at least 2 layers.'
 
     ! The first layer must be an input layer
-    if (.not. layers(1) % name == 'input') &
+    if (.not. layers(1) % name == 'input' .and. .not. layers(1) % name == 'embedding') &
       error stop 'Error: First layer in the network must be an input layer.'
 
     !TODO Ensure that the layers are in allowed sequence:
@@ -158,6 +159,8 @@ contains
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(linear2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+!          type is(embedding_layer)
+!            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if
 
@@ -202,8 +205,11 @@ contains
     integer :: n
 
     ! Set the input array into the input layer
-    select type(input_layer => self % layers(1) % p); type is(input1d_layer)
-      call input_layer % set(input)
+    select type(input_layer => self % layers(1) % p)
+      type is(input1d_layer)
+        call input_layer % set(input)
+      type is(embedding_layer)
+        call input_layer % forward(nint(input))
     end select
 
     do n = 2, size(self % layers)

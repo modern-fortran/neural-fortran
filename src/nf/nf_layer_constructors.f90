@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d
+  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d, embedding
 
   interface input
 
@@ -194,6 +194,11 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function linear2d
+
+    module function embedding(sequence_length, vocab_size, model_dimension) result(res)
+      integer, intent(in) :: sequence_length, vocab_size, model_dimension
+      type(layer) :: res
+    end function embedding
 
   end interface
 
