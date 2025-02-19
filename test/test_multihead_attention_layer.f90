@@ -30,6 +30,13 @@ program test_multihead_attention_layer
   call test_self_attention(ok)
   call test_cross_attention(ok)
 
+  if (ok) then
+    print '(a)', 'test_multihead_attention_layer: All tests passed.'
+  else
+    write(stderr, '(a)') 'test_multihead_attention_layer: One or more tests failed.'
+    stop 1
+  end if
+
 contains
   function allclose(x, y) result(res)
     real, intent(in) :: x(:)
