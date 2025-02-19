@@ -34,6 +34,8 @@ contains
       index = input(i)
       if (index > size(self % weights, 1)) then
         index = 1
+      elseif (index == 0) then
+        index = 1
       end if
       self % output(i, :) = self % weights(index, :)
     end do
