@@ -96,7 +96,6 @@ contains
     ]
 
     call attention % create_attention_matrix(input, input)
-    print *, attention % attention_matrix
 
     attention_matrix_shape = shape(attention % attention_matrix)
     if (.not. all(attention_matrix_shape.eq.expected_shape)) then
