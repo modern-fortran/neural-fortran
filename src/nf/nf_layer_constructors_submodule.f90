@@ -12,6 +12,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
+  use nf_embedding_layer, only: embedding_layer
   use nf_activation, only: activation_function, relu, sigmoid
 
   implicit none
@@ -171,6 +172,7 @@ contains
 
   end function linear2d
 
+
   module function self_attention(num_heads) result(res)
     integer, intent(in) :: num_heads
     type(layer) :: res
@@ -178,5 +180,21 @@ contains
     res % name = 'self_attention'
     allocate(res % p, source=self_attention_layer(num_heads))
   end function self_attention
+
+
+  module function embedding(sequence_length, vocab_size, model_dimension) result(res)
+    integer, intent(in) :: sequence_length, vocab_size, model_dimension
+    type(layer) :: res
+    type(embedding_layer) :: embedding_layer_instance
+
+    embedding_layer_instance = embedding_layer(vocab_size, model_dimension)
+    call embedding_layer_instance % init([sequence_length])
+    res % name = 'embedding'
+    res % layer_shape = [sequence_length, model_dimension]
+    res % input_layer_shape = [integer ::]
+    allocate(res % p, source=embedding_layer_instance)
+    res % initialized = .true.
+
+  end function embedding
 
 end submodule nf_layer_constructors_submodule
