@@ -17,7 +17,6 @@ contains
     self % sequence_length = input_shape(1)
 
     allocate(self % output(self % sequence_length, self % model_dimension))
-    allocate(self % gradient(self % sequence_length, self % vocab_size))
 
     allocate(self % weights(self % vocab_size, self % model_dimension))
     self % weights = 0.1
