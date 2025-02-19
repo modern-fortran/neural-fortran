@@ -20,6 +20,7 @@ add_library(neural-fortran
   src/nf/nf_base_layer.f90
   src/nf/nf_conv2d_layer.f90
   src/nf/nf_conv2d_layer_submodule.f90
+  src/nf/nf_cross_attention_layer.f90
   src/nf/nf_datasets.f90
   src/nf/nf_datasets_submodule.f90
   src/nf/nf_datasets_mnist.f90
@@ -45,6 +46,8 @@ add_library(neural-fortran
   src/nf/nf_maxpool2d_layer.f90
   src/nf/nf_maxpool2d_layer_submodule.f90
   src/nf/nf_metrics.f90
+  src/nf/nf_multihead_attention.f90
+  src/nf/nf_multihead_attention_submodule.f90
   src/nf/nf_network.f90
   src/nf/nf_network_submodule.f90
   src/nf/nf_optimizers.f90
@@ -53,6 +56,7 @@ add_library(neural-fortran
   src/nf/nf_random.f90
   src/nf/nf_reshape_layer.f90
   src/nf/nf_reshape_layer_submodule.f90
+  src/nf/nf_self_attention_layer.f90
   src/nf/io/nf_io_binary.f90
   src/nf/io/nf_io_binary_submodule.f90
 )
