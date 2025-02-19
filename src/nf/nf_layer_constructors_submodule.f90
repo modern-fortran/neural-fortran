@@ -161,12 +161,11 @@ contains
 
   end function linear2d
 
-  module function self_attention(sequence_length, model_dimension, n_heads) result(res)
-    integer, intent(in) :: sequence_length, model_dimension, n_heads
+  module function self_attention(n_heads) result(res)
+    integer, intent(in) :: n_heads
     type(layer) :: res
 
     res % name = 'self_attention'
-    res % layer_shape = [sequence_length, model_dimension]
     allocate(res % p, source=self_attention_layer(n_heads))
   end function self_attention
 

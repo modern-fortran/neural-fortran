@@ -195,9 +195,14 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function linear2d
 
-  module function self_attention(sequence_length, model_dimension, n_heads) result(res)
-    integer, intent(in) :: sequence_length, model_dimension, n_heads
+  module function self_attention(n_heads) result(res)
+    !! Rank-2 (sequence_length, out_features) self attention constructor.
+    !! sequence_length and model_dimension are determined at layer initialization, based on the
+    !! output shape of the previous layer.
+    integer, intent(in) :: n_heads
+      !! Number of attention heads
     type(layer) :: res
+      !! Resulting layer instance
   end function self_attention
 
   end interface
