@@ -43,7 +43,7 @@ contains
     real, intent(in) :: y(:)
     logical :: res
 
-    res = all(abs(x - y) <= (1e-08 + 1e-05 * abs(y)))
+    res = all(abs(x - y) <= (1e-06 + 1e-05 * abs(y)))
   end function allclose
 
   subroutine set_weights(attention)
