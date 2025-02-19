@@ -18,7 +18,6 @@ module nf_embedding_layer
 
     real, allocatable :: weights(:, :)
     real, allocatable :: output(:, :)
-    real, allocatable :: gradient(:, :) ! input gradient
     real, allocatable :: dw(:, :) ! weight gradients
 
   contains
