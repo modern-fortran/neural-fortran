@@ -112,7 +112,7 @@ program test_dropout_layer
   ! Now we're gonna run the forward pass and check that the dropout indeed
   ! drops according to the requested dropout rate.
   forward_pass: block
-    real :: input_data(5)
+    real :: input_data(4)
     real :: output_data(size(input_data))
     integer :: n
 
@@ -121,33 +121,41 @@ program test_dropout_layer
       dropout(0.5) &
     ])
 
-    call random_number(input_data)
     do n = 1, 10000
-      output_data = net % predict(input_data)
+
+      call random_number(input_data)
+      call net % forward(input_data)
+
       ! Check that sum of output matches sum of input within small tolerance
-      if (abs(sum(output_data) - sum(input_data)) > 1e-6) then
-        ok = .false.
-        exit
-      end if
+      select type(layer1_p => net % layers(2) % p)
+        type is(dropout_layer)
+          if (abs(sum(layer1_p % output) - sum(input_data)) > 1e-6) then
+            ok = .false.
+            exit
+          end if
+      end select
+
     end do
-    if (.not. ok) then
-      write(stderr, '(a)') 'dropout layer output sum should match input sum within tolerance.. failed'
-    end if
+
+    if (.not. ok) write(stderr, '(a)') &
+      'dropout layer output sum should match input sum within tolerance.. failed'
+
   end block forward_pass
 
 
   training: block
-    real :: x(100), y(5)
-    real :: tolerance = 1e-3
+    real :: x(20), y(5)
+    real :: tolerance = 1e-4
     integer :: n
-    integer, parameter :: num_iterations = 10000
+    integer, parameter :: num_iterations = 100000
 
     call random_number(x)
     y = [0.12345, 0.23456, 0.34567, 0.45678, 0.56789]
 
     net = network([ &
-      input(100), &
-      dropout(0.5), &
+      input(20), &
+      dense(20), &
+      dropout(0.2), &
       dense(5) &
     ])
 
@@ -155,9 +163,7 @@ program test_dropout_layer
       call net % forward(x)
       call net % backward(y)
       call net % update()
-
       if (all(abs(net % predict(x) - y) < tolerance)) exit
-
     end do
 
     if (.not. n <= num_iterations) then
