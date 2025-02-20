@@ -8,7 +8,7 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d
+  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d, embedding
 
   interface input
 
@@ -194,6 +194,19 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function linear2d
+
+    module function embedding(sequence_length, vocab_size, model_dimension) result(res)
+      !! Embedding layer constructor.
+      !!
+      !! This layer is for inputting token indices from the dictionary to the network.
+      !! Works as a trainable lookup table that converts each index into a vector.
+      !! Embedding layer must be the first layer in a network.
+      !! `sequence_length`: max len of input sequence
+      !! `vocab_size`: length of token vocabulary
+      !! `model_dimension`: size of target embeddings
+      integer, intent(in) :: sequence_length, vocab_size, model_dimension
+      type(layer) :: res
+    end function embedding
 
   end interface
 
