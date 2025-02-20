@@ -10,6 +10,7 @@ foreach(execid
   flatten_layer
   insert_flatten
   reshape_layer
+  embedding_layer
   dense_network
   get_set_network_params
   conv2d_network
