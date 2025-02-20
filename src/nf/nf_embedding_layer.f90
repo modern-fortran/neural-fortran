@@ -15,6 +15,7 @@ module nf_embedding_layer
     !! This layer converts them into a table of shape
     !! (`sequence_length`, `model_dimension`)
     integer :: sequence_length, vocab_size, model_dimension
+    logical :: positional
 
     real, allocatable :: weights(:, :)
     real, allocatable :: output(:, :)
@@ -24,6 +25,7 @@ module nf_embedding_layer
 
     procedure :: backward
     procedure :: forward
+    procedure :: positional_encoding
     procedure :: init
     procedure :: get_num_params
     procedure :: get_params
@@ -33,8 +35,9 @@ module nf_embedding_layer
   end type embedding_layer
 
   interface embedding_layer
-    module function embedding_layer_cons(vocab_size, model_dimension) result(res)
+    module function embedding_layer_cons(vocab_size, model_dimension, positional) result(res)
       integer, intent(in) :: vocab_size, model_dimension
+      logical, optional :: positional
       type(embedding_layer) :: res
     end function embedding_layer_cons
   end interface embedding_layer
@@ -53,6 +56,11 @@ module nf_embedding_layer
       integer, intent(in) :: input(:)
       real, intent(in) :: gradient(:, :)
     end subroutine backward
+
+    pure module subroutine positional_encoding(self, pos)
+      class(embedding_layer), intent(in out) :: self
+      integer, intent(in) :: pos
+    end subroutine positional_encoding
 
     module subroutine init(self, input_shape)
       class(embedding_layer), intent(in out) :: self
