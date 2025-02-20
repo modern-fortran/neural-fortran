@@ -2,12 +2,18 @@ submodule(nf_embedding_layer) nf_embedding_layer_submodule
   use nf_base_layer, only: base_layer
   implicit none
 contains
-  module function embedding_layer_cons(vocab_size, model_dimension) result(res)
+  module function embedding_layer_cons(vocab_size, model_dimension, positional) result(res)
     integer, intent(in) :: vocab_size, model_dimension
+    logical, optional :: positional
     type(embedding_layer) :: res
 
     res % vocab_size = vocab_size
     res % model_dimension = model_dimension
+    if (.not. present(positional)) then
+      res % positional = .false.
+    else
+      res % positional = positional
+    end if
   end function embedding_layer_cons
 
   module subroutine init(self, input_shape)
@@ -37,7 +43,12 @@ contains
       elseif (index == 0) then
         index = 1
       end if
+
       self % output(i, :) = self % weights(index, :)
+
+      if (self % positional) then
+        call self % positional_encoding(i)
+      end if
     end do
   end subroutine forward
 
@@ -51,6 +62,19 @@ contains
       self % dw(input(i), :) = self % dw(input(i), :) + gradient(i, :)
     end do
   end subroutine backward
+
+  pure module subroutine positional_encoding(self, pos)
+    class(embedding_layer), intent(in out) :: self
+    integer, intent(in) :: pos
+    integer :: i
+    real :: theta
+
+    do concurrent(i = 1: floor(real(self % model_dimension) / 2))
+      theta = (pos - 1) / 10000 ** (real(2 * (i-1)) / self % model_dimension)
+      self % output(pos, 2 * i - 1) = self % output(pos, 2 * i - 1) + sin(theta)
+      self % output(pos, 2 * i) = self % output(pos, 2 * i) + cos(theta)
+    end do
+  end subroutine positional_encoding
 
   pure module function get_num_params(self) result(num_params)
     class(embedding_layer), intent(in) :: self
