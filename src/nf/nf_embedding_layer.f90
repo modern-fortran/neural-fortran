@@ -58,6 +58,7 @@ module nf_embedding_layer
     end subroutine backward
 
     pure module subroutine positional_encoding(self, pos)
+      !! Sum embedding with positional info (trigonometric, not trianable)
       class(embedding_layer), intent(in out) :: self
       integer, intent(in) :: pos
     end subroutine positional_encoding
