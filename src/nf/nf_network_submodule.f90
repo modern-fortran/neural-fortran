@@ -543,14 +543,6 @@ contains
       self % loss = quadratic()
     end if
 
-    ! Set all dropout layers' training mode to true.
-    do n = 2, size(self % layers)
-      select type(this_layer => self % layers(n) % p)
-        type is(dropout_layer)
-          this_layer % training = .true.
-      end select
-    end do
-
     dataset_size = size(output_data, dim=2)
 
     epoch_loop: do n = 1, epochs
@@ -640,6 +632,8 @@ contains
         type is(conv2d_layer)
           this_layer % dw = 0
           this_layer % db = 0
+        type is(dropout_layer)
+          this_layer % gradient = 0
       end select
     end do
 

@@ -47,7 +47,8 @@ contains
       call shuffle(self % mask)
 
       ! Scale factor to preserve the input sum
-      self % scale = sum(input) / sum(input * self % mask)
+      self % scale = sum(input) / sum(input * self % mask)  ! input conservative approach
+      !self % scale = 1 / (1 - self % dropout_rate)  ! reference approach
 
       ! Apply dropout mask
       self % output = input * self % mask * self % scale
@@ -68,10 +69,10 @@ contains
 
     if (self % training) then
       ! Backpropagate gradient through dropout mask
-      self % gradient = gradient * self % mask * self % scale
+      self % gradient = self % gradient + gradient * self % mask * self % scale
     else
       ! In inference mode, pass through the gradient unchanged
-      self % gradient = gradient
+      self % gradient = self % gradient + gradient
     end if
   end subroutine backward
 
