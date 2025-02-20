@@ -1,8 +1,11 @@
 module nf_dropout_layer
 
-  !! This module provides the concrete dropout layer type.
-  !! It is used internally by the layer type.
-  !! It is not intended to be used directly by the user.
+  !! Dropout layer by Srivastava et al. (2014).
+  !!
+  !! Srivastava, N., Hinton, G., Krizhevsky, A., Sutskever, I. and 
+  !! Salakhutdinov, R., 2014. Dropout: a simple way to prevent neural networks 
+  !! from overfitting. The Journal of Machine Learning Research, 16(1), 
+  !! pp.1929-1958.
 
   use nf_base_layer, only: base_layer
 
