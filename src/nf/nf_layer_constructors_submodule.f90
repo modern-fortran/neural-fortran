@@ -69,6 +69,8 @@ contains
   module function dropout(rate) result(res)
     real, intent(in) :: rate
     type(layer) :: res
+    if (rate < 0 .or. rate > 1) &
+      error stop 'rate must be between 0 and 1 in a dropout layer'
     res % name = 'dropout'
     allocate(res % p, source=dropout_layer(rate))
   end function dropout
@@ -79,7 +81,6 @@ contains
     res % name = 'flatten'
     allocate(res % p, source=flatten_layer())
   end function flatten
-
 
 
   module function input1d(layer_size) result(res)
