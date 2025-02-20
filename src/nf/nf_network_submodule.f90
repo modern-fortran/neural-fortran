@@ -632,8 +632,6 @@ contains
         type is(conv2d_layer)
           this_layer % dw = 0
           this_layer % db = 0
-        type is(dropout_layer)
-          this_layer % gradient = 0
       end select
     end do
 

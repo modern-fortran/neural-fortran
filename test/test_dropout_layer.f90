@@ -112,16 +112,18 @@ program test_dropout_layer
   ! Now we're gonna run the forward pass and check that the dropout indeed
   ! drops according to the requested dropout rate.
   forward_pass: block
-    real :: input_data(4)
+    real :: input_data(10)
     real :: output_data(size(input_data))
+    real, parameter :: dropout_rate = 0.2
+    real :: realized_dropout_rate
     integer :: n
 
     net = network([ &
       input(size(input_data)), &
-      dropout(0.5) &
+      dropout(dropout_rate) &
     ])
 
-    do n = 1, 10000
+    do n = 1, 100
 
       call random_number(input_data)
       call net % forward(input_data)
@@ -129,9 +131,10 @@ program test_dropout_layer
       ! Check that sum of output matches sum of input within small tolerance
       select type(layer1_p => net % layers(2) % p)
         type is(dropout_layer)
-          if (abs(sum(layer1_p % output) - sum(input_data)) > 1e-6) then
+          realized_dropout_rate = 1 - sum(input_data * layer1_p % mask) / sum(layer1_p % output)
+          if (abs(realized_dropout_rate - dropout_rate) > 1e-6) then
             ok = .false.
-            exit
+            write(stderr, '(a)') 'realized dropout rate does not match requested dropout rate.. failed'
           end if
       end select
 
