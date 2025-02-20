@@ -12,6 +12,7 @@ foreach(execid
   insert_flatten
   reshape_layer
   multihead_attention_layer
+  embedding_layer
   dense_network
   get_set_network_params
   conv2d_network
