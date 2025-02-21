@@ -26,6 +26,7 @@ module nf_network
     procedure :: get_params
     procedure :: print_info
     procedure :: set_params
+    procedure :: set_training_mode
     procedure :: train
     procedure :: update
 
@@ -222,6 +223,15 @@ module nf_network
       real, intent(in) :: params(:)
         !! Network parameters to set
     end subroutine set_params
+
+    module subroutine set_training_mode(self, training)
+      !! Set the mode to training (.true.) or inference (.false.).
+      !! Used internally to enable/disable the dropout layers in the network.
+      class(network), intent(in out) :: self
+        !! Network instance
+      logical, intent(in) :: training
+        !! .true. for training mode, .false. for inference.
+    end subroutine set_training_mode
 
     module subroutine print_info(self)
       !! Prints a brief summary of the network and its layers to the screen.
