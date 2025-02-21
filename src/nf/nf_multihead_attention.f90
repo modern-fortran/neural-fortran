@@ -128,7 +128,6 @@ module nf_multihead_attention_layer
       !! Output dims: sequence_length, head_size, n_heads
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: value(:, :, :)
-      integer :: head
     end subroutine scaled_dot_product_attention
 
     pure module function combine_heads(self, input) result(output)
