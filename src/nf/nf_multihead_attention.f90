@@ -112,7 +112,6 @@ module nf_multihead_attention_layer
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: query(:, :, :)
       real, intent(in) :: key(:, :, :)
-      integer :: head
     end subroutine create_attention_matrix
 
     pure module subroutine normalize_attention_matrix(self, attention_mask)
