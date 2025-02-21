@@ -135,7 +135,6 @@ module nf_multihead_attention_layer
       real, intent(in) :: input(:, :, :)
       !! (sequence_length, head_size, n_heads)
       real :: output(self % sequence_length, self % model_dimension)
-      integer :: seq
     end function combine_heads
 
     elemental module function get_num_params(self) result(num_params)
