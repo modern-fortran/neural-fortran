@@ -351,9 +351,14 @@ contains
     if (.not. self % name == 'input') &
       print '("Input shape: ", *(i0, 1x))', self % input_layer_shape
     print '("Output shape: ", *(i0, 1x))', self % layer_shape
-    print '("Parameters: ", i0)', self % get_num_params()
-    if (.not. self % name == 'input') &
+    if (.not. self % name == 'dropout') &
+      print '("Parameters: ", i0)', self % get_num_params()
+    if (.not. (self % name == 'input' .or. self % name == 'dropout')) &
       print '("Activation: ", a)', self % activation
+    select type (this_layer => self % p)
+      type is (dropout_layer)
+        print '("Dropout rate: ", f0.2)', this_layer % dropout_rate
+    end select
     print *
   end subroutine print_info
 
