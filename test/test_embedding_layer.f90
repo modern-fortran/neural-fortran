@@ -12,7 +12,7 @@ program test_embedding_layer
     print '(a)', 'test_embedding_layer: All tests passed.'
   else
     write(stderr, '(a)') 'test_embedding_layer: One or more tests failed.'
-    stop 1
+    error stop 1
   end if
 
 contains

@@ -88,7 +88,7 @@ contains
     real, pointer :: w_(:) => null()
 
     w_(1: product(shape(self % weights))) => self % weights
-    params = [w_]
+    params = w_
   end function get_params
 
   module function get_gradients(self) result(gradients)
@@ -97,7 +97,7 @@ contains
     real, pointer :: dw_(:) => null()
 
     dw_(1: product(shape(self % dw))) => self % dw
-    gradients = [dw_]
+    gradients = dw_
   end function get_gradients
 
   module subroutine set_params(self, params)
