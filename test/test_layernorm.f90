@@ -18,7 +18,7 @@ program test_layernorm
     print '(a)', 'test_layernorm_layer: All tests passed.'
   else
     write(stderr, '(a)') 'test_layernorm_layer: One or more tests failed.'
-    stop 1
+    error stop 1
   end if
 
 contains
