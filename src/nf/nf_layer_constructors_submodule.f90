@@ -171,12 +171,12 @@ contains
 
   end function linear2d
 
-  module function self_attention(n_heads) result(res)
-    integer, intent(in) :: n_heads
+  module function self_attention(num_heads) result(res)
+    integer, intent(in) :: num_heads
     type(layer) :: res
 
     res % name = 'self_attention'
-    allocate(res % p, source=self_attention_layer(n_heads))
+    allocate(res % p, source=self_attention_layer(num_heads))
   end function self_attention
 
 end submodule nf_layer_constructors_submodule
