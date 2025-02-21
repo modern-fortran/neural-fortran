@@ -121,8 +121,6 @@ module nf_multihead_attention_layer
       !! (sequence_length, sequence_length, n_heads)
       real, optional, intent(in) :: attention_mask(:, :, :)
       !! (sequence_length, sequence_length, n_heads)
-      real, allocatable :: output(:, :, :)
-      integer :: head, seq
     end subroutine normalize_attention_matrix
 
     pure module subroutine scaled_dot_product_attention(self, value)
