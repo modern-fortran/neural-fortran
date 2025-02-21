@@ -8,7 +8,16 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, dropout, flatten, input, linear2d, maxpool2d, reshape
+  public :: &
+    conv2d, &
+    dense, &
+    dropout, &
+    flatten, &
+    input, &
+    linear2d, &
+    maxpool2d, &
+    reshape, &
+    self_attention
 
   interface input
 
@@ -212,6 +221,16 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function linear2d
+
+  module function self_attention(num_heads) result(res)
+    !! Rank-2 (sequence_length, out_features) self attention constructor.
+    !! sequence_length and model_dimension are determined at layer initialization, based on the
+    !! output shape of the previous layer.
+    integer, intent(in) :: num_heads
+      !! Number of attention heads
+    type(layer) :: res
+      !! Resulting layer instance
+  end function self_attention
 
   end interface
 

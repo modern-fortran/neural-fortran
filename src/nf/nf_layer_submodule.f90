@@ -11,6 +11,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
+  use nf_self_attention_layer, only: self_attention_layer
   use nf_optimizers, only: optimizer_base_type
 
 contains
@@ -57,6 +58,8 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(linear2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(self_attention_layer)
+            call this_layer % backward(prev_layer % output, gradient)
         end select
 
     end select
@@ -78,6 +81,19 @@ contains
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(linear2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(self_attention_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(self_attention_layer)
+
+        select type(prev_layer => previous % p)
+          type is(input2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(linear2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(self_attention_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
@@ -240,6 +256,20 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(self_attention_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(self_attention_layer)
+
+        ! Upstream layers permitted: input2d, linear2d
+        select type(prev_layer => input % p)
+          type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(linear2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(self_attention_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
     end select
@@ -278,6 +308,8 @@ contains
       type is(input2d_layer)
         allocate(output, source=this_layer % output)
       type is(linear2d_layer)
+        allocate(output, source=this_layer % output)
+      type is(self_attention_layer)
         allocate(output, source=this_layer % output)
       class default
         error stop '2-d output can only be read from an input2d or linear2d layer.'
@@ -322,8 +354,8 @@ contains
       call this_layer % init(input % layer_shape)
     end select
 
-    ! The shape of conv2d, dropout, flatten, linear2d, or maxpool2d layers
-    ! is not known until we receive an input layer.
+    ! The shape of conv2d, dropout, flatten, linear2d, maxpool2d, or
+    ! self_attention layers is not known until we receive an input layer.
     select type(this_layer => self % p)
       type is(conv2d_layer)
         self % layer_shape = shape(this_layer % output)
@@ -332,6 +364,8 @@ contains
       type is(flatten_layer)
         self % layer_shape = shape(this_layer % output)
       type is(linear2d_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(self_attention_layer)
         self % layer_shape = shape(this_layer % output)
       type is(maxpool2d_layer)
         self % layer_shape = shape(this_layer % output)
@@ -389,6 +423,8 @@ contains
         num_params = 0
       type is (linear2d_layer)
         num_params = this_layer % get_num_params()
+      type is (self_attention_layer)
+        num_params = this_layer % get_num_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -420,6 +456,8 @@ contains
         ! No parameters to get.
       type is (linear2d_layer)
         params = this_layer % get_params()
+      type is (self_attention_layer)
+        params = this_layer % get_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -450,6 +488,8 @@ contains
       type is (reshape3d_layer)
         ! No gradients to get.
       type is (linear2d_layer)
+        gradients = this_layer % get_gradients()
+      type is (self_attention_layer)
         gradients = this_layer % get_gradients()
       class default
         error stop 'Unknown layer type.'
@@ -504,6 +544,9 @@ contains
         call this_layer % set_params(params)
 
       type is (linear2d_layer)
+        call this_layer % set_params(params)
+
+      type is (self_attention_layer)
         call this_layer % set_params(params)
 
       type is (maxpool2d_layer)
