@@ -59,18 +59,10 @@ contains
   end subroutine forward
 
 
-  pure module subroutine backward(self, input, gradient)
+  pure module subroutine backward(self, gradient)
     class(dropout_layer), intent(in out) :: self
-    real, intent(in) :: input(:)
     real, intent(in) :: gradient(:)
-
-    if (self % training) then
-      ! Backpropagate gradient through dropout mask
-      self % gradient = gradient * self % mask * self % scale
-    else
-      ! In inference mode, pass through the gradient unchanged
-      self % gradient = gradient
-    end if
+    self % gradient = gradient * self % mask * self % scale
   end subroutine backward
 
 end submodule nf_dropout_layer_submodule 

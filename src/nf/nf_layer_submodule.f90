@@ -40,16 +40,8 @@ contains
         end select
 
       type is(dropout_layer)
-
         ! Upstream layers permitted: input1d, dense, dropout, flatten
-        select type(prev_layer => previous % p)
-          type is(input1d_layer)
-            call this_layer % backward(prev_layer % output, gradient)
-          type is(dense_layer)
-            call this_layer % backward(prev_layer % output, gradient)
-          type is(flatten_layer)
-            call this_layer % backward(prev_layer % output, gradient)
-        end select
+        call this_layer % backward(gradient)
 
       type is(flatten_layer)
 

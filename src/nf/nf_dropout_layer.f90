@@ -48,14 +48,12 @@ module nf_dropout_layer
 
   interface
 
-    pure module subroutine backward(self, input, gradient)
+    pure module subroutine backward(self, gradient)
       !! Apply the backward gradient descent pass.
       !! Only weight and bias gradients are updated in this subroutine,
       !! while the weights and biases themselves are untouched.
       class(dropout_layer), intent(in out) :: self
         !! Dropout layer instance
-      real, intent(in) :: input(:)
-        !! Input from the previous layer
       real, intent(in) :: gradient(:)
         !! Gradient from the next layer
     end subroutine backward
