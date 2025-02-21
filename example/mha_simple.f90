@@ -1,4 +1,4 @@
-program simple
+program mha_simple
   use nf, only: dense, input, network, sgd, self_attention, flatten
   implicit none
   type(network) :: net
@@ -34,4 +34,4 @@ program simple
 
   end do
 
-end program simple
+end program mha_simple
