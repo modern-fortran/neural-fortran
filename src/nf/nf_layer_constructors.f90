@@ -8,7 +8,16 @@ module nf_layer_constructors
   implicit none
 
   private
-  public :: conv2d, dense, flatten, input, maxpool2d, reshape, linear2d, self_attention
+  public :: &
+    conv2d, &
+    dense, &
+    dropout, &
+    flatten, &
+    input, &
+    linear2d, &
+    maxpool2d, &
+    reshape, &
+    self_attention
 
   interface input
 
@@ -103,6 +112,24 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function dense
+
+    module function dropout(rate) result(res)
+      !! Create a dropout layer with a given dropout rate.
+      !!
+      !! This layer is for randomly disabling neurons during training.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: dropout, layer
+      !! type(layer) :: dropout_layer
+      !! dropout_layer = dropout(rate=0.5)
+      !! ```
+      real, intent(in) :: rate
+        !! Dropout rate - fraction of neurons to randomly disable during training
+      type(layer) :: res
+        !! Resulting layer instance
+    end function dropout
 
     module function flatten() result(res)
       !! Flatten (3-d -> 1-d) layer constructor.

@@ -59,6 +59,8 @@ add_library(neural-fortran
   src/nf/nf_self_attention_layer.f90
   src/nf/io/nf_io_binary.f90
   src/nf/io/nf_io_binary_submodule.f90
+  src/nf/nf_dropout_layer.f90
+  src/nf/nf_dropout_layer_submodule.f90
 )
 
 target_link_libraries(neural-fortran PRIVATE)
