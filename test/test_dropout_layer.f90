@@ -177,6 +177,61 @@ program test_dropout_layer
 
   end block training
 
+  ! The following timing test is not part of the unit tests, but it's a good
+  ! way to see the performance difference between a network with and without
+  ! dropout.
+  timing: block
+    integer, parameter :: layer_size = 100
+    integer, parameter :: num_iterations = 1000
+    real :: x(layer_size), y(layer_size)
+    integer :: n
+    type(network) :: net1, net2
+    real :: t1, t2
+    real :: accumulated_time1 = 0
+    real :: accumulated_time2 = 0
+
+    net1 = network([ &
+      input(layer_size), &
+      dense(layer_size), &
+      dense(layer_size) &
+    ])
+
+    net2 = network([ &
+      input(layer_size), &
+      dense(layer_size), &
+      dropout(0.5), &
+      dense(layer_size) &
+    ])
+
+    call random_number(y)
+
+    ! Network without dropout
+    do n = 1, num_iterations
+      call random_number(x)
+      call cpu_time(t1)
+      call net1 % forward(x)
+      call net1 % backward(y)
+      call net1 % update()
+      call cpu_time(t2)
+      accumulated_time1 = accumulated_time1 + (t2 - t1)
+    end do
+
+    ! Network with dropout
+    do n = 1, num_iterations
+      call random_number(x)
+      call cpu_time(t1)
+      call net2 % forward(x)
+      call net2 % backward(y)
+      call net2 % update()
+      call cpu_time(t2)
+      accumulated_time2 = accumulated_time2 + (t2 - t1)
+    end do
+
+    ! Uncomment the following prints to see the timing results.
+    !print '(a, f9.6, a, f9.6, a)', 'No dropout time: ', accumulated_time1, ' seconds'
+    !print '(a, f9.6, a, f9.6, a)', 'Dropout time: ', accumulated_time2, ' seconds'
+
+  end block timing
 
   if (ok) then
     print '(a)', 'test_dropout_layer: All tests passed.'
