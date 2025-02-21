@@ -360,8 +360,10 @@ contains
       print '("Input shape: ", *(i0, 1x))', self % input_layer_shape
     print '("Output shape: ", *(i0, 1x))', self % layer_shape
     print '("Parameters: ", i0)', self % get_num_params()
-    if (.not. self % name == 'input') &
+    if (.not. (self % name == 'input' .or. self % name == 'dropout')) &
       print '("Activation: ", a)', self % activation
+    if (self % name == 'dropout') &
+      print '("Dropout rate: ", f0.2)', self % dropout_rate
     print *
   end subroutine print_info
 
