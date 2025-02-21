@@ -112,7 +112,6 @@ module nf_multihead_attention_layer
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: query(:, :, :)
       real, intent(in) :: key(:, :, :)
-      integer :: head
     end subroutine create_attention_matrix
 
     pure module subroutine normalize_attention_matrix(self, attention_mask)
@@ -122,8 +121,6 @@ module nf_multihead_attention_layer
       !! (sequence_length, sequence_length, n_heads)
       real, optional, intent(in) :: attention_mask(:, :, :)
       !! (sequence_length, sequence_length, n_heads)
-      real, allocatable :: output(:, :, :)
-      integer :: head, seq
     end subroutine normalize_attention_matrix
 
     pure module subroutine scaled_dot_product_attention(self, value)
@@ -131,7 +128,6 @@ module nf_multihead_attention_layer
       !! Output dims: sequence_length, head_size, n_heads
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: value(:, :, :)
-      integer :: head
     end subroutine scaled_dot_product_attention
 
     pure module function combine_heads(self, input) result(output)
@@ -139,7 +135,6 @@ module nf_multihead_attention_layer
       real, intent(in) :: input(:, :, :)
       !! (sequence_length, head_size, n_heads)
       real :: output(self % sequence_length, self % model_dimension)
-      integer :: seq
     end function combine_heads
 
     elemental module function get_num_params(self) result(num_params)
