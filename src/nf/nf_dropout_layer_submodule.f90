@@ -9,6 +9,7 @@ contains
     real, intent(in) :: rate
     type(dropout_layer) :: res
     res % dropout_rate = rate
+    res % scale = 1 / (1 - rate)
   end function dropout_layer_cons
 
 
@@ -45,9 +46,6 @@ contains
       self % mask = 1
       self % mask(:int(size(self % mask) * self % dropout_rate)) = 0
       call shuffle(self % mask)
-
-      ! Scale factor to preserve the input sum
-      self % scale = 1 / (1 - self % dropout_rate)
 
       ! Apply dropout mask
       self % output = input * self % mask * self % scale
