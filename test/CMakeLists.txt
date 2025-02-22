@@ -2,6 +2,8 @@ foreach(execid
   input1d_layer
   input2d_layer
   input3d_layer
+  dropout_layer
+  linear2d_layer
   parametric_activation
   dense_layer
   conv2d_layer
@@ -11,6 +13,7 @@ foreach(execid
   insert_flatten
   reshape_layer
   reshape2d_layer
+  multihead_attention_layer
   dense_network
   get_set_network_params
   conv2d_network

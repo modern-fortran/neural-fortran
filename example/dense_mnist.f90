@@ -1,6 +1,6 @@
 program dense_mnist
 
-  use nf, only: dense, input, network, sgd, label_digits, load_mnist, corr
+  use nf, only: dense, input, network, sgd, label_digits, load_mnist, corr, relu, softmax, dropout
 
   implicit none
 
@@ -17,8 +17,9 @@ program dense_mnist
 
   net = network([ &
     input(784), &
-    dense(30), &
-    dense(10) &
+    dense(64, relu()), &
+    dropout(0.2), &
+    dense(10, softmax()) &
   ])
   num_epochs = 10
 
@@ -32,7 +33,7 @@ program dense_mnist
     call net % train( &
       training_images, &
       label_digits(training_labels), &
-      batch_size=100, &
+      batch_size=128, &
       epochs=1, &
       optimizer=sgd(learning_rate=3.) &
     )

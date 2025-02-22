@@ -4,3 +4,6 @@ license = "MIT"
 author = "Milan Curcic"
 maintainer = "mcurcic@miami.edu"
 copyright = "Copyright 2018-2025, neural-fortran contributors"
+
+[preprocess]
+[preprocess.cpp]
