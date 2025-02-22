@@ -1,6 +1,7 @@
 submodule(nf_layer) nf_layer_submodule
 
   use iso_fortran_env, only: stderr => error_unit
+  use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_dropout_layer, only: dropout_layer
@@ -49,11 +50,17 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input2d, input3d, conv2d, locally_connected_1d, maxpool1d, maxpool2d
         select type(prev_layer => previous % p)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(locally_connected_1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(maxpool1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
           type is(input3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(conv1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(conv2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -107,6 +114,19 @@ contains
     
     select type(this_layer => self % p)
 
+    type is(conv1d_layer)
+
+      select type(prev_layer => previous % p)
+        type is(maxpool1d_layer)
+          call this_layer % backward(prev_layer % output, gradient)
+        type is(reshape2d_layer)
+          call this_layer % backward(prev_layer % output, gradient)
+        type is(locally_connected_1d_layer)
+          call this_layer % backward(prev_layer % output, gradient)
+        type is(conv1d_layer)
+          call this_layer % backward(prev_layer % output, gradient)
+      end select
+
       type is(locally_connected_1d_layer)
 
         select type(prev_layer => previous % p)
@@ -115,6 +135,8 @@ contains
           type is(reshape2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(locally_connected_1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(conv1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
       
@@ -126,6 +148,8 @@ contains
           type is(reshape2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(locally_connected_1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(conv1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
@@ -254,6 +278,24 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(reshape2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(conv1d_layer)
+            call this_layer % forward(prev_layer % output)    
+        end select
+      
+      type is(conv1d_layer)
+
+        ! Upstream layers permitted: input2d, locally_connected_1d, maxpool1d, reshape2d
+        select type(prev_layer => input % p)
+          type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(locally_connected_1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv1d_layer)
+            call this_layer % forward(prev_layer % output)    
         end select
       
       type is(maxpool1d_layer)
@@ -267,6 +309,8 @@ contains
           type is(maxpool1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(reshape2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv1d_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
@@ -286,15 +330,23 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool2d, reshape3d
+        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool1d, maxpool2d, reshape2d, reshape3d, locally_connected_2d
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(conv1d_layer)
+            call this_layer % forward(prev_layer % output)
           type is(conv2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(locally_connected_1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool1d_layer)
+            call this_layer % forward(prev_layer % output)
           type is(maxpool2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(reshape3d_layer)
             call this_layer % forward(prev_layer % output)
@@ -383,6 +435,8 @@ contains
         allocate(output, source=this_layer % output)
       type is(locally_connected_1d_layer)
         allocate(output, source=this_layer % output)
+      type is(conv1d_layer)
+        allocate(output, source=this_layer % output)
       type is(reshape2d_layer)
         allocate(output, source=this_layer % output)
       type is(linear2d_layer)
@@ -435,6 +489,8 @@ contains
     ! The shape of conv2d, dropout, flatten, linear2d, maxpool2d, or
     ! self_attention layers is not known until we receive an input layer.
     select type(this_layer => self % p)
+      type is(conv1d_layer)
+        self % layer_shape = shape(this_layer % output)
       type is(conv2d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(dropout_layer)
@@ -495,6 +551,8 @@ contains
         num_params = this_layer % get_num_params()
       type is (dropout_layer)
         num_params = 0
+      type is (conv1d_layer)
+        num_params = this_layer % get_num_params()
       type is (conv2d_layer)
         num_params = this_layer % get_num_params()
       type is (locally_connected_1d_layer)
@@ -534,6 +592,8 @@ contains
         params = this_layer % get_params()
       type is (dropout_layer)
         ! No parameters to get.
+      type is (conv1d_layer)
+        params = this_layer % get_params()
       type is (conv2d_layer)
         params = this_layer % get_params()
       type is (locally_connected_1d_layer)
@@ -573,6 +633,8 @@ contains
         gradients = this_layer % get_gradients()
       type is (dropout_layer)
         ! No gradients to get.
+      type is (conv1d_layer)
+        gradients = this_layer % get_gradients()
       type is (conv2d_layer)
         gradients = this_layer % get_gradients()
       type is (locally_connected_1d_layer)
@@ -639,6 +701,9 @@ contains
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
+        
+      type is (conv1d_layer)
+          call this_layer % set_params(params)
 
       type is (conv2d_layer)
         call this_layer % set_params(params)

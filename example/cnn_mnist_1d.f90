@@ -1,4 +1,4 @@
-program cnn_mnist
+program cnn_mnist_1d
 
     use nf, only: network, sgd, &
       input, conv2d, maxpool1d, maxpool2d, flatten, dense, reshape, reshape2d, locally_connected_1d, &
@@ -63,5 +63,5 @@ program cnn_mnist
       accuracy = real(good) / size(x, dim=2)
     end function accuracy
   
-  end program cnn_mnist
+  end program cnn_mnist_1d
   

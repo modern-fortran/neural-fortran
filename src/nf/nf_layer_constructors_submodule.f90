@@ -1,6 +1,7 @@
 submodule(nf_layer_constructors) nf_layer_constructors_submodule
 
   use nf_layer, only: layer
+  use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_dropout_layer, only: dropout_layer
@@ -20,6 +21,31 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   implicit none
 
 contains
+
+  module function conv1d(filters, kernel_size, activation) result(res)
+    integer, intent(in) :: filters
+    integer, intent(in) :: kernel_size
+    class(activation_function), intent(in), optional :: activation
+    type(layer) :: res
+
+    class(activation_function), allocatable :: activation_tmp
+
+    res % name = 'conv1d'
+
+    if (present(activation)) then
+      allocate(activation_tmp, source=activation)
+    else
+      allocate(activation_tmp, source=relu())
+    end if
+
+    res % activation = activation_tmp % get_name()
+
+    allocate( &
+      res % p, &
+      source=conv1d_layer(filters, kernel_size, activation_tmp) &
+    )
+
+  end function conv1d
 
   module function conv2d(filters, kernel_size, activation) result(res)
     integer, intent(in) :: filters

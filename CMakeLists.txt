@@ -18,6 +18,8 @@ add_library(neural-fortran
   src/nf.f90
   src/nf/nf_activation.f90
   src/nf/nf_base_layer.f90
+  src/nf/nf_conv1d_layer.f90
+  src/nf/nf_conv1d_layer_submodule.f90
   src/nf/nf_conv2d_layer.f90
   src/nf/nf_conv2d_layer_submodule.f90
   src/nf/nf_cross_attention_layer.f90
