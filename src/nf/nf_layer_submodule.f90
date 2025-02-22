@@ -367,6 +367,16 @@ contains
 
       type is(input2d_layer)
         allocate(output, source=this_layer % output)
+      type is(maxpool1d_layer)
+        allocate(output, source=this_layer % output)
+      type is(locally_connected_1d_layer)
+        allocate(output, source=this_layer % output)
+      type is(reshape2d_layer)
+        allocate(output, source=this_layer % output)
+      type is(linear2d_layer)
+        allocate(output, source=this_layer % output)
+      type is(self_attention_layer)
+        allocate(output, source=this_layer % output)
       class default
         error stop '2-d output can only be read from an input2d or linear2d layer.'
 
@@ -557,6 +567,8 @@ contains
         ! No gradients to get.
       type is (flatten_layer)
         ! No gradients to get.
+      type is (reshape2d_layer)
+        ! No parameters to get.
       type is (reshape3d_layer)
         ! No gradients to get.
       type is (linear2d_layer)
