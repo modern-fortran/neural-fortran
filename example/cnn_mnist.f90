@@ -35,9 +35,9 @@ program cnn_mnist
     call net % train( &
       training_images, &
       label_digits(training_labels), &
-      batch_size=128, &
+      batch_size=16, &
       epochs=1, &
-      optimizer=sgd(learning_rate=3.) &
+      optimizer=sgd(learning_rate=0.003) &
     )
 
     print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', accuracy( &
