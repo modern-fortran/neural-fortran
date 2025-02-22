@@ -3,6 +3,7 @@ submodule(nf_layer) nf_layer_submodule
   use iso_fortran_env, only: stderr => error_unit
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
+  use nf_dropout_layer, only: dropout_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
@@ -12,6 +13,8 @@ submodule(nf_layer) nf_layer_submodule
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_linear2d_layer, only: linear2d_layer
+  use nf_self_attention_layer, only: self_attention_layer
   use nf_optimizers, only: optimizer_base_type
 
 contains
@@ -28,15 +31,21 @@ contains
 
       type is(dense_layer)
 
-        ! Upstream layers permitted: input1d, dense, flatten
+        ! Upstream layers permitted: input1d, dense, dropout, flatten
         select type(prev_layer => previous % p)
           type is(input1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(dense_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(dropout_layer)
+            call this_layer % backward(prev_layer % output, gradient)
           type is(flatten_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
+
+      type is(dropout_layer)
+        ! Upstream layers permitted: input1d, dense, dropout, flatten
+        call this_layer % backward(gradient)
 
       type is(flatten_layer)
 
@@ -50,6 +59,10 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(maxpool2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(linear2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(self_attention_layer)
+            call this_layer % backward(prev_layer % output, gradient)
         end select
 
     end select
@@ -62,6 +75,32 @@ contains
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: previous
     real, intent(in) :: gradient(:,:)
+
+    select type(this_layer => self % p)
+
+      type is(linear2d_layer)
+
+        select type(prev_layer => previous % p)
+          type is(input2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(linear2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(self_attention_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(self_attention_layer)
+
+        select type(prev_layer => previous % p)
+          type is(input2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(linear2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(self_attention_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+    end select
 
     ! Backward pass from a 2-d layer downstream currently implemented
     ! only for dense and flatten layers
@@ -150,7 +189,7 @@ contains
   end subroutine backward_3d
 
 
-  pure module subroutine forward(self, input)
+  module subroutine forward(self, input)
     implicit none
     class(layer), intent(in out) :: self
     class(layer), intent(in) :: input
@@ -158,6 +197,20 @@ contains
     select type(this_layer => self % p)
 
       type is(dense_layer)
+
+        ! Upstream layers permitted: input1d, dense, dropout, flatten
+        select type(prev_layer => input % p)
+          type is(input1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(dense_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(dropout_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(flatten_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(dropout_layer)
 
         ! Upstream layers permitted: input1d, dense, flatten
         select type(prev_layer => input % p)
@@ -239,6 +292,8 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(reshape3d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(linear2d_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(reshape3d_layer)
@@ -250,6 +305,30 @@ contains
           type is(dense_layer)
             call this_layer % forward(prev_layer % output)
           type is(flatten_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(linear2d_layer)
+
+        ! Upstream layers permitted: input2d, linear2d
+        select type(prev_layer => input % p)
+          type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(linear2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(self_attention_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(self_attention_layer)
+
+        ! Upstream layers permitted: input2d, linear2d
+        select type(prev_layer => input % p)
+          type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(linear2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(self_attention_layer)
             call this_layer % forward(prev_layer % output)
         end select
 
@@ -288,14 +367,8 @@ contains
 
       type is(input2d_layer)
         allocate(output, source=this_layer % output)
-      type is(maxpool1d_layer)
-        allocate(output, source=this_layer % output)
-      type is(locally_connected_1d_layer)
-        allocate(output, source=this_layer % output)
-      type is(reshape2d_layer)
-        allocate(output, source=this_layer % output)
       class default
-        error stop '1-d output can only be read from an input1d, dense, or flatten layer.'
+        error stop '2-d output can only be read from an input2d or linear2d layer.'
 
     end select
 
@@ -337,18 +410,24 @@ contains
       call this_layer % init(input % layer_shape)
     end select
 
-    ! The shape of conv2d, maxpool2d, or flatten layers is not known
-    ! until we receive an input layer.
+    ! The shape of conv2d, dropout, flatten, linear2d, maxpool2d, or
+    ! self_attention layers is not known until we receive an input layer.
     select type(this_layer => self % p)
       type is(conv2d_layer)
         self % layer_shape = shape(this_layer % output)
-      type is(maxpool2d_layer)
+      type is(dropout_layer)
         self % layer_shape = shape(this_layer % output)
       type is(flatten_layer)
         self % layer_shape = shape(this_layer % output)
+      type is(linear2d_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(self_attention_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(maxpool2d_layer)
+        self % layer_shape = shape(this_layer % output)
     end select
 
-    self % input_layer_shape = input % layer_shape 
+    self % input_layer_shape = input % layer_shape
     self % initialized = .true.
 
   end subroutine init
@@ -362,9 +441,14 @@ contains
     if (.not. self % name == 'input') &
       print '("Input shape: ", *(i0, 1x))', self % input_layer_shape
     print '("Output shape: ", *(i0, 1x))', self % layer_shape
-    print '("Parameters: ", i0)', self % get_num_params()
-    if (.not. self % name == 'input') &
+    if (.not. self % name == 'dropout') &
+      print '("Parameters: ", i0)', self % get_num_params()
+    if (.not. (self % name == 'input' .or. self % name == 'dropout')) &
       print '("Activation: ", a)', self % activation
+    select type (this_layer => self % p)
+      type is (dropout_layer)
+        print '("Dropout rate: ", f0.2)', this_layer % dropout_rate
+    end select
     print *
   end subroutine print_info
 
@@ -383,6 +467,8 @@ contains
         num_params = 0
       type is (dense_layer)
         num_params = this_layer % get_num_params()
+      type is (dropout_layer)
+        num_params = 0
       type is (conv2d_layer)
         num_params = this_layer % get_num_params()
       type is (locally_connected_1d_layer)
@@ -397,6 +483,10 @@ contains
         num_params = 0
       type is (reshape3d_layer)
         num_params = 0
+      type is (linear2d_layer)
+        num_params = this_layer % get_num_params()
+      type is (self_attention_layer)
+        num_params = this_layer % get_num_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -416,6 +506,8 @@ contains
          ! No parameters to get.
       type is (dense_layer)
         params = this_layer % get_params()
+      type is (dropout_layer)
+        ! No parameters to get.
       type is (conv2d_layer)
         params = this_layer % get_params()
       type is (locally_connected_1d_layer)
@@ -430,6 +522,10 @@ contains
         ! No parameters to get.
       type is (reshape3d_layer)
         ! No parameters to get.
+      type is (linear2d_layer)
+        params = this_layer % get_params()
+      type is (self_attention_layer)
+        params = this_layer % get_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -449,6 +545,8 @@ contains
         ! No gradients to get.
       type is (dense_layer)
         gradients = this_layer % get_gradients()
+      type is (dropout_layer)
+        ! No gradients to get.
       type is (conv2d_layer)
         gradients = this_layer % get_gradients()
       type is (locally_connected_1d_layer)
@@ -459,10 +557,12 @@ contains
         ! No gradients to get.
       type is (flatten_layer)
         ! No gradients to get.
-      type is (reshape2d_layer)
-        ! No gradients to get.
       type is (reshape3d_layer)
         ! No gradients to get.
+      type is (linear2d_layer)
+        gradients = this_layer % get_gradients()
+      type is (self_attention_layer)
+        gradients = this_layer % get_gradients()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -507,6 +607,11 @@ contains
       type is (dense_layer)
         call this_layer % set_params(params)
 
+      type is (dropout_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
       type is (conv2d_layer)
         call this_layer % set_params(params)
       
@@ -517,6 +622,12 @@ contains
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
+
+      type is (linear2d_layer)
+        call this_layer % set_params(params)
+
+      type is (self_attention_layer)
+        call this_layer % set_params(params)
 
       type is (maxpool2d_layer)
         ! No parameters to set.
@@ -540,6 +651,7 @@ contains
 
           class default
         error stop 'Unknown layer type.'
+
     end select
 
   end subroutine set_params

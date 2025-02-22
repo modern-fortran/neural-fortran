@@ -2,6 +2,7 @@ submodule(nf_network) nf_network_submodule
 
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
+  use nf_dropout_layer, only: dropout_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
@@ -11,6 +12,8 @@ submodule(nf_network) nf_network_submodule
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape_layer, only: reshape3d_layer
+  use nf_linear2d_layer, only: linear2d_layer
+  use nf_self_attention_layer, only: self_attention_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool1d, maxpool2d, reshape, reshape2d
   use nf_loss, only: quadratic
@@ -138,13 +141,19 @@ contains
               self % layers(n - 1), &
               self % loss % derivative(output, this_layer % output) &
             )
+          type is(flatten_layer)
+            call self % layers(n) % backward( &
+              self % layers(n - 1), &
+              self % loss % derivative(output, this_layer % output) &
+            )
         end select
       else
         ! Hidden layer; take the gradient from the next layer
         select type(next_layer => self % layers(n + 1) % p)
           type is(dense_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-
+          type is(dropout_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(conv2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
 
@@ -154,11 +163,14 @@ contains
             else
               call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
             end if
-
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
 
           type is(reshape3d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(linear2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(self_attention_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(maxpool1d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
@@ -257,19 +269,27 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
     real, allocatable :: res(:)
-    integer :: num_layers
+    integer :: n, num_layers
 
     num_layers = size(self % layers)
 
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false, and
+    ! return to training mode after inference.
+    call self % set_training_mode(.false.)
     call self % forward(input)
+    call self % set_training_mode(.true.)
 
     select type(output_layer => self % layers(num_layers) % p)
       type is(dense_layer)
         res = output_layer % output
+      type is(dropout_layer)
+        res = output_layer % output
       type is(flatten_layer)
         res = output_layer % output
       class default
-        error stop 'network % output not implemented for this output layer'
+        error stop 'network % output not implemented for ' // &
+          trim(self % layers(num_layers) % name) // ' layer'
     end select
 
   end function predict_1d
@@ -279,15 +299,25 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:)
     real, allocatable :: res(:)
-    integer :: num_layers
+    integer :: n, num_layers
 
     num_layers = size(self % layers)
 
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false, and
+    ! return to training mode after inference.
+    call self % set_training_mode(.false.)
     call self % forward(input)
+    call self % set_training_mode(.true.)
 
     select type(output_layer => self % layers(num_layers) % p)
       type is(dense_layer)
         res = output_layer % output
+      type is(flatten_layer)
+        res = output_layer % output
+      class default
+        error stop 'network % output not implemented for ' // &
+          trim(self % layers(num_layers) % name) // ' layer'
     end select
 
   end function predict_2d
@@ -297,11 +327,16 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     real, allocatable :: res(:)
-    integer :: num_layers
+    integer :: n, num_layers
 
     num_layers = size(self % layers)
 
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false, and
+    ! return to training mode after inference.
+    call self % set_training_mode(.false.)
     call self % forward(input)
+    call self % set_training_mode(.true.)
 
     select type(output_layer => self % layers(num_layers) % p)
       type is(conv2d_layer)
@@ -312,7 +347,8 @@ contains
       type is(flatten_layer)
         res = output_layer % output
       class default
-        error stop 'network % output not implemented for this output layer'
+        error stop 'network % output not implemented for ' // &
+          trim(self % layers(num_layers) % name) // ' layer'
     end select
 
   end function predict_3d
@@ -322,11 +358,16 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:)
     real, allocatable :: res(:,:)
-    integer :: i, batch_size, num_layers, output_size
+    integer :: i, n, batch_size, num_layers, output_size
 
     num_layers = size(self % layers)
     batch_size = size(input, dim=rank(input))
     output_size = product(self % layers(num_layers) % layer_shape)
+
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false, and
+    ! return to training mode after inference.
+    call self % set_training_mode(.false.)
 
     allocate(res(output_size, batch_size))
 
@@ -340,10 +381,15 @@ contains
         type is(flatten_layer)
           res(:,i) = output_layer % output
         class default
-          error stop 'network % output not implemented for this output layer'
+          error stop 'network % output not implemented for ' // &
+            trim(self % layers(num_layers) % name) // ' layer'
       end select
 
     end do batch
+
+    ! We are now done with inference;
+    ! return to training mode for dropout layers.
+    call self % set_training_mode(.true.)
 
   end function predict_batch_1d
 
@@ -352,11 +398,16 @@ contains
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:,:,:)
     real, allocatable :: res(:,:)
-    integer :: i, batch_size, num_layers, output_size
+    integer :: i, n, batch_size, num_layers, output_size
 
     num_layers = size(self % layers)
     batch_size = size(input, dim=rank(input))
     output_size = product(self % layers(num_layers) % layer_shape)
+
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false, and
+    ! return to training mode after inference.
+    call self % set_training_mode(.false.)
 
     allocate(res(output_size, batch_size))
 
@@ -373,10 +424,15 @@ contains
         type is(flatten_layer)
           res(:,i) = output_layer % output
         class default
-          error stop 'network % output not implemented for this output layer'
+          error stop 'network % output not implemented for ' // &
+            trim(self % layers(num_layers) % name) // ' layer'
       end select
 
     end do batch
+
+    ! We are now done with inference;
+    ! return to training mode for dropout layers.
+    call self % set_training_mode(.true.)
 
   end function predict_batch_3d
 
@@ -455,6 +511,18 @@ contains
     end do
 
   end subroutine set_params
+
+
+  module subroutine set_training_mode(self, training)
+    class(network), intent(in out) :: self
+    logical, intent(in) :: training
+    integer :: n
+    do n = 2, size(self % layers)
+      select type(this_layer => self % layers(n) % p); type is(dropout_layer)
+        this_layer % training = training
+      end select
+    end do
+  end subroutine set_training_mode
 
 
   module subroutine train(self, input_data, output_data, batch_size, &
