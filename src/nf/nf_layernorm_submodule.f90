@@ -14,7 +14,7 @@ contains
     real, allocatable :: normalized(:, :)
     integer :: i
 
-    allocate(normalized(self % sequence_length, self % model_dimension))
+    allocate(normalized, mold=self % mu)
 
     ! mu = x - MEAN_last_dim(x)
     do concurrent(i = 1: self % model_dimension)
