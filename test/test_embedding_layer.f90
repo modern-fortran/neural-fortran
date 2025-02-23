@@ -1,13 +1,16 @@
 program test_embedding_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf_embedding_layer, only: embedding_layer
+  use nf_layer, only: layer
+  use nf_layer_constructors, only: embedding_constructor => embedding
   implicit none
 
   logical :: ok = .true.
+  integer :: sample_input(3) = [2, 1, 3]
 
-  call test_simple(ok)
-  call test_positional_trigonometric(ok)
-  call test_positional_absolute(ok)
+  call test_simple(ok, sample_input)
+  call test_positional_trigonometric(ok, sample_input)
+  call test_positional_absolute(ok, sample_input)
 
   if (ok) then
     print '(a)', 'test_embedding_layer: All tests passed.'
@@ -17,10 +20,10 @@ program test_embedding_layer
   end if
 
 contains
-  subroutine test_simple(ok)
+  subroutine test_simple(ok, sample_input)
     logical, intent(in out) :: ok
+    integer, intent(in) :: sample_input(:)
 
-    integer :: sample_input(3) = [2, 1, 3]
     real :: sample_gradient(3, 2) = reshape([0.1, 0.2, 0.3, 0.4, 0.6, 0.6], [3, 2])
     real :: output_flat(6)
     real :: expected_output_flat(6) = reshape([0.3, 0.1, 0.5, 0.4, 0.2, 0.6], [6])
@@ -48,10 +51,10 @@ contains
     end if
   end subroutine test_simple
 
-  subroutine test_positional_trigonometric(ok)
+  subroutine test_positional_trigonometric(ok, sample_input)
     logical, intent(in out) :: ok
+    integer, intent(in) :: sample_input(:)
 
-    integer :: sample_input(3) = [2, 1, 3]
     real :: output_flat(12)
     real :: expected_output_flat(12) = reshape([&
         0.3, 0.941471, 1.4092975,&
@@ -82,10 +85,10 @@ contains
     end if
   end subroutine test_positional_trigonometric
 
-  subroutine test_positional_absolute(ok)
+  subroutine test_positional_absolute(ok, sample_input)
     logical, intent(in out) :: ok
+    integer, intent(in) :: sample_input(:)
 
-    integer :: sample_input(3) = [2, 1, 3]
     real :: output_flat(12)
     real :: expected_output_flat(12) = reshape([&
         0.3, 1.1, 2.5,&
@@ -115,4 +118,16 @@ contains
       write(stderr, '(a)') 'absolute positional encoding returned incorrect values.. failed'
     end if
   end subroutine test_positional_absolute
+
+  subroutine test_embedding_constructor(ok, sample_input)
+    logical, intent(in out) :: ok
+    integer, intent(in) :: sample_input(:)
+
+    type(layer) :: embedding_constructed
+
+    embedding_constructed = embedding_constructor(sequence_length=3, vocab_size=5, model_dimension=4)
+    embedding_constructed = embedding_constructor(sequence_length=3, vocab_size=5, model_dimension=4, positional=0)
+    embedding_constructed = embedding_constructor(sequence_length=3, vocab_size=5, model_dimension=4, positional=1)
+    embedding_constructed = embedding_constructor(sequence_length=3, vocab_size=5, model_dimension=4, positional=2)
+  end subroutine test_embedding_constructor
 end program test_embedding_layer

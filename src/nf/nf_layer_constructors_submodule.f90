@@ -182,12 +182,13 @@ contains
   end function self_attention
 
 
-  module function embedding(sequence_length, vocab_size, model_dimension) result(res)
+  module function embedding(sequence_length, vocab_size, model_dimension, positional) result(res)
     integer, intent(in) :: sequence_length, vocab_size, model_dimension
+    integer, optional, intent(in) :: positional
     type(layer) :: res
     type(embedding_layer) :: embedding_layer_instance
 
-    embedding_layer_instance = embedding_layer(vocab_size, model_dimension)
+    embedding_layer_instance = embedding_layer(vocab_size, model_dimension, positional)
     call embedding_layer_instance % init([sequence_length])
     res % name = 'embedding'
     res % layer_shape = [sequence_length, model_dimension]

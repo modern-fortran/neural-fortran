@@ -233,7 +233,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function self_attention
 
-    module function embedding(sequence_length, vocab_size, model_dimension) result(res)
+    module function embedding(sequence_length, vocab_size, model_dimension, positional) result(res)
       !! Embedding layer constructor.
       !!
       !! This layer is for inputting token indices from the dictionary to the network.
@@ -243,6 +243,7 @@ module nf_layer_constructors
       !! `vocab_size`: length of token vocabulary
       !! `model_dimension`: size of target embeddings
       integer, intent(in) :: sequence_length, vocab_size, model_dimension
+      integer, optional, intent(in) :: positional
       type(layer) :: res
     end function embedding
 
