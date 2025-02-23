@@ -21,9 +21,9 @@ program cnn_mnist_1d
     net = network([ &
       input(784), &
       reshape2d([28,28]), &
-      conv1d(filters=8, kernel_size=3, activation=relu()), &
+      locally_connected_1d(filters=8, kernel_size=3, activation=relu()), &
       maxpool1d(pool_size=2), &
-      conv1d(filters=16, kernel_size=3, activation=relu()), &
+      locally_connected_1d(filters=16, kernel_size=3, activation=relu()), &
       maxpool1d(pool_size=2), &
       dense(10, activation=softmax()) &
     ])

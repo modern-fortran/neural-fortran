@@ -16,13 +16,13 @@ module nf_locally_connected_1d_layer
       integer :: kernel_size
       integer :: filters
   
-      real, allocatable :: biases(:) ! size(filters)
-      real, allocatable :: kernel(:,:,:) ! filters x channels x window x window
+      real, allocatable :: biases(:,:) ! size(filters)
+      real, allocatable :: kernel(:,:,:,:) ! filters x channels x window x window
       real, allocatable :: output(:,:) ! filters x output_width * output_height
       real, allocatable :: z(:,:) ! kernel .dot. input + bias
   
-      real, allocatable :: dw(:,:,:) ! weight (kernel) gradients
-      real, allocatable :: db(:) ! bias gradients
+      real, allocatable :: dw(:,:,:,:) ! weight (kernel) gradients
+      real, allocatable :: db(:,:) ! bias gradients
       real, allocatable :: gradient(:,:)
   
       class(activation_function), allocatable :: activation
