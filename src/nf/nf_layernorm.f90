@@ -32,6 +32,10 @@ module nf_layernorm_layer
     procedure :: forward
     procedure :: backward
     procedure :: init
+    procedure :: get_num_params
+    procedure :: get_params
+    procedure :: get_gradients
+    procedure :: set_params
   end type layernorm_layer
 
   interface layernorm_layer
@@ -57,5 +61,28 @@ module nf_layernorm_layer
       class(layernorm_layer), intent(in out) :: self
       integer, intent(in) :: input_shape(:)
     end subroutine init
+
+    pure module function get_num_params(self) result(num_params)
+      class(layernorm_layer), intent(in) :: self
+      integer :: num_params
+    end function get_num_params
+
+
+    module function get_params(self) result(params)
+      class(layernorm_layer), intent(in), target :: self
+      real, allocatable :: params(:)
+    end function get_params
+
+
+    module function get_gradients(self) result(gradients)
+      class(layernorm_layer), intent(in), target :: self
+      real, allocatable :: gradients(:)
+    end function get_gradients
+
+
+    module subroutine set_params(self, params)
+      class(layernorm_layer), intent(in out) :: self
+      real, intent(in), target :: params(:)
+    end subroutine set_params
   end interface
 end module nf_layernorm_layer

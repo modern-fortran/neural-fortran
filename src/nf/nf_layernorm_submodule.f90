@@ -107,4 +107,52 @@ contains
 
     allocate(self % output(self % sequence_length, self % model_dimension))
   end subroutine init
+
+  pure module function get_num_params(self) result(num_params)
+    class(layernorm_layer), intent(in) :: self
+    integer :: num_params
+
+    ! Number of weights times number of biases
+    num_params = 2 * self % model_dimension
+
+  end function get_num_params
+
+
+  module function get_params(self) result(params)
+    class(layernorm_layer), intent(in), target :: self
+    real, allocatable :: params(:)
+
+    params = [ &
+      self % gamma, &
+      self % beta &
+    ]
+
+  end function get_params
+
+
+  module function get_gradients(self) result(gradients)
+    class(layernorm_layer), intent(in), target :: self
+    real, allocatable :: gradients(:)
+
+    gradients = [ &
+      self % d_gamma, &
+      self % d_beta &
+    ]
+
+  end function get_gradients
+
+
+  module subroutine set_params(self, params)
+    class(layernorm_layer), intent(in out) :: self
+    real, intent(in), target :: params(:)
+
+    ! check if the number of parameters is correct
+    if (size(params) /= self % get_num_params()) then
+      error stop 'Error: number of parameters does not match'
+    end if
+
+    self % gamma = params(1: self % model_dimension)
+    self % beta = params(self % model_dimension + 1: 2 * self % model_dimension)
+
+  end subroutine set_params
 end submodule nf_layernorm_layer_submodule

@@ -1,6 +1,7 @@
 program test_layernorm
   use iso_fortran_env, only: stderr => error_unit
   use nf_layernorm_layer, only: layernorm_layer
+  use nf, only: sgd
   implicit none
 
   logical :: ok = .true.
@@ -13,6 +14,7 @@ program test_layernorm
 
   call test_layernorm_forward(layernorm, sample_input, ok)
   call test_layernorm_backward(layernorm, sample_input, sample_gradient, ok)
+  call test_layernorm_gradients(sample_input, sample_gradient, ok)
 
   if (ok) then
     print '(a)', 'test_layernorm_layer: All tests passed.'
@@ -90,4 +92,52 @@ contains
     end if
   end subroutine test_layernorm_backward
 
+  subroutine test_layernorm_gradients(input, gradient, ok)
+    real, intent(in out) :: input(:, :)
+    real, intent(in out) :: gradient(:, :)
+    logical, intent(in out) :: ok
+    type(layernorm_layer) :: layernorm
+    type(sgd) :: optim
+
+    real :: parameters(8)
+    real :: expected_parameters(8)
+    real :: updated_output(12)
+    real :: expected_updated_output(12) = [&
+        -0.738849819, 0.881645918, -1.03555739,&
+        1.66299772, -1.02966857, 0.908487320,&
+        -0.562230229, 1.01311040, 0.984123051,&
+        -0.564699769, -1.13543355, -1.11444426&
+    ]
+
+    layernorm = layernorm_layer()
+    call layernorm % init([3, 4])
+
+    call layernorm % forward(input)
+    call layernorm % backward(input, gradient)
+
+    if (layernorm % get_num_params() /= 8) then
+      ok = .false.
+      write(stderr, '(a)') 'incorrect number of parameters.. failed'
+    end if
+
+    expected_parameters(1: 4) = 1.
+    expected_parameters(5: 8) = 0.
+    parameters = layernorm % get_params()
+    if (.not. all(parameters.eq.expected_parameters)) then
+      ok = .false.
+      write(stderr, '(a)') 'incorrect parameters.. failed'
+    end if
+
+    optim = SGD(learning_rate=0.01)
+    call optim % minimize(parameters, layernorm % get_gradients())
+    call layernorm % set_params(parameters)
+
+    call layernorm % forward(input)
+
+    updated_output = reshape(layernorm % output, [12])
+    if (.not. all(updated_output.eq.expected_updated_output)) then
+      ok = .false.
+      write(stderr, '(a)') 'incorrect output after parameters update.. failed'
+    end if
+  end subroutine test_layernorm_gradients
 end program test_layernorm
