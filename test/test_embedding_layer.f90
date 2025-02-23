@@ -6,7 +6,8 @@ program test_embedding_layer
   logical :: ok = .true.
 
   call test_simple(ok)
-  call test_positional(ok)
+  call test_positional_trigonometric(ok)
+  call test_positional_absolute(ok)
 
   if (ok) then
     print '(a)', 'test_embedding_layer: All tests passed.'
@@ -47,7 +48,7 @@ contains
     end if
   end subroutine test_simple
 
-  subroutine test_positional(ok)
+  subroutine test_positional_trigonometric(ok)
     logical, intent(in out) :: ok
 
     integer :: sample_input(3) = [2, 1, 3]
@@ -63,7 +64,7 @@ contains
     real :: theta
     integer :: i, pos
 
-    embedding = embedding_layer(vocab_size=5, model_dimension=4, positional=.true.)
+    embedding = embedding_layer(vocab_size=5, model_dimension=4, positional=1)
     call embedding % init([3])
     embedding % weights = reshape([&
         0.1, 0.3, 0.5, 0.7, 0.2,&
@@ -77,7 +78,41 @@ contains
     output_flat = reshape(embedding % output, [12])
     if (.not. all(abs(output_flat - expected_output_flat) <= (1e-06 + 1e-05 * abs(expected_output_flat)))) then
       ok = .false.
-      write(stderr, '(a)') 'positional encoding returned incorrect values.. failed'
+      write(stderr, '(a)') 'trigonometric positional encoding returned incorrect values.. failed'
     end if
-  end subroutine test_positional
+  end subroutine test_positional_trigonometric
+
+  subroutine test_positional_absolute(ok)
+    logical, intent(in out) :: ok
+
+    integer :: sample_input(3) = [2, 1, 3]
+    real :: output_flat(12)
+    real :: expected_output_flat(12) = reshape([&
+        0.3, 1.1, 2.5,&
+        0.3, 1.1, 2.5,&
+        0.3, 1.1, 2.5,&
+        0.3, 1.1, 2.5&
+    ], [12])
+    type(embedding_layer) :: embedding
+
+    real :: theta
+    integer :: i, pos
+
+    embedding = embedding_layer(vocab_size=5, model_dimension=4, positional=2)
+    call embedding % init([3])
+    embedding % weights = reshape([&
+        0.1, 0.3, 0.5, 0.7, 0.2,&
+        0.1, 0.3, 0.5, 0.7, 0.2,&
+        0.1, 0.3, 0.5, 0.7, 0.2,&
+        0.1, 0.3, 0.5, 0.7, 0.2&
+    ], [5, 4])
+
+    call embedding % forward(sample_input)
+
+    output_flat = reshape(embedding % output, [12])
+    if (.not. all(abs(output_flat - expected_output_flat) <= (1e-06 + 1e-05 * abs(expected_output_flat)))) then
+      ok = .false.
+      write(stderr, '(a)') 'absolute positional encoding returned incorrect values.. failed'
+    end if
+  end subroutine test_positional_absolute
 end program test_embedding_layer

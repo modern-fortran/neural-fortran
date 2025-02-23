@@ -1,16 +1,20 @@
+#define NONE 0
+#define TRIGONOMETRIC 1
+#define ABSOLUTE 2
+
 submodule(nf_embedding_layer) nf_embedding_layer_submodule
   use nf_base_layer, only: base_layer
   implicit none
 contains
   module function embedding_layer_cons(vocab_size, model_dimension, positional) result(res)
     integer, intent(in) :: vocab_size, model_dimension
-    logical, optional :: positional
+    integer, optional :: positional
     type(embedding_layer) :: res
 
     res % vocab_size = vocab_size
     res % model_dimension = model_dimension
     if (.not. present(positional)) then
-      res % positional = .false.
+      res % positional = NONE
     else
       res % positional = positional
     end if
@@ -46,8 +50,10 @@ contains
 
       self % output(i, :) = self % weights(index, :)
 
-      if (self % positional) then
-        call self % positional_encoding(i)
+      if (self % positional == TRIGONOMETRIC) then
+        call self % positional_trigonometric(i)
+      elseif (self % positional == ABSOLUTE) then
+        call self % positional_absolute(i)
       end if
     end do
   end subroutine forward
@@ -63,7 +69,7 @@ contains
     end do
   end subroutine backward
 
-  pure module subroutine positional_encoding(self, pos)
+  pure module subroutine positional_trigonometric(self, pos)
     class(embedding_layer), intent(in out) :: self
     integer, intent(in) :: pos
     integer :: i
@@ -74,7 +80,17 @@ contains
       self % output(pos, 2 * i - 1) = self % output(pos, 2 * i - 1) + sin(theta)
       self % output(pos, 2 * i) = self % output(pos, 2 * i) + cos(theta)
     end do
-  end subroutine positional_encoding
+  end subroutine positional_trigonometric
+
+  pure module subroutine positional_absolute(self, pos)
+    class(embedding_layer), intent(in out) :: self
+    integer, intent(in) :: pos
+    integer :: i
+
+    do concurrent(i = 1: self % model_dimension)
+      self % output(pos, i) = self % output(pos, i) + pos - 1
+    end do
+  end subroutine positional_absolute
 
   pure module function get_num_params(self) result(num_params)
     class(embedding_layer), intent(in) :: self
