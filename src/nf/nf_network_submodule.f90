@@ -92,9 +92,9 @@ contains
             type is(conv1d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
-            !type is(reshape2d_layer)
-            !  res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
-            !  n = n + 1
+            type is(reshape2d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
             class default
               n = n + 1
           end select
@@ -163,7 +163,6 @@ contains
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(conv2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-
           type is(flatten_layer)
             if (size(self % layers(n) % layer_shape) == 2) then
               call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
@@ -172,7 +171,6 @@ contains
             end if
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-
           type is(reshape3d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(linear2d_layer)

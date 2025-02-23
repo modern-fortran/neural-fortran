@@ -41,7 +41,7 @@ program test_conv1d_network
       real :: y(1)
       real :: tolerance = 1e-4
       integer :: n
-      integer, parameter :: num_iterations = 1500
+      integer, parameter :: num_iterations = 1000
   
       ! Test training of a minimal constant mapping
       allocate(sample_input(1, 5))
@@ -60,6 +60,7 @@ program test_conv1d_network
         call cnn % forward(sample_input)
         call cnn % backward(y)
         call cnn % update(optimizer=sgd(learning_rate=1.))
+        print *, cnn % predict(sample_input), y
         if (all(abs(cnn % predict(sample_input) - y) < tolerance)) exit
       end do
   
@@ -79,7 +80,7 @@ program test_conv1d_network
       real :: y(1)
       real :: tolerance = 1e-4
       integer :: n
-      integer, parameter :: num_iterations = 1500
+      integer, parameter :: num_iterations = 1000
   
       call random_number(x)
       y = [0.1234567]
