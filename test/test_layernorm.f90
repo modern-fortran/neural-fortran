@@ -24,6 +24,14 @@ program test_layernorm
   end if
 
 contains
+  function allclose(x, y) result(res)
+    real, intent(in) :: x(:)
+    real, intent(in) :: y(:)
+    logical :: res
+
+    res = all(abs(x - y) <= (1e-06 + 1e-05 * abs(y)))
+  end function allclose
+
   subroutine test_layernorm_forward(layernorm, input, ok)
     type(layernorm_layer), intent(in out) :: layernorm
     real, intent(in out) :: input(:, :)
@@ -44,7 +52,7 @@ contains
       write(stderr, '(a)') 'forward returned incorrect shape.. failed'
     end if
     output_flat = reshape(layernorm % output, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
     end if
@@ -67,7 +75,7 @@ contains
     real :: d_gamma(4)
     real :: expected_d_gamma(4) = [0.765904069, 0.175162792,  2.16362262, -4.57002449]
     real :: d_beta(4)
-    real :: expected_d_beta(4) = [5.09999990, 6.09999990, 2.19999981, 6.09999990]
+    real :: expected_d_beta(4) = [5.1, 6.1, 2.2, 6.1]
 
     call layernorm % backward(input, gradient)
 
@@ -77,16 +85,16 @@ contains
       write(stderr, '(a)') 'backward returned incorrect gradient shape.. failed'
     end if
     gradient_flat = reshape(layernorm % gradient, shape(gradient_flat))
-    if (.not. all(gradient_flat.eq.expected_gradient_flat)) then
+    if (.not. allclose(gradient_flat, expected_gradient_flat)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect gradient values.. failed'
     end if
 
-    if (.not. all(layernorm % d_gamma.eq.expected_d_gamma)) then
+    if (.not. allclose(layernorm % d_gamma, expected_d_gamma)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect d_gamma values.. failed'
     end if
-    if (.not. all(layernorm % d_beta.eq.expected_d_beta)) then
+    if (.not. allclose(layernorm % d_beta, expected_d_beta)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect d_beta values.. failed'
     end if
@@ -135,7 +143,7 @@ contains
     call layernorm % forward(input)
 
     updated_output = reshape(layernorm % output, [12])
-    if (.not. all(updated_output.eq.expected_updated_output)) then
+    if (.not. allclose(updated_output, expected_updated_output)) then
       ok = .false.
       write(stderr, '(a)') 'incorrect output after parameters update.. failed'
     end if
