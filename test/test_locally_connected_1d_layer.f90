@@ -51,10 +51,6 @@ program test_locally_connected_1d_layer
     allocate(sample_input(1, 3))
     sample_input = 0
   
-    ! Print the sample input array
-    print *, "Sample Input:"
-    print *, sample_input
-  
     input_layer = input(1, 3)
     locally_connected_1d_layer = locally_connected_1d(filters, kernel_size)
     call locally_connected_1d_layer % init(input_layer)
@@ -66,9 +62,6 @@ program test_locally_connected_1d_layer
     call locally_connected_1d_layer % forward(input_layer)
     call locally_connected_1d_layer % get_output(output)
   
-    ! Print the output array after the forward pass
-    print *, "Output:"
-    print *, output
   
     if (.not. all(abs(output) < tolerance)) then
       ok = .false.

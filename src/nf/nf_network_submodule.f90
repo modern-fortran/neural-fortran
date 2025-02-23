@@ -1,5 +1,6 @@
 submodule(nf_network) nf_network_submodule
 
+  use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_dropout_layer, only: dropout_layer
@@ -76,9 +77,9 @@ contains
             type is(conv2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
-            !type is(locally_connected_1d_layer)
-              !res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
-              !n = n + 1
+            type is(locally_connected_1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
             type is(maxpool2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
@@ -86,6 +87,9 @@ contains
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(maxpool1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(conv1d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             !type is(reshape2d_layer)
@@ -178,6 +182,10 @@ contains
           type is(maxpool1d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(reshape2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(conv1d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(locally_connected_1d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if

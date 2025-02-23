@@ -9,7 +9,7 @@ program test_conv1d_network
     real, allocatable :: sample_input(:,:), output(:,:)
     logical :: ok = .true.
   
-    ! 2-layer convolutional network
+    ! 3-layer convolutional network
     net = network([ &
       input(3, 32), &
       conv1d(filters=16, kernel_size=3), &
@@ -26,7 +26,7 @@ program test_conv1d_network
     sample_input = 0
   
     call net % forward(sample_input)
-    call net % layers(2) % get_output(output)
+    call net % layers(3) % get_output(output)
   
     if (.not. all(shape(output) == [32, 28])) then
       write(stderr, '(a)') 'conv1d network output should have correct shape.. failed'
@@ -64,6 +64,7 @@ program test_conv1d_network
       end do
   
       if (.not. n <= num_iterations) then
+        
         write(stderr, '(a)') &
           'convolutional network 1 should converge in simple training.. failed'
         ok = .false.
