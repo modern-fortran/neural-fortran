@@ -211,8 +211,6 @@ contains
     select type(input_layer => self % layers(1) % p)
       type is(input1d_layer)
         call input_layer % set(input)
-      type is(embedding_layer)
-        call input_layer % forward(nint(input))
     end select
 
     do n = 2, size(self % layers)
@@ -221,6 +219,21 @@ contains
 
   end subroutine forward_1d
 
+  module subroutine forward_1d_int(self, input)
+    class(network), intent(in out) :: self
+    integer, intent(in) :: input(:)
+    integer :: n
+
+    select type(input_layer => self % layers(1) % p)
+      type is(embedding_layer)
+        call input_layer % forward(input)
+    end select
+
+    do n = 2, size(self % layers)
+      call self % layers(n) % forward(self % layers(n - 1))
+    end do
+
+  end subroutine forward_1d_int
 
   module subroutine forward_2d(self, input)
     class(network), intent(in out) :: self
@@ -285,6 +298,31 @@ contains
 
   end function predict_1d
 
+  module function predict_1d_int(self, input) result(res)
+    class(network), intent(in out) :: self
+    integer, intent(in) :: input(:)
+    real, allocatable :: res(:)
+    integer :: n, num_layers
+
+    num_layers = size(self % layers)
+
+    call self % set_training_mode(.false.)
+    call self % forward(input)
+    call self % set_training_mode(.true.)
+
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(dense_layer)
+        res = output_layer % output
+      type is(dropout_layer)
+        res = output_layer % output
+      type is(flatten_layer)
+        res = output_layer % output
+      class default
+        error stop 'network % output not implemented for ' // &
+          trim(self % layers(num_layers) % name) // ' layer'
+    end select
+
+  end function predict_1d_int
 
   module function predict_2d(self, input) result(res)
     class(network), intent(in out) :: self
