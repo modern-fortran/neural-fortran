@@ -27,7 +27,7 @@ contains
     real, intent(in) :: gradient(:)
 
     ! Backward pass from a 1-d layer downstream currently implemented
-    ! only for dense and flatten layers
+    ! only for dense, dropout and flatten layers
     select type(this_layer => self % p)
 
       type is(dense_layer)
@@ -50,7 +50,7 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input2d, input3d, conv2d, locally_connected_1d, maxpool1d, maxpool2d
+        ! Upstream layers permitted: input2d, input3d, conv1d, conv2d, locally_connected_1d, maxpool1d, maxpool2d
         select type(prev_layer => previous % p)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)

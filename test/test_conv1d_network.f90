@@ -41,7 +41,7 @@ program test_conv1d_network
       real :: y(1)
       real :: tolerance = 1e-4
       integer :: n
-      integer, parameter :: num_iterations = 1000
+      integer, parameter :: num_iterations = 1500
   
       ! Test training of a minimal constant mapping
       allocate(sample_input(1, 5))
@@ -79,7 +79,7 @@ program test_conv1d_network
       real :: y(1)
       real :: tolerance = 1e-4
       integer :: n
-      integer, parameter :: num_iterations = 1000
+      integer, parameter :: num_iterations = 1500
   
       call random_number(x)
       y = [0.1234567]

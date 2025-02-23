@@ -17,8 +17,8 @@ module nf_conv1d_layer
       integer :: filters
   
       real, allocatable :: biases(:) ! size(filters)
-      real, allocatable :: kernel(:,:,:) ! filters x channels x window x window
-      real, allocatable :: output(:,:) ! filters x output_width * output_height
+      real, allocatable :: kernel(:,:,:) ! filters x channels x window 
+      real, allocatable :: output(:,:) ! filters x output_width 
       real, allocatable :: z(:,:) ! kernel .dot. input + bias
   
       real, allocatable :: dw(:,:,:) ! weight (kernel) gradients
