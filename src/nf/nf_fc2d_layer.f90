@@ -24,7 +24,7 @@ module nf_fc2d_layer
     real, allocatable :: output(:, :)
 
   contains
-!    procedure :: backward
+    procedure :: backward
     procedure :: forward
 !    procedure :: get_num_params
 !    procedure :: get_params
@@ -51,6 +51,11 @@ contains
 
     res % hidden_size = hidden_size
     res % activation_name = activation % get_name()
+    ! FIXME: implement correct derivative for `softmax`
+    if (res % activation_name == 'softmax') then
+      write(stderr, '(a)') '`softmax` activation is temporarily unavailable'
+      error stop 1
+    end if
     allocate(res % activation, source = activation)
   end function fc2d_layer_cons
 
@@ -75,6 +80,8 @@ contains
     allocate(self % out_proj_input(self % sequence_length, self % hidden_size))
 
     allocate(self % output(self % sequence_length, self % model_dimension))
+
+    allocate(self % gradient, mold=self % in_proj % gradient)
   end subroutine init
 
   pure module subroutine forward(self, input)
@@ -92,4 +99,20 @@ contains
     call self % out_proj % forward(self % out_proj_input)
     self % output = self % out_proj % output
   end subroutine forward
+
+  pure module subroutine backward(self, input, gradient)
+    class(fc2d_layer), intent(in out) :: self
+    real, intent(in) :: input(:, :)
+    real, intent(in) :: gradient(:, :)
+    integer :: i
+
+    call self % out_proj % backward(self % out_proj_input, gradient)
+    do concurrent(i = 1: self % sequence_length)
+      self % out_proj % gradient(i, :) = self % out_proj % gradient(i, :) &
+      * (self % activation % eval_1d_prime(self % in_proj % output(i, :)))
+    end do
+    call self % in_proj % backward(self % in_proj_input, self % out_proj % gradient)
+
+    self % gradient = self % in_proj % gradient
+  end subroutine backward
 end module nf_fc2d_layer
