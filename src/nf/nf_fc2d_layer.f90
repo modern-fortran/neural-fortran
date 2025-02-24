@@ -12,7 +12,7 @@ module nf_fc2d_layer
   type, extends(base_layer) :: fc2d_layer
     !! Fully Connected 2D Layer
     !! Two Linear layers with an activation function in between
-    integer :: sequence_length, hidden_size, model_dimension
+    integer :: sequence_length, model_dimension, hidden_size, output_size
 
     type(linear2d_layer) :: in_proj
     type(linear2d_layer) :: out_proj
@@ -36,9 +36,9 @@ module nf_fc2d_layer
   end type fc2d_layer
 
   interface fc2d_layer
-    module function fc2d_layer_cons(hidden_size, activation) result(res)
+    module function fc2d_layer_cons(hidden_size, output_size, activation) result(res)
       !! This function returns the `fc2d_layer` instance.
-      integer, intent(in) :: hidden_size
+      integer, intent(in) :: hidden_size, output_size
       class(activation_function), intent(in) :: activation
       type(fc2d_layer) :: res
     end function fc2d_layer_cons

@@ -1,7 +1,7 @@
 program test_fc2d_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf_fc2d_layer, only: fc2d_layer
-  use nf, only: activation_function, relu, tanhf, sigmoid, softplus, sgd
+  use nf, only: activation_function, relu, celu, tanhf, sigmoid, softplus, sgd
   implicit none
 
   logical :: ok = .true.
@@ -12,6 +12,7 @@ program test_fc2d_layer
   type(fc2d_layer) :: fc
 
   call test_fc2d_layer_forward(ok, sample_input)
+  call test_fc2d_layer_forward_different_shape(ok, sample_input)
   call test_fc2d_layer_backward(&
     ok, sample_input, sample_gradient,&
     activation=relu(),&
@@ -100,7 +101,7 @@ contains
         1.509, 1.5594, 3.4098&
     ]
 
-    fc = fc2d_layer(hidden_size=5, activation=relu())
+    fc = fc2d_layer(hidden_size=5, output_size=4, activation=relu())
     call fc % init([3, 4])
     call init_weigths(fc)
 
@@ -118,6 +119,33 @@ contains
     end if
   end subroutine test_fc2d_layer_forward
 
+  subroutine test_fc2d_layer_forward_different_shape(ok, input)
+    logical, intent(in out) :: ok
+    real, intent(in) :: input(3, 4)
+    type(fc2d_layer) :: fc
+    real :: output_shape(2)
+    real :: output_flat(3)
+    real :: expected_shape(2) = [3, 1]
+    real :: expected_output_flat(3) = [1.509, 1.5594, 3.4098]
+
+    fc = fc2d_layer(hidden_size=5, output_size=1, activation=celu())
+    call fc % init([3, 4])
+    call init_weigths(fc)
+
+    call fc % forward(input)
+
+    output_shape = shape(fc % output)
+    if (.not. all(output_shape.eq.expected_shape)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect shape.. failed'
+    end if
+    output_flat = reshape(fc % output, shape(output_flat))
+    if (.not. allclose(output_flat, expected_output_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward returned incorrect values.. failed'
+    end if
+  end subroutine test_fc2d_layer_forward_different_shape
+
   subroutine test_fc2d_layer_backward(ok, input, gradient, activation, expected_gradient_flat)
     logical, intent(in out) :: ok
     real, intent(in) :: input(3, 4)
@@ -131,7 +159,7 @@ contains
     integer :: expected_gradient_shape(2) = [3, 4]
     real :: gradient_flat(12)
 
-    fc = fc2d_layer(hidden_size=5, activation=activation)
+    fc = fc2d_layer(hidden_size=5, output_size=4, activation=activation)
     call fc % init([3, 4])
     call init_weigths(fc)
 
@@ -167,7 +195,7 @@ contains
         -1.7491575, -0.79099315, -3.4819508&
     ]
 
-    fc = fc2d_layer(hidden_size=5, activation=softplus())
+    fc = fc2d_layer(hidden_size=5, output_size=4, activation=softplus())
     call fc % init([3, 4])
     call init_weigths(fc)
 

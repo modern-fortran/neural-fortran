@@ -6,13 +6,14 @@ submodule(nf_fc2d_layer) nf_fc2d_layer_submodule
   implicit none
 
 contains
-  module function fc2d_layer_cons(hidden_size, activation) result(res)
+  module function fc2d_layer_cons(hidden_size, output_size, activation) result(res)
     !! This function returns the `fc2d_layer` instance.
-    integer, intent(in) :: hidden_size
+    integer, intent(in) :: hidden_size, output_size
     class(activation_function), intent(in) :: activation
     type(fc2d_layer) :: res
 
     res % hidden_size = hidden_size
+    res % output_size = output_size
     res % activation_name = activation % get_name()
     ! FIXME: implement correct derivative for `softmax`
     if (res % activation_name == 'softmax') then
@@ -36,13 +37,13 @@ contains
     self % in_proj = linear2d_layer(self % hidden_size)
     call self % in_proj % init([self % sequence_length, self % model_dimension])
 
-    self % out_proj = linear2d_layer(self % model_dimension)
+    self % out_proj = linear2d_layer(self % output_size)
     call self % out_proj % init([self % sequence_length, self % hidden_size])
 
     allocate(self % in_proj_input(self % sequence_length, self % model_dimension))
     allocate(self % out_proj_input(self % sequence_length, self % hidden_size))
 
-    allocate(self % output(self % sequence_length, self % model_dimension))
+    allocate(self % output(self % sequence_length, self % output_size))
 
     allocate(self % gradient, mold=self % in_proj % gradient)
   end subroutine init
@@ -115,6 +116,7 @@ contains
   module subroutine set_params(self, params)
     class(fc2d_layer), intent(in out) :: self
     real, intent(in) :: params(:)
+    integer :: i, j, window
 
     ! check if the number of parameters is correct
     if (size(params) /= self % get_num_params()) then
@@ -122,17 +124,17 @@ contains
     end if
 
     ! FIXME: looks clumsy, better ideas?
-    associate (transformation => self % model_dimension * self % hidden_size)
-      self % in_proj % weights = reshape(params(1: transformation), shape(self % in_proj % weights))
-      self % out_proj % weights = reshape(&
-          params(transformation + 1: 2 * transformation),&
-          shape(self % out_proj % weights)&
-      )
-      self % in_proj % biases = params(2 * transformation + 1: 2 * transformation + self % hidden_size)
-      self % out_proj % biases = params(&
-          2 * transformation + self % hidden_size + 1: &
-          2 * transformation + self % hidden_size + self % model_dimension&
-      )
-    end associate
+    i = 1
+    j = self % model_dimension * self % hidden_size
+    self % in_proj % weights = reshape(params(i: j), [self % model_dimension, self % hidden_size])
+    i = j + 1
+    j = i + self % hidden_size * self % output_size - 1
+    self % out_proj % weights = reshape(params(i: j), [self % hidden_size, self % output_size])
+    i = j + 1
+    j = i + self % hidden_size - 1
+    self % in_proj % biases = params(i: j)
+    i = j + 1
+    j = i + self % output_size - 1
+    self % out_proj % biases = params(i: j)
   end subroutine set_params
 end submodule nf_fc2d_layer_submodule
