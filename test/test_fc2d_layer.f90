@@ -1,7 +1,7 @@
 program test_fc2d_layer
   use iso_fortran_env, only: stderr => error_unit
   use nf_fc2d_layer, only: fc2d_layer
-  use nf, only: activation_function, relu, tanhf, sigmoid, softplus
+  use nf, only: activation_function, relu, tanhf, sigmoid, softplus, sgd
   implicit none
 
   logical :: ok = .true.
@@ -52,6 +52,7 @@ program test_fc2d_layer
       0.7427467, 1.8331366, 1.9401824&
     ]&
   )
+  call test_fc2d_layer_update_gradients(ok, sample_input, sample_gradient)
 
   if (ok) then
     print '(a)', 'test_fc2d_layer: All tests passed.'
@@ -135,7 +136,7 @@ contains
     gradient_shape = shape(fc % gradient)
     if (.not. all(gradient_shape.eq.expected_gradient_shape)) then
       ok = .false.
-      write(stderr, '(a) (a)') 'backward returned incorrect gradient shape.. failed', fc % activation % get_name()
+      write(stderr, '(aa)') 'backward returned incorrect gradient shape.. failed', fc % activation % get_name()
     end if
     gradient_flat = reshape(fc % gradient, shape(gradient_flat))
     if (.not. allclose(gradient_flat, expected_gradient_flat)) then
@@ -143,4 +144,47 @@ contains
       write(stderr, '(aa)') 'backward returned incorrect gradient values.. failed for ', fc % activation % get_name()
     end if
   end subroutine test_fc2d_layer_backward
+
+  subroutine test_fc2d_layer_update_gradients(ok, input, gradient)
+    logical, intent(in out) :: ok
+    real, intent(in) :: input(3, 4)
+    real, intent(in) :: gradient(3, 4)
+
+    type(fc2d_layer) :: fc
+    type(sgd) :: optim
+
+    real :: parameters(49)
+    real :: updated_output(12)
+    real :: expected_updated_output(12) = [&
+        -1.1192487, -0.51458186, -2.2737966,&
+        -1.7527609, -0.8190526, -3.5071785,&
+        0.36815026, 0.2097921, 0.6197472,&
+        -1.7491575, -0.79099315, -3.4819508&
+    ]
+
+    fc = fc2d_layer(hidden_size=5, activation=softplus())
+    call fc % init([3, 4])
+    call init_weigths(fc)
+
+    call fc % forward(input)
+    call fc % backward(input, gradient)
+
+    if (fc % get_num_params() /= 49) then
+      ok = .false.
+      write(stderr, '(a)') 'incorrect number of parameters.. failed'
+    end if
+
+    optim = SGD(learning_rate=0.01)
+    parameters = fc % get_params()
+    call optim % minimize(parameters, fc % get_gradients())
+    call fc % set_params(parameters)
+
+    call fc % forward(input)
+
+    updated_output = reshape(fc % output, [12])
+    if (.not. allclose(updated_output, expected_updated_output)) then
+      ok = .false.
+      write(stderr, '(a)') 'incorrect output after parameters update.. failed'
+    end if
+  end subroutine test_fc2d_layer_update_gradients
 end program test_fc2d_layer

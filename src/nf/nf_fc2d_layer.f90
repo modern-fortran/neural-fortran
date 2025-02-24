@@ -26,10 +26,10 @@ module nf_fc2d_layer
   contains
     procedure :: backward
     procedure :: forward
-!    procedure :: get_num_params
-!    procedure :: get_params
-!    procedure :: get_gradients
-!    procedure :: set_params
+    procedure :: get_num_params
+    procedure :: get_params
+    procedure :: get_gradients
+    procedure :: set_params
     procedure :: init
   end type fc2d_layer
 
@@ -115,4 +115,60 @@ contains
 
     self % gradient = self % in_proj % gradient
   end subroutine backward
+
+  elemental module function get_num_params(self) result(num_params)
+    class(fc2d_layer), intent(in) :: self
+    integer :: num_params
+
+    num_params = self % in_proj % get_num_params() + self % out_proj % get_num_params()
+  end function get_num_params
+
+  module function get_params(self) result(params)
+    class(fc2d_layer), intent(in) :: self
+    real, allocatable :: params(:)
+
+    params = [&
+        self % in_proj % weights,&
+        self % out_proj % weights,&
+        self % in_proj % biases,&
+        self % out_proj % biases&
+    ]
+  end function get_params
+
+  module function get_gradients(self) result(gradients)
+    class(fc2d_layer), intent(in), target :: self
+    real, allocatable :: gradients(:)
+
+    gradients = [ &
+        self % in_proj % dw,&
+        self % out_proj % dw,&
+        self % in_proj % db,&
+        self % out_proj % db&
+    ]
+  end function get_gradients
+
+  module subroutine set_params(self, params)
+    class(fc2d_layer), intent(in out) :: self
+    real, intent(in) :: params(:)
+    integer :: i, j, window
+
+    ! check if the number of parameters is correct
+    if (size(params) /= self % get_num_params()) then
+      error stop 'Error: number of parameters does not match'
+    end if
+
+    ! FIXME: looks clumsy, better ideas?
+    associate (transformation => self % model_dimension * self % hidden_size)
+      self % in_proj % weights = reshape(params(1: transformation), shape(self % in_proj % weights))
+      self % out_proj % weights = reshape(&
+          params(transformation + 1: 2 * transformation),&
+          shape(self % out_proj % weights)&
+      )
+      self % in_proj % biases = params(2 * transformation + 1: 2 * transformation + self % hidden_size)
+      self % out_proj % biases = params(&
+          2 * transformation + self % hidden_size + 1: &
+          2 * transformation + self % hidden_size + self % model_dimension&
+      )
+    end associate
+  end subroutine set_params
 end module nf_fc2d_layer
