@@ -73,7 +73,12 @@ contains
   subroutine init_weigths(fc)
     type(fc2d_layer) :: fc
     fc % in_proj % weights = reshape(&
-        [0.1, 0.2, 0.3, 0.4, 0.1, 0.2, 0.3, 0.5, 0.1, 0.2, 0.4, 0.5, 0.1, 0.3, 0.4, 0.5, 0.2, 0.3, 0.4, 0.5],&
+        [&
+            0.1, 0.2, 0.3, 0.4, 0.1,&
+            0.2, 0.3, 0.5, 0.1, 0.2,&
+            0.4, 0.5, 0.1, 0.3, 0.4,&
+            0.5, 0.2, 0.3, 0.4, 0.5&
+        ],&
         [4, 5]&
     )
     fc % in_proj % biases = 0.11
@@ -136,7 +141,7 @@ contains
     gradient_shape = shape(fc % gradient)
     if (.not. all(gradient_shape.eq.expected_gradient_shape)) then
       ok = .false.
-      write(stderr, '(aa)') 'backward returned incorrect gradient shape.. failed', fc % activation % get_name()
+      write(stderr, '(aa)') 'backward returned incorrect gradient shape.. failed for', fc % activation % get_name()
     end if
     gradient_flat = reshape(fc % gradient, shape(gradient_flat))
     if (.not. allclose(gradient_flat, expected_gradient_flat)) then
