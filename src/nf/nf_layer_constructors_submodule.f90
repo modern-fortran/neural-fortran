@@ -12,6 +12,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
+  use nf_fc2d_layer, only: fc2d_layer
   use nf_activation, only: activation_function, relu, sigmoid
 
   implicit none
@@ -178,5 +179,14 @@ contains
     res % name = 'self_attention'
     allocate(res % p, source=self_attention_layer(num_heads))
   end function self_attention
+
+  module function fc2d(hidden_size, output_size, activation) result(res)
+    integer, intent(in) :: hidden_size, output_size
+    class(activation_function), intent(in) :: activation
+    type(layer) :: res
+
+    res % name = 'fc2d'
+    allocate(res % p, source=fc2d_layer(hidden_size, output_size, activation))
+  end function fc2d
 
 end submodule nf_layer_constructors_submodule
