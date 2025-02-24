@@ -7,7 +7,6 @@ foreach(execid
   parametric_activation
   dense_layer
   conv1d_layer
-  conv1d_network
   conv2d_layer
   locally_connected_1d_layer
   maxpool1d_layer

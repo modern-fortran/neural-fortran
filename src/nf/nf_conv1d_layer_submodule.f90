@@ -35,7 +35,7 @@ contains
     ! Kernel of shape: filters x channels x kernel_size
     allocate(self % kernel(self % filters, self % channels, self % kernel_size))
     call random_normal(self % kernel)
-    self % kernel = self % kernel / real(self % kernel_size**2)
+    self % kernel = self % kernel / self % kernel_size**2
 
     allocate(self % biases(self % filters))
     self % biases = 0
