@@ -27,6 +27,8 @@ add_library(neural-fortran
   src/nf/nf_datasets_mnist_submodule.f90
   src/nf/nf_dense_layer.f90
   src/nf/nf_dense_layer_submodule.f90
+  src/nf/nf_fc2d_layer.f90
+  src/nf/nf_fc2d_layer_submodule.f90
   src/nf/nf_flatten_layer.f90
   src/nf/nf_flatten_layer_submodule.f90
   src/nf/nf_input1d_layer.f90

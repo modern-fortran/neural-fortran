@@ -7,6 +7,7 @@ foreach(execid
   sine
   quadratic
   mha_simple
+  simple_2d_mlp
 )
   add_executable(${execid} ${execid}.f90)
   target_link_libraries(${execid} PRIVATE
