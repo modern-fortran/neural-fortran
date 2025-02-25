@@ -47,7 +47,7 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool2d
+        ! Upstream layers permitted: input2d, input3d, conv2d, layernorm, maxpool2d
         select type(prev_layer => previous % p)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -267,7 +267,7 @@ contains
 
       type is(linear2d_layer)
 
-        ! Upstream layers permitted: input2d, linear2d, self_attention, layer_normalization
+        ! Upstream layers permitted: input2d, linear2d, self_attention, layernorm
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
@@ -281,7 +281,7 @@ contains
 
       type is(self_attention_layer)
 
-        ! Upstream layers permitted: input2d, linear2d, self_attention, layer_normalization
+        ! Upstream layers permitted: input2d, linear2d, self_attention, layernorm
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
