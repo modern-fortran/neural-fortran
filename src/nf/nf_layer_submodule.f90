@@ -249,6 +249,8 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(layernorm_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(reshape3d_layer)
