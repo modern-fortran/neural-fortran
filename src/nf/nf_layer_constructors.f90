@@ -18,7 +18,7 @@ module nf_layer_constructors
     maxpool2d, &
     reshape, &
     self_attention, &
-    layer_normalization
+    layernorm
 
   interface input
 
@@ -233,13 +233,13 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function self_attention
 
-    module function layer_normalization() result(res)
+    module function layernorm() result(res)
       !! Layer Normalization
       !! ((x − mean(x)) / sqrt(variance(x) + eps) * gamma + beta
       !! Based upon `Ba, Jimmy Lei, Jamie Ryan Kiros, and Geoffrey E. Hinton(2016)`:
       !! https://arxiv.org/abs/1607.06450v1
       type(layer) :: res
-    end function layer_normalization
+    end function layernorm
 
   end interface
 

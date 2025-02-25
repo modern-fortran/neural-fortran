@@ -180,11 +180,11 @@ contains
     allocate(res % p, source=self_attention_layer(num_heads))
   end function self_attention
 
-  module function layer_normalization() result(res)
+  module function layernorm() result(res)
     type(layer) :: res
 
-    res % name = 'layer_normalization'
+    res % name = 'layernorm'
     allocate(res % p, source=layernorm_layer())
-  end function layer_normalization
+  end function layernorm
 
 end submodule nf_layer_constructors_submodule
