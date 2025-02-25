@@ -13,10 +13,11 @@ contains
     res % n_heads = n_heads
   end function multihead_attention_layer_cons
 
-  pure module subroutine common_backward(self, input, gradient)
+  pure module subroutine common_backward(self, input, gradient, attention_mask)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
     real, intent(in) :: gradient(:, :)
+    real, intent(in), optional :: attention_mask(:, :)
 
     integer :: head, seq, i, j
 
@@ -38,6 +39,10 @@ contains
 
       ! calculate delta for attention matrix
       self % d_sdpa = matmul(self % d_output(:, :, head), transpose(self % v_heads(:, :, head)))
+
+      if (present(attention_mask)) then
+        self % d_sdpa = self % d_sdpa + attention_mask
+      end if
 
       ! this monstrosity below is scaled derivative of softmax
       do concurrent(seq = 1: self % sequence_length)
@@ -80,9 +85,10 @@ contains
     call self % query_layer % backward(self % q_input, self % combine_heads(self % q_or_dq))
   end subroutine common_backward
 
-  pure module subroutine common_forward(self, query, key, value)
+  pure module subroutine common_forward(self, query, key, value, attention_mask)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :), key(:, :), value(:, :)
+    real, intent(in), optional :: attention_mask(:, :)
 
     self % q_input = query
     self % k_input = key
@@ -101,7 +107,7 @@ contains
     ! create key by value matrix
     call self % create_attention_matrix(self % q_or_dq, self % k_or_dk)
     ! apply softmax and scaling
-    call self % normalize_attention_matrix()
+    call self % normalize_attention_matrix(attention_mask)
     ! multiply attention matrix by value
     call self % scaled_dot_product_attention(self % v_or_dv)
 
@@ -130,14 +136,16 @@ contains
 
   pure module subroutine normalize_attention_matrix(self, attention_mask)
     class(multihead_attention_layer), intent(in out) :: self
-    real, optional, intent(in) :: attention_mask(:, :, :)
+    real, optional, intent(in) :: attention_mask(:, :)
     integer :: head, seq
 
     ! scale dowm by square root of each head's size
     self % attention_matrix = self % attention_matrix * self % scaling_factor
     ! attention mask is used to mask out some of the tokens if necessary
     if (present(attention_mask)) then
-      self % attention_matrix = self % attention_matrix + attention_mask
+      do concurrent(head = 1: self % n_heads)
+        self % attention_matrix(:, :, head) = self % attention_matrix(:, :, head) + attention_mask
+      end do
     end if
     ! softmax by last sequnce_length
     do concurrent(head = 1: self % n_heads, seq = 1: self % sequence_length)

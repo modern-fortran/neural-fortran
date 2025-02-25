@@ -27,6 +27,7 @@ program test_multihead_attention_layer
   call test_multihead_attention_backward(attention, ok)
   call test_multihead_attention_update_gradients(attention, ok)
   call test_multihead_attention_forward_reallife_shape(ok)
+  call test_multihead_attention_mask(ok)
   call test_self_attention(ok)
   call test_cross_attention(ok)
 
@@ -314,6 +315,72 @@ contains
       write(stderr, '(a)') 'incorrect output after parameters update.. failed'
     end if
   end subroutine test_multihead_attention_update_gradients
+
+  subroutine test_multihead_attention_mask(ok)
+    logical, intent(in out) :: ok
+    type(multihead_attention_layer) :: attention
+    real :: input(3, 4) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4])
+    real :: gradient(3, 4) = reshape([0.1, 3., 2., 0.1, 3., 3., 0.1, 2., 0.1, 3., 0.1, 3.], [3, 4])
+    real :: attention_mask(3, 3) = reshape([&
+        0., 0., 0.,&
+        0., 0., -100.,&
+        -100., 0., -100.&
+    ], [3, 3])
+    real :: output(3, 4)
+    real, volatile :: output_flat(12)
+    real, volatile :: attn_weights_flat(18)
+    real :: expected_output_flat(12) = [&
+        0.94935673, 1.0040786, 0.626,&
+        0.94935673, 1.0040786, 0.626,&
+        0.94935673, 1.0040786, 0.626,&
+        0.94935673, 1.0040786, 0.626&
+    ]
+    real :: expected_attn_weights_flat(18) = [&
+        0.149956360, 2.28110179E-02, 1.0,&
+        0.850043654, 0.464612424, 0.0,&
+        0.0, 0.512576580, 0.0,&
+        0.149956360, 2.28110179E-02, 1.0,&
+        0.850043654, 0.464612424, 0.0,&
+        0.0, 0.512576580, 0.0&
+    ]
+    real :: gradient_flat(12)
+    real :: expacted_gradient_flat(12) = [&
+        0.32137412, 0.30436403, 0.1854456,&
+        0.32137412, 0.30436403, 0.1854456,&
+        0.32137412, 0.30436403, 0.1854456,&
+        0.32137412, 0.30436403, 0.1854456&
+    ]
+
+    attention = multihead_attention_layer(n_heads=2)
+    call attention % init_base([3, 4])
+    call set_weights(attention)
+
+    call attention % common_forward(input, input, input, attention_mask=attention_mask)
+
+    output_flat = reshape(attention % output, shape(output_flat))
+    if (.not. allclose(output_flat, expected_output_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward w. attention mask returned incorrect values.. failed'
+    end if
+
+    attn_weights_flat = reshape(attention % attention_matrix, shape(attn_weights_flat))
+    if (.not. allclose(attn_weights_flat, expected_attn_weights_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'forward w. attention mask returned incorrect attention weights values.. failed'
+    end if
+
+    call attention % common_backward(input, gradient, attention_mask)
+    gradient_flat = reshape(&
+        attention % query_layer % gradient &
+        + attention % key_layer % gradient &
+        + attention % value_layer % gradient,&
+        [12]&
+    )
+    if (.not. allclose(gradient_flat, expacted_gradient_flat)) then
+      ok = .false.
+      write(stderr, '(a)') 'backward w. attention mask returned incorrect gradient values.. failed'
+    end if
+  end subroutine test_multihead_attention_mask
 
   subroutine test_self_attention(ok)
     logical, intent(in out) :: ok

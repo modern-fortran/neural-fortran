@@ -81,7 +81,7 @@ module nf_multihead_attention_layer
 
   interface
 
-    pure module subroutine common_backward(self, input, gradient)
+    pure module subroutine common_backward(self, input, gradient, attention_mask)
       !! General backprop for MultiHead Attention mechanism
       !! Might be used for both Self and Cross Attention
       !! Self Attention: sum output gradients
@@ -89,15 +89,17 @@ module nf_multihead_attention_layer
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: input(:, :)
       real, intent(in) :: gradient(:, :)
+      real, optional, intent(in) :: attention_mask(:, :)
     end subroutine common_backward
 
-    pure module subroutine common_forward(self, query, key, value)
+    pure module subroutine common_forward(self, query, key, value, attention_mask)
       !! General forward propagation for MultiHead Attention Mechanism
       !! Might be used for both Self and Cross Attention
       !! Self Attention: pass the same value thrice
       !! Cross Attention: pass three values for your query, key and value
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: query(:, :), key(:, :), value(:, :)
+      real, optional, intent(in) :: attention_mask(:, :)
     end subroutine common_forward
 
     pure module subroutine init(self, input_shape)
@@ -132,7 +134,7 @@ module nf_multihead_attention_layer
       !! Output dims: sequence_length, sequence_length, n_heads
       class(multihead_attention_layer), intent(in out) :: self
       !! (sequence_length, sequence_length, n_heads)
-      real, optional, intent(in) :: attention_mask(:, :, :)
+      real, optional, intent(in) :: attention_mask(:, :)
       !! (sequence_length, sequence_length, n_heads)
     end subroutine normalize_attention_matrix
 
