@@ -118,7 +118,7 @@ contains
 
     !--- Compute bias gradients: db(n) = sum_j gdz(n, j)
     do n = 1, self % filters
-       db_local(n) = sum(gdz(n, :))
+       db_local(n) = sum(gdz(n, :), dim=1)
     end do
 
     !--- Initialize weight gradient and input gradient accumulators.
