@@ -258,9 +258,9 @@ contains
     ! sample for Self Attention: sum of output gradients
     ! FIXME: remove reshapes when linear2d situation is resolved
     output = &
-        reshape(attention % query_layer % gradient, [attention % sequence_length, attention % model_dimension]) &
-        + reshape(attention % key_layer % gradient, [attention % sequence_length, attention % model_dimension]) &
-        + reshape(attention % value_layer % gradient, [attention % sequence_length, attention % model_dimension])
+        attention % query_layer % gradient &
+        + attention % key_layer % gradient &
+        + attention % value_layer % gradient
 
     output_shape = shape(output)
     if (.not. all(output_shape.eq.expected_shape)) then
