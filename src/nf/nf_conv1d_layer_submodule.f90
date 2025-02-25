@@ -59,12 +59,11 @@ contains
     class(conv1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
     integer :: input_channels, input_width
-    integer :: j, n, a, b
-    integer :: iws, iwe, half_window
+    integer :: j, n
+    integer :: iws, iwe
 
     input_channels = size(input, dim=1)
     input_width    = size(input, dim=2)
-    half_window = self % kernel_size / 2
 
     ! Loop over output positions.
     do j = 1, self % width
@@ -95,9 +94,8 @@ contains
     real, intent(in) :: gradient(:,:)
 
     integer :: input_channels, input_width, output_width
-    integer :: j, n, k, a, b, c
-    integer :: iws, iwe, half_window
-    real :: gdz_val
+    integer :: j, n, k
+    integer :: iws, iwe
 
     ! Local arrays to accumulate gradients.
     real :: gdz(self % filters, self % width)  ! local gradient (dL/dz)
@@ -108,8 +106,6 @@ contains
     input_channels = size(input, dim=1)
     input_width    = size(input, dim=2)
     output_width   = self % width    ! Note: output_width = input_width - kernel_size + 1
-
-    half_window = self % kernel_size / 2
 
     !--- Compute the local gradient gdz = (dL/dy) * sigma'(z) for each output.
     do j = 1, output_width
