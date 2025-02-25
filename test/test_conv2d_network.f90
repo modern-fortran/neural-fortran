@@ -6,7 +6,7 @@ program test_conv2d_network
   implicit none
 
   type(network) :: net
-  real, allocatable :: sample_input(:,:,:), output(:,:,:)
+  real, allocatable :: sample_input(:,:,:), output(:,:,:), o(:)
   logical :: ok = .true.
 
   ! 3-layer convolutional network
@@ -60,6 +60,8 @@ program test_conv2d_network
       call cnn % forward(sample_input)
       call cnn % backward(y)
       call cnn % update(optimizer=sgd(learning_rate=1.))
+      o = cnn % layers(2) % get_params()
+      print *, o
       if (all(abs(cnn % predict(sample_input) - y) < tolerance)) exit
     end do
 

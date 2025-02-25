@@ -195,11 +195,11 @@ contains
 
     real, pointer :: w_(:) => null()
 
-    w_(1:size(self % kernel)) => self % kernel
+    w_(1:size(self % z)) => self % z
 
     params = [ &
-      w_, &
-      self % biases &
+      w_ &
+      !self % biases &
     ]
 
   end function get_params

@@ -18,6 +18,7 @@ foreach(execid
   multihead_attention_layer
   dense_network
   get_set_network_params
+  conv1d_network
   conv2d_network
   optimizers
   loss

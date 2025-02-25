@@ -35,7 +35,7 @@ contains
     ! Kernel of shape: filters x channels x kernel_size
     allocate(self % kernel(self % filters, self % channels, self % kernel_size))
     call random_normal(self % kernel)
-    self % kernel = self % kernel / self % kernel_size**2
+    self % kernel = self % kernel / self % kernel_size
 
     allocate(self % biases(self % filters))
     self % biases = 0
@@ -124,7 +124,7 @@ contains
     !--- Initialize weight gradient and input gradient accumulators.
     dw_local = 0.0
     self % gradient = 0.0
-
+    
     !--- Accumulate gradients over each output position.
     ! In the forward pass the window for output index j was:
     !   iws = j,  iwe = j + kernel_size - 1.
@@ -157,8 +157,8 @@ contains
     class(conv1d_layer), intent(in), target :: self
     real, allocatable :: params(:)
     real, pointer :: w_(:) => null()
-    w_(1:size(self % kernel)) => self % kernel
-    params = [ w_, self % biases ]
+    w_(1:size(self % z)) => self % z
+    params = [ w_]
   end function get_params
 
   module function get_gradients(self) result(gradients)
