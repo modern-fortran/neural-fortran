@@ -59,7 +59,7 @@ contains
     class(conv1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
     integer :: input_channels, input_width
-    integer :: j, n
+    integer :: j, n, a, b
     integer :: iws, iwe, half_window
 
     input_channels = size(input, dim=1)
@@ -95,7 +95,7 @@ contains
     real, intent(in) :: gradient(:,:)
 
     integer :: input_channels, input_width, output_width
-    integer :: j, n, k
+    integer :: j, n, k, a, b, c
     integer :: iws, iwe, half_window
     real :: gdz_val
 

@@ -460,7 +460,6 @@ contains
 
   end function get_num_params
 
-
   module function get_params(self) result(params)
     class(network), intent(in) :: self
     real, allocatable :: params(:)
@@ -479,7 +478,6 @@ contains
     end do
 
   end function get_params
-
 
   module function get_gradients(self) result(gradients)
     class(network), intent(in) :: self
@@ -640,6 +638,12 @@ contains
         type is(conv2d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
+        type is(conv1d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
+        type is(locally_connected_1d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
       end select
     end do
 #endif
@@ -655,6 +659,12 @@ contains
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv2d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(conv1d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(locally_connected_1d_layer)
           this_layer % dw = 0
           this_layer % db = 0
       end select

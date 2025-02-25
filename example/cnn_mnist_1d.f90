@@ -1,7 +1,7 @@
 program cnn_mnist_1d
 
     use nf, only: network, sgd, &
-      input, conv1d, conv2d, maxpool1d, maxpool2d, flatten, dense, reshape, reshape2d, locally_connected_1d, &
+      input, conv1d, maxpool1d, flatten, dense, reshape, reshape2d, locally_connected_1d, &
       load_mnist, label_digits, softmax, relu
   
     implicit none
@@ -12,7 +12,7 @@ program cnn_mnist_1d
     real, allocatable :: validation_images(:,:), validation_labels(:)
     real, allocatable :: testing_images(:,:), testing_labels(:)
     integer :: n
-    integer, parameter :: num_epochs = 25
+    integer, parameter :: num_epochs = 250
   
     call load_mnist(training_images, training_labels, &
                     validation_images, validation_labels, &
@@ -37,7 +37,7 @@ program cnn_mnist_1d
         label_digits(training_labels), &
         batch_size=16, &
         epochs=1, &
-        optimizer=sgd(learning_rate=0.005) &
+        optimizer=sgd(learning_rate=0.01) &
       )
   
       print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', accuracy( &

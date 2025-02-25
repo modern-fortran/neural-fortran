@@ -60,8 +60,7 @@ program test_conv1d_network
         call cnn % forward(sample_input)
         call cnn % backward(y)
         call cnn % update(optimizer=sgd(learning_rate=1.))
-        o = cnn % layers(2) % get_params()
-        print *, o
+
         if (all(abs(cnn % predict(sample_input) - y) < tolerance)) exit
       end do
   
