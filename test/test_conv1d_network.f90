@@ -6,7 +6,7 @@ program test_conv1d_network
     implicit none
   
     type(network) :: net
-    real, allocatable :: sample_input(:,:), output(:,:), o(:)
+    real, allocatable :: sample_input(:,:), output(:,:)
     logical :: ok = .true.
   
     ! 3-layer convolutional network
