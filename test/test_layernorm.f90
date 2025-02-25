@@ -183,9 +183,7 @@ contains
       call net % update(optimizer=sgd(learning_rate=0.001))
       if (all(abs(net % predict(x) - y) < tolerance)) exit
     end do
-    print *, abs(net % predict(x) - y)
 
-    print *, epoch
     if (.not. epoch <= epochs) then
       write(stderr, '(a)') &
         'linear2d + layernorm should converge in simple training.. failed'

@@ -28,6 +28,10 @@ module nf_layernorm_layer
 
     real, allocatable :: output(:, :)
 
+    ! temp storages
+    real, allocatable, private :: normalized(:, :)
+    real, allocatable, private :: one_over_sigma(:, :)
+    real, allocatable, private :: gradient_by_gamma_over_sigma(:, :)
   contains
     procedure :: forward
     procedure :: backward

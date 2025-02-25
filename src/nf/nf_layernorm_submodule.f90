@@ -11,10 +11,7 @@ contains
   pure module subroutine forward(self, input)
     class(layernorm_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
-    real, allocatable :: normalized(:, :)
     integer :: i
-
-    allocate(normalized, mold=self % mu)
 
     ! mu = x - MEAN_last_dim(x)
     do concurrent(i = 1: self % model_dimension)
@@ -26,35 +23,28 @@ contains
 
     ! normalize mu by variance by first axis
     do concurrent(i = 1: self % model_dimension)
-      normalized(:, i) = self % mu(:, i) / self % sigma
+      self % normalized(:, i) = self % mu(:, i) / self % sigma
     end do
 
     ! forward through trainable params gamma and beta
     do concurrent(i = 1: self % sequence_length)
-      self % output(i, :) = normalized(i, :) * self % gamma + self % beta
+      self % output(i, :) = self % normalized(i, :) * self % gamma + self % beta
     end do
-
-    deallocate(normalized)
   end subroutine forward
 
   pure module subroutine backward(self, input, gradient)
     class(layernorm_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
     real, intent(in) :: gradient(:, :)
-    real, allocatable :: one_over_sigma(:, :)
-    real, allocatable :: gradient_by_gamma_over_sigma(:, :)
 
-    allocate(one_over_sigma(self % sequence_length, self % model_dimension))
-    allocate(gradient_by_gamma_over_sigma(self % sequence_length, self % model_dimension))
-
-    one_over_sigma = (1 / spread(self % sigma, dim=2, ncopies=self % model_dimension))
-    gradient_by_gamma_over_sigma = &
+    self % one_over_sigma = (1 / spread(self % sigma, dim=2, ncopies=self % model_dimension))
+    self % gradient_by_gamma_over_sigma = &
         gradient &
         * spread(self % gamma, dim=1, ncopies=self % sequence_length) &
-        * one_over_sigma
+        * self % one_over_sigma
 
     ! d_output/d_gamma = sum(d_output/d_y * mu/sigma)
-    self % d_gamma = sum(gradient * self % mu * one_over_sigma, dim=1)
+    self % d_gamma = sum(gradient * self % mu * self % one_over_sigma, dim=1)
 
     ! d_output/d_beta = sum(d_output/d_y) * 1
     self % d_beta = sum(gradient, dim=1)
@@ -66,20 +56,17 @@ contains
     !     - sum(d_output/d_y * gamma/sigma) / len
     !     - mu * sum(d_output/d_y * gamma * mu * sigma^(03)) / len
     self % gradient = &
-        gradient_by_gamma_over_sigma &
+        self % gradient_by_gamma_over_sigma &
         - spread(&
-            sum(gradient_by_gamma_over_sigma, dim=2),&
+            sum(self % gradient_by_gamma_over_sigma, dim=2),&
             dim=2,&
             ncopies=self % model_dimension&
           ) / self % model_dimension &
         - self % mu * spread(&
-            sum(gradient_by_gamma_over_sigma * self % mu * (one_over_sigma ** 2), dim=2),&
+            sum(self % gradient_by_gamma_over_sigma * self % mu * (self % one_over_sigma ** 2), dim=2),&
             dim=2,&
             ncopies=self % model_dimension&
           ) / self % model_dimension
-
-    deallocate(one_over_sigma)
-    deallocate(gradient_by_gamma_over_sigma)
   end subroutine backward
 
   module subroutine init(self, input_shape)
@@ -106,6 +93,10 @@ contains
     allocate(self % sigma(self % sequence_length))
 
     allocate(self % output(self % sequence_length, self % model_dimension))
+
+    allocate(self % normalized, mold=self % mu)
+    allocate(self % one_over_sigma, mold=self % mu)
+    allocate(self % gradient_by_gamma_over_sigma, mold=self % mu)
   end subroutine init
 
   pure module function get_num_params(self) result(num_params)
