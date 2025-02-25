@@ -1,20 +1,23 @@
-program test_layernorm
+program test_layernorm_instance
   use iso_fortran_env, only: stderr => error_unit
   use nf_layernorm_layer, only: layernorm_layer
-  use nf, only: sgd
+  use nf_linear2d_layer, only: linear2d_layer
+  use nf_layer, only: layer
+  use nf, only: sgd, layernorm, network, input, flatten, linear2d
   implicit none
 
   logical :: ok = .true.
-  type(layernorm_layer) :: layernorm
+  type(layernorm_layer) :: layernorm_instance
   real :: sample_input(3, 4) = reshape([0.0, 10.1, 0.2, 10.3, 0.4, 10.5, 0.6, 10.7, 10.8, 0.9, 0.11, 0.12], [3, 4])
   real :: sample_gradient(3, 4) = reshape([0.1, 3., 2., 0.1, 3., 3., 0.1, 2., 0.1, 3., 0.1, 3.], [3, 4])
 
-  layernorm = layernorm_layer()
-  call layernorm % init([3, 4])
+  layernorm_instance = layernorm_layer()
+  call layernorm_instance % init([3, 4])
 
-  call test_layernorm_forward(layernorm, sample_input, ok)
-  call test_layernorm_backward(layernorm, sample_input, sample_gradient, ok)
+  call test_layernorm_forward(layernorm_instance, sample_input, ok)
+  call test_layernorm_backward(layernorm_instance, sample_input, sample_gradient, ok)
   call test_layernorm_gradients(sample_input, sample_gradient, ok)
+  call test_layernorm_integration(ok)
 
   if (ok) then
     print '(a)', 'test_layernorm_layer: All tests passed.'
@@ -32,8 +35,8 @@ contains
     res = all(abs(x - y) <= (1e-06 + 1e-05 * abs(y)))
   end function allclose
 
-  subroutine test_layernorm_forward(layernorm, input, ok)
-    type(layernorm_layer), intent(in out) :: layernorm
+  subroutine test_layernorm_forward(layernorm_instance, input, ok)
+    type(layernorm_layer), intent(in out) :: layernorm_instance
     real, intent(in out) :: input(:, :)
     logical, intent(in out) :: ok
     real :: output_shape(2)
@@ -44,22 +47,22 @@ contains
         -0.552177250, 1.05800152, 1.02837324, -0.481686622, -1.02747762, -1.00740564&
     ]
 
-    call layernorm % forward(input)
+    call layernorm_instance % forward(input)
 
-    output_shape = shape(layernorm % output)
+    output_shape = shape(layernorm_instance % output)
     if (.not. all(output_shape.eq.expected_shape)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect shape.. failed'
     end if
-    output_flat = reshape(layernorm % output, shape(output_flat))
+    output_flat = reshape(layernorm_instance % output, shape(output_flat))
     if (.not. allclose(output_flat, expected_output_flat)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
     end if
   end subroutine test_layernorm_forward
 
-  subroutine test_layernorm_backward(layernorm, input, gradient, ok)
-    type(layernorm_layer), intent(in out) :: layernorm
+  subroutine test_layernorm_backward(layernorm_instance, input, gradient, ok)
+    type(layernorm_layer), intent(in out) :: layernorm_instance
     real, intent(in out) :: input(:, :)
     real, intent(in out) :: gradient(:, :)
     logical, intent(in out) :: ok
@@ -77,24 +80,24 @@ contains
     real :: d_beta(4)
     real :: expected_d_beta(4) = [5.1, 6.1, 2.2, 6.1]
 
-    call layernorm % backward(input, gradient)
+    call layernorm_instance % backward(input, gradient)
 
-    gradient_shape = shape(layernorm % gradient)
+    gradient_shape = shape(layernorm_instance % gradient)
     if (.not. all(gradient_shape.eq.expected_gradient_shape)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect gradient shape.. failed'
     end if
-    gradient_flat = reshape(layernorm % gradient, shape(gradient_flat))
+    gradient_flat = reshape(layernorm_instance % gradient, shape(gradient_flat))
     if (.not. allclose(gradient_flat, expected_gradient_flat)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect gradient values.. failed'
     end if
 
-    if (.not. allclose(layernorm % d_gamma, expected_d_gamma)) then
+    if (.not. allclose(layernorm_instance % d_gamma, expected_d_gamma)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect d_gamma values.. failed'
     end if
-    if (.not. allclose(layernorm % d_beta, expected_d_beta)) then
+    if (.not. allclose(layernorm_instance % d_beta, expected_d_beta)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect d_beta values.. failed'
     end if
@@ -104,7 +107,7 @@ contains
     real, intent(in out) :: input(:, :)
     real, intent(in out) :: gradient(:, :)
     logical, intent(in out) :: ok
-    type(layernorm_layer) :: layernorm
+    type(layernorm_layer) :: layernorm_instance
     type(sgd) :: optim
 
     real :: parameters(8)
@@ -117,35 +120,76 @@ contains
         -0.564699769, -1.13543355, -1.11444426&
     ]
 
-    layernorm = layernorm_layer()
-    call layernorm % init([3, 4])
+    layernorm_instance = layernorm_layer()
+    call layernorm_instance % init([3, 4])
 
-    call layernorm % forward(input)
-    call layernorm % backward(input, gradient)
+    call layernorm_instance % forward(input)
+    call layernorm_instance % backward(input, gradient)
 
-    if (layernorm % get_num_params() /= 8) then
+    if (layernorm_instance % get_num_params() /= 8) then
       ok = .false.
       write(stderr, '(a)') 'incorrect number of parameters.. failed'
     end if
 
     expected_parameters(1: 4) = 1.
     expected_parameters(5: 8) = 0.
-    parameters = layernorm % get_params()
+    parameters = layernorm_instance % get_params()
     if (.not. all(parameters.eq.expected_parameters)) then
       ok = .false.
       write(stderr, '(a)') 'incorrect parameters.. failed'
     end if
 
     optim = SGD(learning_rate=0.01)
-    call optim % minimize(parameters, layernorm % get_gradients())
-    call layernorm % set_params(parameters)
+    call optim % minimize(parameters, layernorm_instance % get_gradients())
+    call layernorm_instance % set_params(parameters)
 
-    call layernorm % forward(input)
+    call layernorm_instance % forward(input)
 
-    updated_output = reshape(layernorm % output, [12])
+    updated_output = reshape(layernorm_instance % output, [12])
     if (.not. allclose(updated_output, expected_updated_output)) then
       ok = .false.
       write(stderr, '(a)') 'incorrect output after parameters update.. failed'
     end if
   end subroutine test_layernorm_gradients
-end program test_layernorm
+
+  subroutine test_layernorm_integration(ok)
+    logical, intent(in out) :: ok
+
+    type(network) :: net
+    real :: x(2, 3) = reshape([0.1, 2., 0.3, 4., 0.5, 6.], [2, 3])
+    real :: y(6) = [0.7, 0.2, 0.1, 0.1, 0.01, 0.9]
+    real :: tolerance = 0.1
+    integer :: epoch
+    integer :: epochs = 10000
+
+    net = network([&
+        input(2, 3),&
+        linear2d(3),&
+        layernorm(),&
+        flatten()&
+    ])
+
+    ! Kaiming weights to achieve semblance of convergance
+    select type(l => net % layers(2) % p)
+      type is(linear2d_layer)
+      call random_number(l % weights)
+      l % weights = l % weights * sqrt(2. / 6.)
+      l % biases = 0.2
+    end select
+
+    do epoch = 1, epochs
+      call net % forward(x)
+      call net % backward(y)
+      call net % update(optimizer=sgd(learning_rate=0.001))
+      if (all(abs(net % predict(x) - y) < tolerance)) exit
+    end do
+    print *, abs(net % predict(x) - y)
+
+    print *, epoch
+    if (.not. epoch <= epochs) then
+      write(stderr, '(a)') &
+        'linear2d + layernorm should converge in simple training.. failed'
+      ok = .false.
+    end if
+  end subroutine test_layernorm_integration
+end program test_layernorm_instance
