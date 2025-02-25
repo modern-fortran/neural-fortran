@@ -187,7 +187,7 @@ contains
   end function get_num_params
 
   module function get_params(self) result(params)
-    class(multihead_attention_layer), intent(in), target :: self
+    class(multihead_attention_layer), intent(in) :: self
     real, allocatable :: params(:)
 
     params = [&
@@ -203,7 +203,7 @@ contains
   end function get_params
 
   module function get_gradients(self) result(gradients)
-    class(multihead_attention_layer), intent(in), target :: self
+    class(multihead_attention_layer), intent(in) :: self
     real, allocatable :: gradients(:)
 
     gradients = [ &
@@ -220,8 +220,7 @@ contains
 
   module subroutine set_params(self, params)
     class(multihead_attention_layer), intent(in out) :: self
-    real, intent(in), target :: params(:)
-    real, pointer :: p_(:,:) => null()
+    real, intent(in) :: params(:)
     integer :: i, j, window
 
     ! check if the number of parameters is correct

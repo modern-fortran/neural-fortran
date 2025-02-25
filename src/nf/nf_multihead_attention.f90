@@ -158,18 +158,18 @@ module nf_multihead_attention_layer
     end function get_num_params
 
     module function get_params(self) result(params)
-      class(multihead_attention_layer), intent(in), target :: self
+      class(multihead_attention_layer), intent(in) :: self
       real, allocatable :: params(:)
     end function get_params
 
     module function get_gradients(self) result(gradients)
-      class(multihead_attention_layer), intent(in), target :: self
+      class(multihead_attention_layer), intent(in) :: self
       real, allocatable :: gradients(:)
     end function get_gradients
 
     module subroutine set_params(self, params)
       class(multihead_attention_layer), intent(in out) :: self
-      real, intent(in), target :: params(:)
+      real, intent(in) :: params(:)
     end subroutine set_params
 
     module subroutine init_base(self, input_shape)

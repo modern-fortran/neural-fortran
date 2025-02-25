@@ -256,7 +256,6 @@ contains
     call attention % common_backward(input, gradient)
 
     ! sample for Self Attention: sum of output gradients
-    ! FIXME: remove reshapes when linear2d situation is resolved
     output = &
         attention % query_layer % gradient &
         + attention % key_layer % gradient &
