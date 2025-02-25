@@ -131,11 +131,7 @@ contains
   pure module subroutine normalize_attention_matrix(self, attention_mask)
     class(multihead_attention_layer), intent(in out) :: self
     real, optional, intent(in) :: attention_mask(:, :, :)
-    real, allocatable :: output(:, :, :)
     integer :: head, seq
-
-    ! temporary storage
-    allocate(output(self % sequence_length, self % sequence_length, self % n_heads))
 
     ! scale dowm by square root of each head's size
     self % attention_matrix = self % attention_matrix * self % scaling_factor
@@ -145,11 +141,9 @@ contains
     end if
     ! softmax by last sequnce_length
     do concurrent(head = 1: self % n_heads, seq = 1: self % sequence_length)
-      output(seq, :, head) = self % softmax_func % eval_1d(self % attention_matrix(seq, :, head))
+      self % normalized_attention(seq, :, head) = self % softmax_func % eval_1d(self % attention_matrix(seq, :, head))
     end do
-    self % attention_matrix = output
-
-    deallocate(output)
+    self % attention_matrix = self % normalized_attention
   end subroutine normalize_attention_matrix
 
   pure module subroutine scaled_dot_product_attention(self, value)
@@ -295,6 +289,10 @@ contains
     allocate(self % o_input, mold=self % output)
 
     ! allocate temporary storages
+
+    ! this one is for forward pass
+    allocate(self % normalized_attention, mold=self % attention_matrix)
+
     ! the following three are used twice:
     ! Forward pass: As inputs after the corresponding linear layer and head reshape
     ! Backward pass: As deltas for each input array

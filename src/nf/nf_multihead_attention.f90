@@ -41,6 +41,7 @@ module nf_multihead_attention_layer
     real, allocatable :: o_input(:, :)
 
     ! temporary storages for forward and backward passes
+    real, allocatable, private :: normalized_attention(:, :, :)
     real, allocatable, private :: q_or_dq(:, :, :)
     real, allocatable, private :: k_or_dk(:, :, :)
     real, allocatable, private :: v_or_dv(:, :, :)
