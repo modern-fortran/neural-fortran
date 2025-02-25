@@ -1,5 +1,4 @@
 submodule(nf_multihead_attention_layer) nf_multihead_attention_layer_submodule
-!  use iso_fortran_env, only: stderr => error_unit
   use nf_activation, only: softmax
   use nf_base_layer, only: base_layer
   use nf_linear2d_layer, only: linear2d_layer
@@ -19,46 +18,26 @@ contains
     real, intent(in) :: input(:, :)
     real, intent(in) :: gradient(:, :)
 
-    real, allocatable :: d_output(:, :, :)
-    real, allocatable :: v_heads(:, :, :)
-    real, allocatable :: k_heads(:, :, :)
-    real, allocatable :: q_heads(:, :, :)
-    real, allocatable :: dv(:, :, :)
-    real, allocatable :: d_sdpa(:, :)
-    real, allocatable :: jacobian(:, :)
-    real, allocatable :: d_normalize(:, :, :)
-    real, allocatable :: dq(:, :, :)
-    real, allocatable :: dk(:, :, :)
     integer :: head, seq, i, j
-
-    ! allocate temporary storages for backward computation
-    allocate(d_output(self % sequence_length, self % head_size, self % n_heads))
-    allocate(v_heads(self % sequence_length, self % head_size, self % n_heads))
-    allocate(k_heads(self % sequence_length, self % head_size, self % n_heads))
-    allocate(q_heads(self % sequence_length, self % head_size, self % n_heads))
-
-    allocate(dv(self % sequence_length, self % head_size, self % n_heads))
-    allocate(d_sdpa(self % sequence_length, self % sequence_length))
-    allocate(jacobian(self % sequence_length, self % sequence_length))
-    allocate(d_normalize(self % sequence_length, self % sequence_length, self % n_heads))
-    allocate(dq(self % sequence_length, self % head_size, self % n_heads))
-    allocate(dk(self % sequence_length, self % head_size, self % n_heads))
 
     ! calculate output layer delta
     call self % output_layer % backward(self % o_input, gradient)
 
     ! split heads from output gradient
-    d_output = self % split_heads(self % output_layer % gradient)
-    v_heads = self % split_heads(self % value_layer % output)
-    k_heads = self % split_heads(self % key_layer % output)
-    q_heads = self % split_heads(self % query_layer % output)
+    self % d_output = self % split_heads(self % output_layer % gradient)
+    self % v_heads = self % split_heads(self % value_layer % output)
+    self % k_heads = self % split_heads(self % key_layer % output)
+    self % q_heads = self % split_heads(self % query_layer % output)
 
     ! iterate over heads to calculate deltas for each of them
     do concurrent(head = 1: self % n_heads)
-      dv(:, :, head) = matmul(transpose(self % attention_matrix(:, :, head)), d_output(:, :, head))
+      self % v_or_dv(:, :, head) = matmul(&
+          transpose(self % attention_matrix(:, :, head)),&
+          self % d_output(:, :, head)&
+      )
 
       ! calculate delta for attention matrix
-      d_sdpa = matmul(d_output(:, :, head), transpose(v_heads(:, :, head)))
+      self % d_sdpa = matmul(self % d_output(:, :, head), transpose(self % v_heads(:, :, head)))
 
       ! this monstrosity below is scaled derivative of softmax
       do concurrent(seq = 1: self % sequence_length)
@@ -69,11 +48,11 @@ contains
           ! should be: `softmax(x_i) * (1 - softmax(x_i))`
           ! for off-diagonal: `-softmax(x_i) * softmax(x_j)`
           if (i == j) then
-            jacobian(i, j) = &
+            self % jacobian(i, j) = &
                 self % attention_matrix(seq, i, head) &
                 * (1 - self % attention_matrix(seq, i, head))
           else
-            jacobian(i, j) = &
+            self % jacobian(i, j) = &
                 - self % attention_matrix(seq, i, head) &
                 * self % attention_matrix(seq, j, head)
           end if
@@ -82,48 +61,28 @@ contains
         ! multiply output of softmax by temp jacobian matrix
         ! For computational efficiency (avoid more temp storages), scaling is also done here
         ! reshapes: [3] -> [1, 3] @ [3, 3] = [1, 3] -> [3]
-        d_normalize(seq, :, head) = reshape(matmul(&
-            reshape(d_sdpa(seq, :), [1, self % sequence_length]),&
-            jacobian * self % scaling_factor&
+        self % d_normalize(seq, :, head) = reshape(matmul(&
+            reshape(self % d_sdpa(seq, :), [1, self % sequence_length]),&
+            self % jacobian * self % scaling_factor&
         ), [self % sequence_length])
       end do
 
       ! calculate delta for query
-      dq(:, :, head) = matmul(d_normalize(:, :, head), k_heads(:, :, head))
+      self % q_or_dq(:, :, head) = matmul(self % d_normalize(:, :, head), self % k_heads(:, :, head))
 
       ! calculate delta for key, attention matrix should be transposed unlike for query
-      dk(:, :, head) = matmul(transpose(d_normalize(:, :, head)), q_heads(:, :, head))
+      self % k_or_dk(:, :, head) = matmul(transpose(self % d_normalize(:, :, head)), self % q_heads(:, :, head))
     end do
 
     ! calculate deltas for input layers
-    call self % value_layer % backward(self % v_input, self % combine_heads(dv))
-    call self % key_layer % backward(self % k_input, self % combine_heads(dk))
-    call self % query_layer % backward(self % q_input, self % combine_heads(dq))
-
-    ! free temporary storages
-    deallocate(d_output)
-    deallocate(v_heads)
-    deallocate(k_heads)
-    deallocate(q_heads)
-    deallocate(d_sdpa)
-    deallocate(jacobian)
-    deallocate(d_normalize)
-    deallocate(dq)
-    deallocate(dk)
+    call self % value_layer % backward(self % v_input, self % combine_heads(self % v_or_dv))
+    call self % key_layer % backward(self % k_input, self % combine_heads(self % k_or_dk))
+    call self % query_layer % backward(self % q_input, self % combine_heads(self % q_or_dq))
   end subroutine common_backward
 
   pure module subroutine common_forward(self, query, key, value)
     class(multihead_attention_layer), intent(in out) :: self
     real, intent(in) :: query(:, :), key(:, :), value(:, :)
-
-    real, allocatable :: q(:, :, :)
-    real, allocatable :: k(:, :, :)
-    real, allocatable :: v(:, :, :)
-
-    ! allocate storage for intermidiate stages
-    allocate(q(self % sequence_length, self % head_size, self % n_heads))
-    allocate(k(self % sequence_length, self % head_size, self % n_heads))
-    allocate(v(self % sequence_length, self % head_size, self % n_heads))
 
     self % q_input = query
     self % k_input = key
@@ -135,25 +94,20 @@ contains
     call self % value_layer % forward(value)
 
     ! split attention heads for more efficient computation
-    q = self % split_heads(self % query_layer % output)
-    k = self % split_heads(self % key_layer % output)
-    v = self % split_heads(self % value_layer % output)
+    self % q_or_dq = self % split_heads(self % query_layer % output)
+    self % k_or_dk = self % split_heads(self % key_layer % output)
+    self % v_or_dv = self % split_heads(self % value_layer % output)
 
     ! create key by value matrix
-    call self % create_attention_matrix(q, k)
+    call self % create_attention_matrix(self % q_or_dq, self % k_or_dk)
     ! apply softmax and scaling
     call self % normalize_attention_matrix()
     ! multiply attention matrix by value
-    call self % scaled_dot_product_attention(v)
+    call self % scaled_dot_product_attention(self % v_or_dv)
 
     self % o_input = self % combine_heads(self % sdpa)
     call self % output_layer % forward(self % o_input)
     self % output = self % output_layer % output
-
-    ! free temp vars from memory
-    deallocate(q)
-    deallocate(k)
-    deallocate(v)
   end subroutine common_forward
 
   pure module function split_heads(self, input) result(output)
@@ -335,9 +289,26 @@ contains
 
     self % scaling_factor = sqrt(1 / real(self % head_size))
 
-    allocate(self % q_input(self % sequence_length, self % model_dimension))
-    allocate(self % k_input(self % sequence_length, self % model_dimension))
-    allocate(self % v_input(self % sequence_length, self % model_dimension))
-    allocate(self % o_input(self % sequence_length, self % model_dimension))
+    allocate(self % q_input, mold=self % output)
+    allocate(self % k_input, mold=self % output)
+    allocate(self % v_input, mold=self % output)
+    allocate(self % o_input, mold=self % output)
+
+    ! allocate temporary storages
+    ! the following three are used twice:
+    ! Forward pass: As inputs after the corresponding linear layer and head reshape
+    ! Backward pass: As deltas for each input array
+    allocate(self % q_or_dq, mold=self % sdpa)
+    allocate(self % k_or_dk, mold=self % sdpa)
+    allocate(self % v_or_dv, mold=self % sdpa)
+
+    ! the other seven below are for backward pass
+    allocate(self % d_output, mold=self % sdpa)
+    allocate(self % v_heads, mold=self % sdpa)
+    allocate(self % k_heads, mold=self % sdpa)
+    allocate(self % q_heads, mold=self % sdpa)
+    allocate(self % d_sdpa(self % sequence_length, self % sequence_length))
+    allocate(self % jacobian, mold=self % d_sdpa)
+    allocate(self % d_normalize, mold=self % attention_matrix)
   end subroutine init_base
 end submodule nf_multihead_attention_layer_submodule
