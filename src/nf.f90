@@ -11,7 +11,8 @@ module nf
     linear2d, &
     maxpool2d, &
     reshape, &
-    self_attention
+    self_attention, &
+    layernorm
   use nf_loss, only: mse, quadratic
   use nf_metrics, only: corr, maxabs
   use nf_network, only: network
