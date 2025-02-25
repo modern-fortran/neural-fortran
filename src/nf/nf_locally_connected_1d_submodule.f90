@@ -65,7 +65,7 @@ contains
     do j = 1, self % width
       iws = j
       iwe = j + self % kernel_size - 1
-      do concurrent (n = 1:self % filters)
+      do n = 1, self % filters
         self % z(n, j) = sum(self % kernel(n, j, :, :) * input(:, iws:iwe)) + self % biases(n, j)
       end do
     end do
@@ -125,13 +125,13 @@ contains
   module function get_params(self) result(params)
     class(locally_connected_1d_layer), intent(in), target :: self
     real, allocatable :: params(:)
-    params = [reshape(self % kernel, [size(self % kernel)]), reshape(self % biases, [size(self % biases)])]
+    params = [self % kernel, self % biases]
   end function get_params
 
   module function get_gradients(self) result(gradients)
     class(locally_connected_1d_layer), intent(in), target :: self
     real, allocatable :: gradients(:)
-    gradients = [reshape(self % dw, [size(self % dw)]), reshape(self % db, [size(self % db)])]
+    gradients = [self % dw, self % db]
   end function get_gradients
 
   module subroutine set_params(self, params)
