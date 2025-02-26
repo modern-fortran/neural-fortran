@@ -56,6 +56,8 @@ module nf_multihead_attention_layer
 
     procedure :: common_backward
     procedure :: common_forward
+    procedure :: sdpa_forward
+    procedure :: sdpa_backward
     procedure :: get_num_params
     procedure :: get_params
     procedure :: get_gradients
@@ -101,6 +103,17 @@ module nf_multihead_attention_layer
       real, intent(in) :: query(:, :), key(:, :), value(:, :)
       real, optional, intent(in) :: attention_mask(:, :)
     end subroutine common_forward
+
+    pure module subroutine sdpa_forward(self, attention_mask)
+      class(multihead_attention_layer), intent(in out) :: self
+      real, intent(in), optional :: attention_mask(:, :)
+    end subroutine sdpa_forward
+
+    pure module subroutine sdpa_backward(self, gradient, attention_mask)
+      class(multihead_attention_layer), intent(in out) :: self
+      real, intent(in) :: gradient(:, :)
+      real, intent(in), optional :: attention_mask(:, :)
+    end subroutine sdpa_backward
 
     pure module subroutine init(self, input_shape)
       !! Initialize the layer data structures.

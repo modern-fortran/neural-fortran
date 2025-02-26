@@ -21,6 +21,60 @@ contains
 
     integer :: head, seq, i, j
 
+    ! bakward through attention mechanism
+    call self % sdpa_backward(gradient, attention_mask)
+
+    ! calculate deltas for input layers
+    call self % value_layer % backward(self % v_input, self % combine_heads(self % v_or_dv))
+    call self % key_layer % backward(self % k_input, self % combine_heads(self % k_or_dk))
+    call self % query_layer % backward(self % q_input, self % combine_heads(self % q_or_dq))
+  end subroutine common_backward
+
+  pure module subroutine common_forward(self, query, key, value, attention_mask)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, intent(in) :: query(:, :), key(:, :), value(:, :)
+    real, intent(in), optional :: attention_mask(:, :)
+
+    self % q_input = query
+    self % k_input = key
+    self % v_input = value
+
+    ! run inputs through linear layers (trainable params)
+    call self % query_layer % forward(query)
+    call self % key_layer % forward(key)
+    call self % value_layer % forward(value)
+
+    ! split attention heads for more efficient computation
+    self % q_or_dq = self % split_heads(self % query_layer % output)
+    self % k_or_dk = self % split_heads(self % key_layer % output)
+    self % v_or_dv = self % split_heads(self % value_layer % output)
+
+    call self % sdpa_forward(attention_mask)
+  end subroutine common_forward
+
+  pure module subroutine sdpa_forward(self, attention_mask)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, intent(in), optional :: attention_mask(:, :)
+
+    ! create key by value matrix
+    call self % create_attention_matrix(self % q_or_dq, self % k_or_dk)
+    ! apply softmax and scaling
+    call self % normalize_attention_matrix(attention_mask)
+    ! multiply attention matrix by value
+    call self % scaled_dot_product_attention(self % v_or_dv)
+
+    self % o_input = self % combine_heads(self % sdpa)
+    call self % output_layer % forward(self % o_input)
+    self % output = self % output_layer % output
+  end subroutine sdpa_forward
+
+  pure module subroutine sdpa_backward(self, gradient, attention_mask)
+    class(multihead_attention_layer), intent(in out) :: self
+    real, intent(in) :: gradient(:, :)
+    real, intent(in), optional :: attention_mask(:, :)
+
+    integer :: head, seq, i, j
+
     ! calculate output layer delta
     call self % output_layer % backward(self % o_input, gradient)
 
@@ -78,43 +132,7 @@ contains
       ! calculate delta for key, attention matrix should be transposed unlike for query
       self % k_or_dk(:, :, head) = matmul(transpose(self % d_normalize(:, :, head)), self % q_heads(:, :, head))
     end do
-
-    ! calculate deltas for input layers
-    call self % value_layer % backward(self % v_input, self % combine_heads(self % v_or_dv))
-    call self % key_layer % backward(self % k_input, self % combine_heads(self % k_or_dk))
-    call self % query_layer % backward(self % q_input, self % combine_heads(self % q_or_dq))
-  end subroutine common_backward
-
-  pure module subroutine common_forward(self, query, key, value, attention_mask)
-    class(multihead_attention_layer), intent(in out) :: self
-    real, intent(in) :: query(:, :), key(:, :), value(:, :)
-    real, intent(in), optional :: attention_mask(:, :)
-
-    self % q_input = query
-    self % k_input = key
-    self % v_input = value
-
-    ! run inputs through linear layers (trainable params)
-    call self % query_layer % forward(query)
-    call self % key_layer % forward(key)
-    call self % value_layer % forward(value)
-
-    ! split attention heads for more efficient computation
-    self % q_or_dq = self % split_heads(self % query_layer % output)
-    self % k_or_dk = self % split_heads(self % key_layer % output)
-    self % v_or_dv = self % split_heads(self % value_layer % output)
-
-    ! create key by value matrix
-    call self % create_attention_matrix(self % q_or_dq, self % k_or_dk)
-    ! apply softmax and scaling
-    call self % normalize_attention_matrix(attention_mask)
-    ! multiply attention matrix by value
-    call self % scaled_dot_product_attention(self % v_or_dv)
-
-    self % o_input = self % combine_heads(self % sdpa)
-    call self % output_layer % forward(self % o_input)
-    self % output = self % output_layer % output
-  end subroutine common_forward
+  end subroutine sdpa_backward
 
   pure module function split_heads(self, input) result(output)
     class(multihead_attention_layer), intent(in) :: self
