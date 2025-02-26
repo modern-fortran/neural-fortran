@@ -34,8 +34,9 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Dropout | `dropout` | `dense`, `flatten`, `input1d` | 1 | ✅ | ✅ |
 | Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅(*) |
 | Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
-| Linear (2-d) | `linear2d` | `input2d`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
-| Self-attention | `self_attention` | `input2d`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
+| Linear (2-d) | `linear2d` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
+| Self-attention | `self_attention` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
+| Layer Normalization | `layernorm` | `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Flatten | `flatten` | `input2d`, `input3d`, `conv2d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
 | Reshape (1-d to 3-d) | `reshape` | `input1d`, `dense`, `flatten` | 3 | ✅ | ✅ |
 
