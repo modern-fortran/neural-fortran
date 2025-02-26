@@ -41,17 +41,17 @@ module nf_multihead_attention_layer
     real, allocatable :: o_input(:, :)
 
     ! temporary storages for forward and backward passes
-    real, allocatable, private :: normalized_attention(:, :, :)
-    real, allocatable, private :: q_or_dq(:, :, :)
-    real, allocatable, private :: k_or_dk(:, :, :)
-    real, allocatable, private :: v_or_dv(:, :, :)
-    real, allocatable, private :: d_output(:, :, :)
-    real, allocatable, private :: v_heads(:, :, :)
-    real, allocatable, private :: k_heads(:, :, :)
-    real, allocatable, private :: q_heads(:, :, :)
-    real, allocatable, private :: d_sdpa(:, :)
-    real, allocatable, private :: jacobian(:, :)
-    real, allocatable, private :: d_normalize(:, :, :)
+    real, allocatable :: normalized_attention(:, :, :)
+    real, allocatable :: q_or_dq(:, :, :)
+    real, allocatable :: k_or_dk(:, :, :)
+    real, allocatable :: v_or_dv(:, :, :)
+    real, allocatable :: d_output(:, :, :)
+    real, allocatable :: v_heads(:, :, :)
+    real, allocatable :: k_heads(:, :, :)
+    real, allocatable :: q_heads(:, :, :)
+    real, allocatable :: d_sdpa(:, :)
+    real, allocatable :: jacobian(:, :)
+    real, allocatable :: d_normalize(:, :, :)
   contains
 
     procedure :: common_backward
