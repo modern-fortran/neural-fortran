@@ -12,7 +12,7 @@ program cnn_mnist
   real, allocatable :: validation_images(:,:), validation_labels(:)
   real, allocatable :: testing_images(:,:), testing_labels(:)
   integer :: n
-  integer, parameter :: num_epochs = 10
+  integer, parameter :: num_epochs = 250
 
   call load_mnist(training_images, training_labels, &
                   validation_images, validation_labels, &
@@ -35,9 +35,9 @@ program cnn_mnist
     call net % train( &
       training_images, &
       label_digits(training_labels), &
-      batch_size=128, &
+      batch_size=16, &
       epochs=1, &
-      optimizer=sgd(learning_rate=3.) &
+      optimizer=sgd(learning_rate=0.001) &
     )
 
     print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', accuracy( &

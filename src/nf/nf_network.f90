@@ -201,6 +201,7 @@ module nf_network
       !! Network instance
     end function get_num_params
 
+
     module function get_params(self) result(params)
       !! Get the network parameters (weights and biases).
       class(network), intent(in) :: self
