@@ -8,7 +8,6 @@ submodule(nf_conv1d_layer) nf_conv1d_layer_submodule
 contains
 
   module function conv1d_layer_cons(filters, kernel_size, activation) result(res)
-    implicit none
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in) :: activation
