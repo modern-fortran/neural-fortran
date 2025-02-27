@@ -21,6 +21,10 @@ contains
 
     integer :: head, seq, i, j
 
+    self % v_heads = self % split_heads(self % value_layer % output)
+    self % k_heads = self % split_heads(self % key_layer % output)
+    self % q_heads = self % split_heads(self % query_layer % output)
+
     ! bakward through attention mechanism
     call self % sdpa_backward(gradient, attention_mask)
 
@@ -80,9 +84,6 @@ contains
 
     ! split heads from output gradient
     self % d_output = self % split_heads(self % output_layer % gradient)
-    self % v_heads = self % split_heads(self % value_layer % output)
-    self % k_heads = self % split_heads(self % key_layer % output)
-    self % q_heads = self % split_heads(self % query_layer % output)
 
     ! iterate over heads to calculate deltas for each of them
     do concurrent(head = 1: self % n_heads)
