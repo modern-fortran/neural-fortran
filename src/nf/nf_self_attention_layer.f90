@@ -35,14 +35,15 @@ contains
     res % n_heads = n_heads
   end function self_attention_layer_cons
 
-  pure module subroutine backward(self, input, gradient)
+  pure module subroutine backward(self, input, gradient, attention_mask)
     !! Self Attention back propagation
     !! Returns sum of Query, Key and Value gradients
     class(self_attention_layer), intent(in out) :: self
     real, intent(in) :: input(:, :)
     real, intent(in) :: gradient(:, :)
+    real, intent(in), optional :: attention_mask(:, :)
 
-    call self % common_backward(input, gradient)
+    call self % common_backward(input, gradient, attention_mask)
     self % gradient = &
         self % query_layer % gradient &
         + self % key_layer % gradient &
