@@ -213,12 +213,14 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function reshape
 
-    module function linear2d(out_features) result(res)
+    module function linear2d(out_features, biases) result(res)
       !! Rank-2 (sequence_length, out_features) linear layer constructor.
       !! sequence_length is determined at layer initialization, based on the
       !! output shape of the previous layer.
       integer, intent(in) :: out_features
         !! Number of output features
+      logical, optional :: biases
+        !! Whether to use biases or not
       type(layer) :: res
         !! Resulting layer instance
     end function linear2d
