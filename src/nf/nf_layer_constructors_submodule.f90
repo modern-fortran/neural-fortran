@@ -163,12 +163,13 @@ contains
   end function reshape
 
 
-  module function linear2d(out_features) result(res)
+  module function linear2d(out_features, biases) result(res)
     integer, intent(in) :: out_features
+    logical, optional :: biases
     type(layer) :: res
 
     res % name = 'linear2d'
-    allocate(res % p, source=linear2d_layer(out_features))
+    allocate(res % p, source=linear2d_layer(out_features, biases))
 
   end function linear2d
 

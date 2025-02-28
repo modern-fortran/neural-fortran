@@ -5,11 +5,17 @@ submodule(nf_linear2d_layer) nf_linear2d_layer_submodule
 
 contains
 
-  module function linear2d_layer_cons(out_features) result(res)
+  module function linear2d_layer_cons(out_features, biases) result(res)
     integer, intent(in) :: out_features
+    logical, optional, intent(in) :: biases
     type(linear2d_layer) :: res
 
     res % out_features = out_features
+    if (present(biases)) then
+      res % use_biases = biases
+    else
+      res % use_biases = .true.
+    end if
 
   end function linear2d_layer_cons
 
@@ -36,8 +42,10 @@ contains
     allocate(self % dw(self % in_features, self % out_features))
     self % dw = 0
 
-    allocate(self % db(self % out_features))
-    self % db = 0
+    if (self % use_biases) then
+      allocate(self % db(self % out_features))
+      self % db = 0
+    end if
 
   end subroutine init
 
@@ -48,9 +56,11 @@ contains
     integer :: i
 
     self % output(:,:) = matmul(input(:,:), self % weights)
-    do concurrent(i = 1:self % sequence_length)
-      self % output(i,:) = self % output(i,:) + self % biases
-    end do
+    if (self % use_biases) then
+      do concurrent(i = 1:self % sequence_length)
+        self % output(i,:) = self % output(i,:) + self % biases
+      end do
+    end if
 
   end subroutine forward
 
@@ -64,7 +74,9 @@ contains
     integer :: i
 
     self % dw = self % dw + matmul(transpose(input(:,:)), gradient(:,:))
-    self % db = self % db + sum(gradient(:,:), 1)
+    if (self % use_biases) then
+      self % db = self % db + sum(gradient(:,:), 1)
+    end if
     self % gradient(:,:) = matmul(gradient(:,:), transpose(self % weights))
   end subroutine backward
 
@@ -74,7 +86,10 @@ contains
     integer :: num_params
 
     ! Number of weights times number of biases
-    num_params = self % in_features * self % out_features + self % out_features
+    num_params = self % in_features * self % out_features
+    if (self % use_biases) then
+      num_params = num_params + self % out_features
+    end if
 
   end function get_num_params
 
@@ -87,10 +102,14 @@ contains
 
     w_(1: product(shape(self % weights))) => self % weights
 
-    params = [ &
-      w_, &
-      self % biases &
-    ]
+    if (self % use_biases) then
+      params = [ &
+        w_, &
+        self % biases &
+      ]
+    else
+      params = w_
+    end if
 
   end function get_params
 
@@ -103,10 +122,14 @@ contains
 
     dw_(1: product(shape(self % dw))) => self % dw
 
-    gradients = [ &
-      dw_, &
-      self % db &
-    ]
+    if (self % use_biases) then
+      gradients = [ &
+        dw_, &
+        self % db &
+      ]
+    else
+      gradients = dw_
+    end if
 
   end function get_gradients
 
@@ -127,8 +150,10 @@ contains
       p_(1:self % in_features, 1:self % out_features) => params(1 : n)
       self % weights = p_
 
-      ! reshape the biases
-      self % biases = params(n + 1 : n + self % out_features)
+      if (self % use_biases) then
+        ! reshape the biases
+        self % biases = params(n + 1 : n + self % out_features)
+      end if
     end associate
 
   end subroutine set_params
