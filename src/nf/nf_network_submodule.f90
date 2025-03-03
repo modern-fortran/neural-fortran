@@ -12,6 +12,7 @@ submodule(nf_network) nf_network_submodule
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
+  use nf_layernorm_layer, only: layernorm_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
   use nf_loss, only: quadratic
@@ -163,6 +164,8 @@ contains
           type is(linear2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(self_attention_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(layernorm_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if

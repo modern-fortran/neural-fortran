@@ -6,13 +6,14 @@ module nf
     conv2d, &
     dense, &
     dropout, &
+    embedding, &
     flatten, &
     input, &
+    layernorm, &
     linear2d, &
     maxpool2d, &
     reshape, &
-    self_attention, &
-    embedding
+    self_attention
   use nf_loss, only: mse, quadratic
   use nf_metrics, only: corr, maxabs
   use nf_network, only: network

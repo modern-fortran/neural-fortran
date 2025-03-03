@@ -18,7 +18,8 @@ module nf_layer_constructors
     maxpool2d, &
     reshape, &
     self_attention, &
-    embedding
+    embedding, &
+    layernorm
 
   interface input
 
@@ -239,13 +240,24 @@ module nf_layer_constructors
       !! This layer is for inputting token indices from the dictionary to the network.
       !! Works as a trainable lookup table that converts each index into a vector.
       !! Embedding layer must be the first layer in a network.
-      !! `sequence_length`: max len of input sequence
-      !! `vocab_size`: length of token vocabulary
-      !! `model_dimension`: size of target embeddings
-      integer, intent(in) :: sequence_length, vocab_size, model_dimension
+      integer, intent(in) :: sequence_length
+        !! max len of input sequence  
+      integer, intent(in) :: vocab_size
+        !! length of token vocabulary
+      integer, intent(in) :: model_dimension
+        !! size of target embeddings
       integer, optional, intent(in) :: positional
+        !! positional encoding
       type(layer) :: res
     end function embedding
+
+    module function layernorm() result(res)
+      !! Layer Normalization
+      !! ((x − mean(x)) / sqrt(variance(x) + eps) * gamma + beta
+      !! Based upon `Ba, Jimmy Lei, Jamie Ryan Kiros, and Geoffrey E. Hinton(2016)`:
+      !! https://arxiv.org/abs/1607.06450v1
+      type(layer) :: res
+    end function layernorm
 
   end interface
 

@@ -13,6 +13,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
+  use nf_layernorm_layer, only: layernorm_layer
   use nf_activation, only: activation_function, relu, sigmoid
 
   implicit none
@@ -197,5 +198,12 @@ contains
     res % initialized = .true.
 
   end function embedding
+
+
+  module function layernorm() result(res)
+    type(layer) :: res
+    res % name = 'layernorm'
+    allocate(res % p, source=layernorm_layer())
+  end function layernorm
 
 end submodule nf_layer_constructors_submodule
