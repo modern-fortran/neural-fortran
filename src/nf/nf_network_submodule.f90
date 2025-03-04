@@ -11,6 +11,7 @@ submodule(nf_network) nf_network_submodule
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
+  use nf_embedding_layer, only: embedding_layer
   use nf_layernorm_layer, only: layernorm_layer
   use nf_layer, only: layer
   use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
@@ -47,7 +48,7 @@ contains
       error stop 'Error: A network must have at least 2 layers.'
 
     ! The first layer must be an input layer
-    if (.not. layers(1) % name == 'input') &
+    if (.not. layers(1) % name == 'input' .and. .not. layers(1) % name == 'embedding') &
       error stop 'Error: First layer in the network must be an input layer.'
 
     !TODO Ensure that the layers are in allowed sequence:
@@ -210,8 +211,9 @@ contains
     integer :: n
 
     ! Set the input array into the input layer
-    select type(input_layer => self % layers(1) % p); type is(input1d_layer)
-      call input_layer % set(input)
+    select type(input_layer => self % layers(1) % p)
+      type is(input1d_layer)
+        call input_layer % set(input)
     end select
 
     do n = 2, size(self % layers)
@@ -220,6 +222,21 @@ contains
 
   end subroutine forward_1d
 
+  module subroutine forward_1d_int(self, input)
+    class(network), intent(in out) :: self
+    integer, intent(in) :: input(:)
+    integer :: n
+
+    select type(input_layer => self % layers(1) % p)
+      type is(embedding_layer)
+        call input_layer % forward(input)
+    end select
+
+    do n = 2, size(self % layers)
+      call self % layers(n) % forward(self % layers(n - 1))
+    end do
+
+  end subroutine forward_1d_int
 
   module subroutine forward_2d(self, input)
     class(network), intent(in out) :: self
@@ -284,6 +301,31 @@ contains
 
   end function predict_1d
 
+  module function predict_1d_int(self, input) result(res)
+    class(network), intent(in out) :: self
+    integer, intent(in) :: input(:)
+    real, allocatable :: res(:)
+    integer :: n, num_layers
+
+    num_layers = size(self % layers)
+
+    call self % set_training_mode(.false.)
+    call self % forward(input)
+    call self % set_training_mode(.true.)
+
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(dense_layer)
+        res = output_layer % output
+      type is(dropout_layer)
+        res = output_layer % output
+      type is(flatten_layer)
+        res = output_layer % output
+      class default
+        error stop 'network % output not implemented for ' // &
+          trim(self % layers(num_layers) % name) // ' layer'
+    end select
+
+  end function predict_1d_int
 
   module function predict_2d(self, input) result(res)
     class(network), intent(in out) :: self

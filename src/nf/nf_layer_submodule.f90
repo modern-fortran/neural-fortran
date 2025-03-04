@@ -12,6 +12,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
+  use nf_embedding_layer, only: embedding_layer
   use nf_layernorm_layer, only: layernorm_layer
   use nf_optimizers, only: optimizer_base_type
 
@@ -61,6 +62,8 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(self_attention_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(embedding_layer)
+            call this_layer % backward(prev_layer % output, gradient)
           type is(layernorm_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
@@ -83,6 +86,8 @@ contains
         select type(prev_layer => previous % p)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(embedding_layer)
+            call this_layer % backward(prev_layer % output, gradient)
           type is(linear2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(self_attention_layer)
@@ -95,6 +100,8 @@ contains
 
         select type(prev_layer => previous % p)
           type is(input2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(embedding_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(linear2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -271,6 +278,8 @@ contains
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(embedding_layer)
+            call this_layer % forward(prev_layer % output)
           type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(self_attention_layer)
@@ -284,6 +293,8 @@ contains
         ! Upstream layers permitted: input2d, linear2d, self_attention, layernorm
         select type(prev_layer => input % p)
           type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(embedding_layer)
             call this_layer % forward(prev_layer % output)
           type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
@@ -337,6 +348,8 @@ contains
     select type(this_layer => self % p)
 
       type is(input2d_layer)
+        allocate(output, source=this_layer % output)
+      type is(embedding_layer)
         allocate(output, source=this_layer % output)
       type is(linear2d_layer)
         allocate(output, source=this_layer % output)
@@ -460,6 +473,8 @@ contains
         num_params = this_layer % get_num_params()
       type is (self_attention_layer)
         num_params = this_layer % get_num_params()
+      type is (embedding_layer)
+        num_params = this_layer % get_num_params()
       type is (layernorm_layer)
         num_params = this_layer % get_num_params()
       class default
@@ -495,6 +510,8 @@ contains
         params = this_layer % get_params()
       type is (self_attention_layer)
         params = this_layer % get_params()
+      type is (embedding_layer)
+        params = this_layer % get_params()
       type is (layernorm_layer)
         params = this_layer % get_params()
       class default
@@ -529,6 +546,8 @@ contains
       type is (linear2d_layer)
         gradients = this_layer % get_gradients()
       type is (self_attention_layer)
+        gradients = this_layer % get_gradients()
+      type is (embedding_layer)
         gradients = this_layer % get_gradients()
       type is (layernorm_layer)
         gradients = this_layer % get_gradients()
@@ -588,6 +607,8 @@ contains
         call this_layer % set_params(params)
 
       type is (self_attention_layer)
+        call this_layer % set_params(params)
+      type is (embedding_layer)
         call this_layer % set_params(params)
 
       type is (layernorm_layer)
