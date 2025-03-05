@@ -9,7 +9,8 @@ module nf_linear2d_layer
   public :: linear2d_layer
 
   type, extends(base_layer) :: linear2d_layer
-    integer :: sequence_length, in_features, out_features, batch_size
+    integer :: sequence_length, in_features, out_features
+    logical :: use_biases
 
     real, allocatable :: weights(:,:)
     real, allocatable :: biases(:)
@@ -31,8 +32,9 @@ module nf_linear2d_layer
   end type linear2d_layer
 
   interface linear2d_layer
-    module function linear2d_layer_cons(out_features) result(res)
+    module function linear2d_layer_cons(out_features, biases) result(res)
       integer, intent(in) :: out_features
+      logical, optional, intent(in) :: biases
       type(linear2d_layer) :: res
     end function linear2d_layer_cons
   end interface linear2d_layer
