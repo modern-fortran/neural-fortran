@@ -32,17 +32,19 @@ module nf_network
 
     procedure, private :: evaluate_batch_1d
     procedure, private :: forward_1d
+    procedure, private :: forward_1d_int
     procedure, private :: forward_2d
     procedure, private :: forward_3d
     procedure, private :: predict_1d
+    procedure, private :: predict_1d_int
     procedure, private :: predict_2d
     procedure, private :: predict_3d
     procedure, private :: predict_batch_1d
     procedure, private :: predict_batch_3d
 
     generic :: evaluate => evaluate_batch_1d
-    generic :: forward => forward_1d, forward_2d, forward_3d
-    generic :: predict => predict_1d, predict_2d, predict_3d
+    generic :: forward => forward_1d, forward_1d_int, forward_2d, forward_3d
+    generic :: predict => predict_1d, predict_1d_int, predict_2d, predict_3d
     generic :: predict_batch => predict_batch_1d, predict_batch_3d
 
   end type network
@@ -95,6 +97,12 @@ module nf_network
         !! 1-d input data
     end subroutine forward_1d
 
+    module subroutine forward_1d_int(self, input)
+      !! Same as `forward_1d` except `integer`
+      class(network), intent(in out) :: self
+      integer, intent(in) :: input(:)
+    end subroutine forward_1d_int
+
     module subroutine forward_2d(self, input)
       !! Apply a forward pass through the network.
       !!
@@ -136,6 +144,13 @@ module nf_network
       real, allocatable :: res(:)
         !! Output of the network
     end function predict_1d
+
+    module function predict_1d_int(self, input) result(res)
+      !! Same as `predict_1d` except `integer`
+      class(network), intent(in out) :: self
+      integer, intent(in) :: input(:)
+      real, allocatable :: res(:)
+    end function predict_1d_int
 
     module function predict_2d(self, input) result(res)
       !! Return the output of the network given the input 1-d array.

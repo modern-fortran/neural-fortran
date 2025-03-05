@@ -14,11 +14,16 @@ module nf_layer_constructors
     dense, &
     dropout, &
     flatten, &
-    input, locally_connected_1d, maxpool1d, &
+    input, &
     linear2d, &
+    locally_connected_1d, &
+    maxpool1d, &
     maxpool2d, &
-    reshape, reshape2d, &
-    self_attention
+    reshape, &
+    reshape2d, &
+    self_attention, &
+    embedding, &
+    layernorm
 
   interface input
 
@@ -310,15 +315,40 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function linear2d
 
-  module function self_attention(num_heads) result(res)
-    !! Rank-2 (sequence_length, out_features) self attention constructor.
-    !! sequence_length and model_dimension are determined at layer initialization, based on the
-    !! output shape of the previous layer.
-    integer, intent(in) :: num_heads
-      !! Number of attention heads
-    type(layer) :: res
-      !! Resulting layer instance
-  end function self_attention
+    module function self_attention(num_heads) result(res)
+      !! Rank-2 (sequence_length, out_features) self attention constructor.
+      !! sequence_length and model_dimension are determined at layer initialization, based on the
+      !! output shape of the previous layer.
+      integer, intent(in) :: num_heads
+        !! Number of attention heads
+      type(layer) :: res
+        !! Resulting layer instance
+    end function self_attention
+
+    module function embedding(sequence_length, vocab_size, model_dimension, positional) result(res)
+      !! Embedding layer constructor.
+      !!
+      !! This layer is for inputting token indices from the dictionary to the network.
+      !! Works as a trainable lookup table that converts each index into a vector.
+      !! Embedding layer must be the first layer in a network.
+      integer, intent(in) :: sequence_length
+        !! max len of input sequence  
+      integer, intent(in) :: vocab_size
+        !! length of token vocabulary
+      integer, intent(in) :: model_dimension
+        !! size of target embeddings
+      integer, optional, intent(in) :: positional
+        !! positional encoding
+      type(layer) :: res
+    end function embedding
+
+    module function layernorm() result(res)
+      !! Layer Normalization
+      !! ((x − mean(x)) / sqrt(variance(x) + eps) * gamma + beta
+      !! Based upon `Ba, Jimmy Lei, Jamie Ryan Kiros, and Geoffrey E. Hinton(2016)`:
+      !! https://arxiv.org/abs/1607.06450v1
+      type(layer) :: res
+    end function layernorm
 
   end interface
 

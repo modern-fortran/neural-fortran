@@ -16,6 +16,8 @@ foreach(execid
   reshape_layer
   reshape2d_layer
   multihead_attention_layer
+  embedding_layer
+  layernorm
   dense_network
   get_set_network_params
   conv1d_network

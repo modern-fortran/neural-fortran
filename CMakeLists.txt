@@ -39,12 +39,16 @@ add_library(neural-fortran
   src/nf/nf_input3d_layer_submodule.f90
   src/nf/nf_layer_constructors.f90
   src/nf/nf_layer_constructors_submodule.f90
+  src/nf/nf_layernorm.f90
+  src/nf/nf_layernorm_submodule.f90
   src/nf/nf_layer.f90
   src/nf/nf_layer_submodule.f90
   src/nf/nf_locally_connected_1d_submodule.f90
   src/nf/nf_locally_connected_1d.f90
   src/nf/nf_linear2d_layer.f90
   src/nf/nf_linear2d_layer_submodule.f90
+  src/nf/nf_embedding_layer.f90
+  src/nf/nf_embedding_layer_submodule.f90
   src/nf/nf_loss.f90
   src/nf/nf_loss_submodule.f90
   src/nf/nf_maxpool1d_layer.f90

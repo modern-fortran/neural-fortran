@@ -16,6 +16,8 @@ submodule(nf_layer) nf_layer_submodule
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
+  use nf_embedding_layer, only: embedding_layer
+  use nf_layernorm_layer, only: layernorm_layer
   use nf_optimizers, only: optimizer_base_type
 
 contains
@@ -70,6 +72,10 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(self_attention_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(embedding_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(layernorm_layer)
+            call this_layer % backward(prev_layer % output, gradient)
         end select
 
     end select
@@ -90,9 +96,13 @@ contains
         select type(prev_layer => previous % p)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(embedding_layer)
+            call this_layer % backward(prev_layer % output, gradient)
           type is(linear2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(self_attention_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(layernorm_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
 
@@ -101,12 +111,24 @@ contains
         select type(prev_layer => previous % p)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(embedding_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(linear2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(self_attention_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(layernorm_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(layernorm_layer)
+
+        select type(prev_layer => previous % p)
           type is(linear2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(self_attention_layer)
             call this_layer % backward(prev_layer % output, gradient)
         end select
-
     end select
 
     ! Backward pass from a 2-d layer downstream currently implemented
@@ -358,6 +380,8 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(layernorm_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(reshape3d_layer)
@@ -380,22 +404,40 @@ contains
 
       type is(linear2d_layer)
 
-        ! Upstream layers permitted: input2d, linear2d
+        ! Upstream layers permitted: input2d, linear2d, self_attention, layernorm
         select type(prev_layer => input % p)
           type is(input2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(embedding_layer)
             call this_layer % forward(prev_layer % output)
           type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(self_attention_layer)
             call this_layer % forward(prev_layer % output)
+          type is(layernorm_layer)
+            call this_layer % forward(prev_layer % output)
         end select
 
       type is(self_attention_layer)
 
-        ! Upstream layers permitted: input2d, linear2d
+        ! Upstream layers permitted: input2d, linear2d, self_attention, layernorm
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(embedding_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(linear2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(self_attention_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(layernorm_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(layernorm_layer)
+
+        ! Upstream layers permitted: linear2d, self_attention
+        select type(prev_layer => input % p)
           type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(self_attention_layer)
@@ -445,12 +487,18 @@ contains
         allocate(output, source=this_layer % output)
       type is(reshape2d_layer)
         allocate(output, source=this_layer % output)
+      type is(embedding_layer)
+        allocate(output, source=this_layer % output)
       type is(linear2d_layer)
         allocate(output, source=this_layer % output)
       type is(self_attention_layer)
         allocate(output, source=this_layer % output)
+      type is(layernorm_layer)
+        allocate(output, source=this_layer % output)
       class default
-        error stop '2-d output can only be read from an input2d or linear2d layer.'
+        error stop '2-d output can only be read from a input2d, maxpool1d, ' &
+          // 'locally_connected_1d, conv1d, reshape2d, embedding, linear2d, ' &
+          // 'self_attention, or layernorm layer.'
 
     end select
 
@@ -492,8 +540,8 @@ contains
       call this_layer % init(input % layer_shape)
     end select
 
-    ! The shape of conv2d, dropout, flatten, linear2d, maxpool2d, or
-    ! self_attention layers is not known until we receive an input layer.
+    ! The shape of conv2d, dropout, flatten, linear2d, maxpool2d,
+    ! self_attention or layernorm layers is not known until we receive an input layer.
     select type(this_layer => self % p)
       type is(conv1d_layer)
         self % layer_shape = shape(this_layer % output)
@@ -510,6 +558,8 @@ contains
       type is(linear2d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(self_attention_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(layernorm_layer)
         self % layer_shape = shape(this_layer % output)
       type is(maxpool2d_layer)
         self % layer_shape = shape(this_layer % output)
@@ -577,6 +627,10 @@ contains
         num_params = this_layer % get_num_params()
       type is (self_attention_layer)
         num_params = this_layer % get_num_params()
+      type is (embedding_layer)
+        num_params = this_layer % get_num_params()
+      type is (layernorm_layer)
+        num_params = this_layer % get_num_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -618,6 +672,10 @@ contains
         params = this_layer % get_params()
       type is (self_attention_layer)
         params = this_layer % get_params()
+      type is (embedding_layer)
+        params = this_layer % get_params()
+      type is (layernorm_layer)
+        params = this_layer % get_params()
       class default
         error stop 'Unknown layer type.'
     end select
@@ -658,6 +716,10 @@ contains
       type is (linear2d_layer)
         gradients = this_layer % get_gradients()
       type is (self_attention_layer)
+        gradients = this_layer % get_gradients()
+      type is (embedding_layer)
+        gradients = this_layer % get_gradients()
+      type is (layernorm_layer)
         gradients = this_layer % get_gradients()
       class default
         error stop 'Unknown layer type.'
@@ -726,6 +788,11 @@ contains
         call this_layer % set_params(params)
 
       type is (self_attention_layer)
+        call this_layer % set_params(params)
+      type is (embedding_layer)
+        call this_layer % set_params(params)
+
+      type is (layernorm_layer)
         call this_layer % set_params(params)
 
       type is (maxpool2d_layer)
