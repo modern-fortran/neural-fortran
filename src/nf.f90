@@ -12,7 +12,7 @@ module nf
     input, &
     layernorm, &
     linear2d, &
-    locally_connected_1d, &
+    locally_connected1d, &
     maxpool1d, &
     maxpool2d, &
     reshape, &

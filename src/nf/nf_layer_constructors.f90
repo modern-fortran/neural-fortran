@@ -16,7 +16,7 @@ module nf_layer_constructors
     flatten, &
     input, &
     linear2d, &
-    locally_connected_1d, &
+    locally_connected1d, &
     maxpool1d, &
     maxpool2d, &
     reshape, &
@@ -212,7 +212,7 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function conv2d
 
-    module function locally_connected_1d(filters, kernel_size, activation) result(res)
+    module function locally_connected1d(filters, kernel_size, activation) result(res)
       !! 1-d locally connected network constructor
       !!
       !! This layer is for building 1-d locally connected network.
@@ -224,10 +224,10 @@ module nf_layer_constructors
       !! Example:
       !!
       !! ```
-      !! use nf, only :: locally_connected_1d, layer
-      !! type(layer) :: locally_connected_1d_layer
-      !! locally_connected_1d_layer = dense(filters=32, kernel_size=3)
-      !! locally_connected_1d_layer = dense(filters=32, kernel_size=3, activation='relu')
+      !! use nf, only :: locally_connected1d, layer
+      !! type(layer) :: locally_connected1d_layer
+      !! locally_connected1d_layer = dense(filters=32, kernel_size=3)
+      !! locally_connected1d_layer = dense(filters=32, kernel_size=3, activation='relu')
       !! ```
       integer, intent(in) :: filters
         !! Number of filters in the output of the layer
@@ -237,7 +237,7 @@ module nf_layer_constructors
         !! Activation function (default sigmoid)
       type(layer) :: res
         !! Resulting layer instance
-    end function locally_connected_1d
+    end function locally_connected1d
 
     module function maxpool1d(pool_size, stride) result(res)
       !! 1-d maxpooling layer constructor.

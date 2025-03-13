@@ -9,7 +9,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
-  use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
+  use nf_locally_connected1d_layer, only: locally_connected1d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
@@ -52,11 +52,11 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input2d, input3d, conv1d, conv2d, locally_connected_1d, maxpool1d, maxpool2d
+        ! Upstream layers permitted: input2d, input3d, conv1d, conv2d, locally_connected1d, maxpool1d, maxpool2d
         select type(prev_layer => previous % p)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
-          type is(locally_connected_1d_layer)
+          type is(locally_connected1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(maxpool1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -145,13 +145,13 @@ contains
           call this_layer % backward(prev_layer % output, gradient)
         type is(input2d_layer)
           call this_layer % backward(prev_layer % output, gradient)
-        type is(locally_connected_1d_layer)
+        type is(locally_connected1d_layer)
           call this_layer % backward(prev_layer % output, gradient)
         type is(conv1d_layer)
           call this_layer % backward(prev_layer % output, gradient)
       end select
 
-      type is(locally_connected_1d_layer)
+      type is(locally_connected1d_layer)
 
         select type(prev_layer => previous % p)
           type is(maxpool1d_layer)
@@ -160,7 +160,7 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
-          type is(locally_connected_1d_layer)
+          type is(locally_connected1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(conv1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -173,7 +173,7 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(reshape2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
-          type is(locally_connected_1d_layer)
+          type is(locally_connected1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -294,13 +294,13 @@ contains
             call this_layer % forward(prev_layer % output)
         end select
       
-      type is(locally_connected_1d_layer)
+      type is(locally_connected1d_layer)
 
-        ! Upstream layers permitted: input2d, locally_connected_1d, maxpool1d, reshape2d
+        ! Upstream layers permitted: input2d, locally_connected1d, maxpool1d, reshape2d
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
-          type is(locally_connected_1d_layer)
+          type is(locally_connected1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(maxpool1d_layer)
             call this_layer % forward(prev_layer % output)
@@ -312,11 +312,11 @@ contains
       
       type is(conv1d_layer)
 
-        ! Upstream layers permitted: input2d, locally_connected_1d, maxpool1d, reshape2d
+        ! Upstream layers permitted: input2d, locally_connected1d, maxpool1d, reshape2d
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
-          type is(locally_connected_1d_layer)
+          type is(locally_connected1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(maxpool1d_layer)
             call this_layer % forward(prev_layer % output)
@@ -328,11 +328,11 @@ contains
       
       type is(maxpool1d_layer)
 
-        ! Upstream layers permitted: input1d, locally_connected_1d, maxpool1d, reshape2d
+        ! Upstream layers permitted: input1d, locally_connected1d, maxpool1d, reshape2d
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
-          type is(locally_connected_1d_layer)
+          type is(locally_connected1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(maxpool1d_layer)
             call this_layer % forward(prev_layer % output)
@@ -358,7 +358,7 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool1d, maxpool2d, reshape2d, reshape3d, locally_connected_2d
+        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool1d, maxpool2d, reshape2d, reshape3d, locally_connected2d
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
@@ -368,7 +368,7 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(conv2d_layer)
             call this_layer % forward(prev_layer % output)
-          type is(locally_connected_1d_layer)
+          type is(locally_connected1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(maxpool1d_layer)
             call this_layer % forward(prev_layer % output)
@@ -481,7 +481,7 @@ contains
         allocate(output, source=this_layer % output)
       type is(maxpool1d_layer)
         allocate(output, source=this_layer % output)
-      type is(locally_connected_1d_layer)
+      type is(locally_connected1d_layer)
         allocate(output, source=this_layer % output)
       type is(conv1d_layer)
         allocate(output, source=this_layer % output)
@@ -497,7 +497,7 @@ contains
         allocate(output, source=this_layer % output)
       class default
         error stop '2-d output can only be read from a input2d, maxpool1d, ' &
-          // 'locally_connected_1d, conv1d, reshape2d, embedding, linear2d, ' &
+          // 'locally_connected1d, conv1d, reshape2d, embedding, linear2d, ' &
           // 'self_attention, or layernorm layer.'
 
     end select
@@ -549,7 +549,7 @@ contains
         self % layer_shape = shape(this_layer % output)
       type is(dropout_layer)
         self % layer_shape = shape(this_layer % output)
-      type is(locally_connected_1d_layer)
+      type is(locally_connected1d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(maxpool1d_layer)
         self % layer_shape = shape(this_layer % output)
@@ -611,7 +611,7 @@ contains
         num_params = this_layer % get_num_params()
       type is (conv2d_layer)
         num_params = this_layer % get_num_params()
-      type is (locally_connected_1d_layer)
+      type is (locally_connected1d_layer)
         num_params = this_layer % get_num_params()
       type is (maxpool1d_layer)
         num_params = 0
@@ -656,7 +656,7 @@ contains
         params = this_layer % get_params()
       type is (conv2d_layer)
         params = this_layer % get_params()
-      type is (locally_connected_1d_layer)
+      type is (locally_connected1d_layer)
         params = this_layer % get_params()
       type is (maxpool1d_layer)
         ! No parameters to get.
@@ -701,7 +701,7 @@ contains
         gradients = this_layer % get_gradients()
       type is (conv2d_layer)
         gradients = this_layer % get_gradients()
-      type is (locally_connected_1d_layer)
+      type is (locally_connected1d_layer)
         gradients = this_layer % get_gradients()
       type is (maxpool1d_layer)
         ! No gradients to get.
@@ -776,7 +776,7 @@ contains
       type is (conv2d_layer)
         call this_layer % set_params(params)
       
-      type is (locally_connected_1d_layer)
+      type is (locally_connected1d_layer)
         call this_layer % set_params(params)
       
       type is (maxpool1d_layer)
