@@ -43,8 +43,8 @@ add_library(neural-fortran
   src/nf/nf_layernorm_submodule.f90
   src/nf/nf_layer.f90
   src/nf/nf_layer_submodule.f90
-  src/nf/nf_locally_connected1d_submodule.f90
-  src/nf/nf_locally_connected1d.f90
+  src/nf/nf_locally_connected1d_layer_submodule.f90
+  src/nf/nf_locally_connected1d_layer.f90
   src/nf/nf_linear2d_layer.f90
   src/nf/nf_linear2d_layer_submodule.f90
   src/nf/nf_embedding_layer.f90
