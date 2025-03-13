@@ -62,7 +62,7 @@ contains
     integer :: iws, iwe
 
     input_channels = size(input, dim=1)
-    input_width    = size(input, dim=2)
+    input_width = size(input, dim=2)
 
     ! Loop over output positions.
     do j = 1, self % width
@@ -73,11 +73,11 @@ contains
 
       ! For each filter, compute the convolution (inner product over channels and kernel width).
       do concurrent (n = 1:self % filters)
-        self % z(n, j) = sum(self % kernel(n, :, :) * input(:, iws:iwe))
+        self % z(n, j) = sum(self % kernel(n,:,:) * input(:,iws:iwe))
       end do
 
       ! Add the bias for each filter.
-      self % z(:, j) = self % z(:, j) + self % biases
+      self % z(:,j) = self % z(:,j) + self % biases
     end do
 
     ! Apply the activation function.
@@ -103,18 +103,14 @@ contains
 
     ! Determine dimensions.
     input_channels = size(input, dim=1)
-    input_width    = size(input, dim=2)
-    output_width   = self % width    ! Note: output_width = input_width - kernel_size + 1
+    input_width = size(input, dim=2)
+    output_width = self % width    ! Note: output_width = input_width - kernel_size + 1
 
     !--- Compute the local gradient gdz = (dL/dy) * sigma'(z) for each output.
-    do j = 1, output_width
-       gdz(:, j) = gradient(:, j) * self % activation % eval_prime(self % z(:, j))
-    end do
+    gdz = gradient * self % activation % eval_prime(self % z)
 
     !--- Compute bias gradients: db(n) = sum_j gdz(n, j)
-    do n = 1, self % filters
-       db_local(n) = sum(gdz(n, :), dim=1)
-    end do
+    db_local = sum(gdz, dim=2)
 
     !--- Initialize weight gradient and input gradient accumulators.
     dw_local = 0.0
@@ -124,16 +120,16 @@ contains
     ! In the forward pass the window for output index j was:
     !   iws = j,  iwe = j + kernel_size - 1.
     do n = 1, self % filters
-       do j = 1, output_width
-          iws = j
-          iwe = j + self % kernel_size - 1
-          do k = 1, self % channels
-             ! Weight gradient: accumulate contribution from the input window.
-             dw_local(n, k, :) = dw_local(n, k, :) + input(k, iws:iwe) * gdz(n, j)
-             ! Input gradient: propagate gradient back to the input window.
-             self % gradient(k, iws:iwe) = self % gradient(k, iws:iwe) + self % kernel(n, k, :) * gdz(n, j)
-          end do
-       end do
+      do j = 1, output_width
+        iws = j
+        iwe = j + self % kernel_size - 1
+        do k = 1, self % channels
+          ! Weight gradient: accumulate contribution from the input window.
+          dw_local(n,k,:) = dw_local(n,k,:) + input(k,iws:iwe) * gdz(n,j)
+          ! Input gradient: propagate gradient back to the input window.
+          self % gradient(k,iws:iwe) = self % gradient(k,iws:iwe) + self % kernel(n,k,:) * gdz(n,j)
+        end do
+      end do
     end do
 
     !--- Update stored gradients.
