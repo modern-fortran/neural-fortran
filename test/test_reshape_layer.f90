@@ -1,7 +1,7 @@
 program test_reshape_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: input, network, reshape_layer => reshape
+  use nf, only: input, network, reshape3d => reshape
   use nf_datasets, only: download_and_unpack, keras_reshape_url
 
   implicit none
@@ -17,7 +17,7 @@ program test_reshape_layer
   ! Create the network
   net = network([ &
     input(input_size), &
-    reshape_layer(output_shape) &
+    reshape3d(3, 32, 32) &
   ])
 
   if (.not. size(net % layers) == 2) then

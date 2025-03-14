@@ -1,8 +1,7 @@
 program test_reshape2d_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: input, network, reshape2d_layer => reshape2d
-  use nf_datasets, only: download_and_unpack, keras_reshape_url
+  use nf, only: input, network, reshape2d => reshape
 
   implicit none
 
@@ -10,14 +9,13 @@ program test_reshape2d_layer
   real, allocatable :: sample_input(:), output(:,:)
   integer, parameter :: output_shape(2) = [4,4]
   integer, parameter :: input_size = product(output_shape)
-  character(*), parameter :: keras_reshape_path = 'keras_reshape.h5'
   logical :: file_exists
   logical :: ok = .true.
 
   ! Create the network
   net = network([ & 
     input(input_size), & 
-    reshape2d_layer(output_shape) & 
+    reshape2d(output_shape(1), output_shape(2)) & 
   ])
 
   if (.not. size(net % layers) == 2) then

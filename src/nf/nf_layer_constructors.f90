@@ -20,7 +20,6 @@ module nf_layer_constructors
     maxpool1d, &
     maxpool2d, &
     reshape, &
-    reshape2d, &
     self_attention, &
     embedding, &
     layernorm
@@ -93,6 +92,28 @@ module nf_layer_constructors
     end function input3d
 
   end interface input
+
+
+  interface reshape
+
+    module function reshape2d(dim1, dim2) result(res)
+      !! Rank-1 to rank-2 reshape layer constructor.
+      integer, intent(in) :: dim1, dim2
+        !! Shape of the output
+      type(layer) :: res
+        !! Resulting layer instance
+    end function reshape2d
+
+    module function reshape3d(dim1, dim2, dim3) result(res)
+      !! Rank-1 to rank-3 reshape layer constructor.
+      integer, intent(in) :: dim1, dim2, dim3
+        !! Shape of the output
+      type(layer) :: res
+        !! Resulting layer instance
+    end function reshape3d
+
+  end interface reshape
+
 
   interface
 
@@ -282,28 +303,6 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function maxpool2d
-
-    module function reshape(output_shape) result(res)
-      !! Rank-1 to rank-any reshape layer constructor.
-      !! Currently implemented is only rank-3 for the output of the reshape.
-      !!
-      !! This layer is for connecting 1-d inputs to conv2d or similar layers.
-      integer, intent(in) :: output_shape(:)
-        !! Shape of the output
-      type(layer) :: res
-        !! Resulting layer instance
-    end function reshape
-
-    module function reshape2d(output_shape) result(res)
-      !! Rank-1 to rank-any reshape layer constructor.
-      !! Currently implemented is only rank-2 for the output of the reshape.
-      !!
-      !! This layer is for connecting 1-d inputs to conv1d or similar layers.
-      integer, intent(in) :: output_shape(:)
-        !! Shape of the output
-      type(layer) :: res
-        !! Resulting layer instance
-    end function reshape2d
 
     module function linear2d(out_features) result(res)
       !! Rank-2 (sequence_length, out_features) linear layer constructor.

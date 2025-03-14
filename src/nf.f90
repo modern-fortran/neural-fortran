@@ -16,7 +16,6 @@ module nf
     maxpool1d, &
     maxpool2d, &
     reshape, &
-    reshape2d, &
     self_attention
   use nf_loss, only: mse, quadratic
   use nf_metrics, only: corr, maxabs

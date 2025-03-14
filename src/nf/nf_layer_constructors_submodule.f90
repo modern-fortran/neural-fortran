@@ -12,8 +12,8 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_locally_connected1d_layer, only: locally_connected1d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
-  use nf_reshape_layer, only: reshape3d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
+  use nf_reshape3d_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
@@ -229,35 +229,22 @@ contains
   end function maxpool2d
 
 
-  module function reshape(output_shape) result(res)
-    integer, intent(in) :: output_shape(:)
+  module function reshape2d(dim1, dim2) result(res)
+    integer, intent(in) :: dim1, dim2
     type(layer) :: res
-
-    res % name = 'reshape'
-    res % layer_shape = output_shape
-
-    if (size(output_shape) == 3) then
-      allocate(res % p, source=reshape3d_layer(output_shape))
-    else
-      error stop 'size(output_shape) of the reshape layer must == 3'
-    end if
-
-  end function reshape
-
-  module function reshape2d(output_shape) result(res)
-    integer, intent(in) :: output_shape(:)
-    type(layer) :: res
-
     res % name = 'reshape2d'
-    res % layer_shape = output_shape
-
-    if (size(output_shape) == 2) then
-      allocate(res % p, source=reshape2d_layer(output_shape))
-    else
-      error stop 'size(output_shape) of the reshape layer must == 2'
-    end if
-
+    res % layer_shape = [dim1, dim2]
+    allocate(res % p, source=reshape2d_layer(res % layer_shape))
   end function reshape2d
+
+
+  module function reshape3d(dim1, dim2, dim3) result(res)
+    integer, intent(in) :: dim1, dim2, dim3
+    type(layer) :: res
+    res % name = 'reshape3d'
+    res % layer_shape = [dim1, dim2, dim3]
+    allocate(res % p, source=reshape3d_layer(res % layer_shape))
+  end function reshape3d
 
 
   module function linear2d(out_features) result(res)

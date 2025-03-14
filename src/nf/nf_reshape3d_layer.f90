@@ -1,4 +1,4 @@
-module nf_reshape_layer
+module nf_reshape3d_layer
 
   !! This module provides the concrete reshape layer type.
   !! It is used internally by the layer type.
@@ -73,4 +73,4 @@ module nf_reshape_layer
 
   end interface
 
-end module nf_reshape_layer
+end module nf_reshape3d_layer

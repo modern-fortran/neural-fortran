@@ -15,8 +15,8 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 ## Features
 
-* Training and inference of dense (fully connected) and convolutional neural
-  networks
+* Training and inference of dense (fully connected), convolutional (1-d and 2-d),
+  and transformer neural networks
 * Stochastic gradient descent optimizers: Classic, momentum, Nesterov momentum,
   RMSProp, Adagrad, Adam, AdamW
 * More than a dozen activation functions and their derivatives
@@ -41,9 +41,8 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Linear (2-d) | `linear2d` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Self-attention | `self_attention` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Layer Normalization | `layernorm` | `linear2d`, `self_attention` | 2 | ✅ | ✅ |
-| Flatten | `flatten` | `input2d`, `input3d`, `conv2d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
-| Reshape (1-d to 2-d) | `reshape2d` | `input2d`, `conv1d`, `locally_connected1d`, `maxpool1d` | 2 | ✅ | ✅ |
-| Reshape (1-d to 3-d) | `reshape` | `input1d`, `dense`, `flatten` | 3 | ✅ | ✅ |
+| Flatten | `flatten` | `input2d`, `input3d`, `conv1d`, `conv2d`, `maxpool1d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
+| Reshape (1-d to 2-d or 3-d) | `reshape` | `dense`, `dropout`, `flatten`, `input1d` | 2, 3 | ✅ | ✅ |
 
 ## Getting started
 
@@ -263,11 +262,13 @@ It may be useful to read if you want to contribute a new feature to neural-fortr
 
 Thanks to all open-source contributors to neural-fortran:
 [awvwgk](https://github.com/awvwgk),
+[certik](https://github.com/certik),
 [ggoyman](https://github.com/ggoyman),
 [ivan-pi](https://github.com/ivan-pi),
 [jacobwilliams](https://github.com/jacobwilliams),
 [jvdp1](https://github.com/jvdp1),
 [jvo203](https://github.com/jvo203),
+[mathomp4](https://github.com/mathomp4),
 [milancurcic](https://github.com/milancurcic),
 [OneAdder](https://github.com/OneAdder),
 [pirpyn](https://github.com/pirpyn),
