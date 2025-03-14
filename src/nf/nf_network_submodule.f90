@@ -1,5 +1,6 @@
 submodule(nf_network) nf_network_submodule
 
+  use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_dropout_layer, only: dropout_layer
@@ -7,14 +8,17 @@ submodule(nf_network) nf_network_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_locally_connected1d_layer, only: locally_connected1d_layer
+  use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
   use nf_layernorm_layer, only: layernorm_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool2d, reshape
+  use nf_layer_constructors, only: conv1d, conv2d, dense, flatten, input, maxpool1d, maxpool2d, reshape, reshape2d
   use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
@@ -75,10 +79,22 @@ contains
             type is(conv2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
+            type is(locally_connected1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
             type is(maxpool2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(reshape3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(maxpool1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(conv1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(reshape2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             class default
@@ -149,7 +165,6 @@ contains
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(conv2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-
           type is(flatten_layer)
             if (size(self % layers(n) % layer_shape) == 2) then
               call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
@@ -158,12 +173,19 @@ contains
             end if
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-
           type is(reshape3d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(linear2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(self_attention_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(maxpool1d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(reshape2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(conv1d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(locally_connected1d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(layernorm_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
@@ -483,7 +505,6 @@ contains
 
   end function get_num_params
 
-
   module function get_params(self) result(params)
     class(network), intent(in) :: self
     real, allocatable :: params(:)
@@ -502,7 +523,6 @@ contains
     end do
 
   end function get_params
-
 
   module function get_gradients(self) result(gradients)
     class(network), intent(in) :: self
@@ -663,6 +683,12 @@ contains
         type is(conv2d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
+        type is(conv1d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
+        type is(locally_connected1d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
       end select
     end do
 #endif
@@ -678,6 +704,12 @@ contains
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv2d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(conv1d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(locally_connected1d_layer)
           this_layer % dw = 0
           this_layer % db = 0
       end select

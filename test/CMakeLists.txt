@@ -6,16 +6,21 @@ foreach(execid
   linear2d_layer
   parametric_activation
   dense_layer
+  conv1d_layer
   conv2d_layer
+  locally_connected1d_layer
+  maxpool1d_layer
   maxpool2d_layer
   flatten_layer
   insert_flatten
   reshape_layer
+  reshape2d_layer
   multihead_attention_layer
   embedding_layer
   layernorm
   dense_network
   get_set_network_params
+  conv1d_network
   conv2d_network
   optimizers
   loss

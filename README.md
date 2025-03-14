@@ -33,15 +33,17 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Embedding | `embedding` | n/a | 2 | ✅ | ✅ |
 | Dense (fully-connected) | `dense` | `input1d`, `dense`, `dropout`, `flatten` | 1 | ✅ | ✅ |
 | Dropout | `dropout` | `dense`, `flatten`, `input1d` | 1 | ✅ | ✅ |
-| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅(*) |
+| Locally connected (1-d) | `locally_connected1d` | `input2d`, `locally_connected1d`, `conv1d`, `maxpool1d`, `reshape2d` | 2 | ✅ | ✅ |
+| Convolutional (1-d) | `conv1d` | `input2d`, `conv1d`, `maxpool1d`, `reshape2d` | 2 | ✅ | ✅ |
+| Convolutional (2-d) | `conv2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
+| Max-pooling (1-d) | `maxpool1d` | `input2d`, `conv1d`, `maxpool1d`, `reshape2d` | 2 | ✅ | ✅ |
 | Max-pooling (2-d) | `maxpool2d` | `input3d`, `conv2d`, `maxpool2d`, `reshape` | 3 | ✅ | ✅ |
 | Linear (2-d) | `linear2d` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Self-attention | `self_attention` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Layer Normalization | `layernorm` | `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Flatten | `flatten` | `input2d`, `input3d`, `conv2d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
+| Reshape (1-d to 2-d) | `reshape2d` | `input2d`, `conv1d`, `locally_connected1d`, `maxpool1d` | 2 | ✅ | ✅ |
 | Reshape (1-d to 3-d) | `reshape` | `input1d`, `dense`, `flatten` | 3 | ✅ | ✅ |
-
-(*) See Issue [#145](https://github.com/modern-fortran/neural-fortran/issues/145) regarding non-converging CNN training on the MNIST dataset.
 
 ## Getting started
 
@@ -267,7 +269,9 @@ Thanks to all open-source contributors to neural-fortran:
 [jvdp1](https://github.com/jvdp1),
 [jvo203](https://github.com/jvo203),
 [milancurcic](https://github.com/milancurcic),
+[OneAdder](https://github.com/OneAdder),
 [pirpyn](https://github.com/pirpyn),
+[rico07](https://github.com/ricor07),
 [rouson](https://github.com/rouson),
 [rweed](https://github.com/rweed),
 [Spnetic-5](https://github.com/Spnetic-5),

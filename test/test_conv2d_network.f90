@@ -60,6 +60,7 @@ program test_conv2d_network
       call cnn % forward(sample_input)
       call cnn % backward(y)
       call cnn % update(optimizer=sgd(learning_rate=1.))
+
       if (all(abs(cnn % predict(sample_input) - y) < tolerance)) exit
     end do
 
