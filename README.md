@@ -262,11 +262,13 @@ It may be useful to read if you want to contribute a new feature to neural-fortr
 
 Thanks to all open-source contributors to neural-fortran:
 [awvwgk](https://github.com/awvwgk),
+[certik](https://github.com/certik),
 [ggoyman](https://github.com/ggoyman),
 [ivan-pi](https://github.com/ivan-pi),
 [jacobwilliams](https://github.com/jacobwilliams),
 [jvdp1](https://github.com/jvdp1),
 [jvo203](https://github.com/jvo203),
+[mathomp4](https://github.com/mathomp4),
 [milancurcic](https://github.com/milancurcic),
 [OneAdder](https://github.com/OneAdder),
 [pirpyn](https://github.com/pirpyn),
