@@ -64,10 +64,10 @@ add_library(neural-fortran
   src/nf/nf_parallel.f90
   src/nf/nf_parallel_submodule.f90
   src/nf/nf_random.f90
-  src/nf/nf_reshape_layer.f90
-  src/nf/nf_reshape_layer_submodule.f90
   src/nf/nf_reshape2d_layer.f90
   src/nf/nf_reshape2d_layer_submodule.f90
+  src/nf/nf_reshape3d_layer.f90
+  src/nf/nf_reshape3d_layer_submodule.f90
   src/nf/nf_self_attention_layer.f90
   src/nf/io/nf_io_binary.f90
   src/nf/io/nf_io_binary_submodule.f90

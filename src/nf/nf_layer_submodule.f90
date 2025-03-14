@@ -13,7 +13,7 @@ submodule(nf_layer) nf_layer_submodule
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
-  use nf_reshape_layer, only: reshape3d_layer
+  use nf_reshape3d_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer

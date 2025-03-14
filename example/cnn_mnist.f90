@@ -20,7 +20,7 @@ program cnn_mnist
 
   net = network([ &
     input(784), &
-    reshape([1,28,28]), &
+    reshape(1, 28, 28), &
     conv2d(filters=8, kernel_size=3, activation=relu()), &
     maxpool2d(pool_size=2), &
     conv2d(filters=16, kernel_size=3, activation=relu()), &

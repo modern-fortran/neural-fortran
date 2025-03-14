@@ -41,9 +41,8 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Linear (2-d) | `linear2d` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Self-attention | `self_attention` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Layer Normalization | `layernorm` | `linear2d`, `self_attention` | 2 | ✅ | ✅ |
-| Flatten | `flatten` | `input2d`, `input3d`, `conv2d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
-| Reshape (1-d to 2-d) | `reshape2d` | `input2d`, `conv1d`, `locally_connected1d`, `maxpool1d` | 2 | ✅ | ✅ |
-| Reshape (1-d to 3-d) | `reshape` | `input1d`, `dense`, `flatten` | 3 | ✅ | ✅ |
+| Flatten | `flatten` | `input2d`, `input3d`, `conv1d`, `conv2d`, `maxpool1d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
+| Reshape (1-d to 2-d or 3-d) | `reshape` | `dense`, `dropout`, `flatten`, `input1d` | 2, 3 | ✅ | ✅ |
 
 ## Getting started
 
