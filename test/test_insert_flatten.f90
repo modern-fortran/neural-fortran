@@ -45,7 +45,7 @@ program test_insert_flatten
 
   net = network([ &
     input(4), &
-    reshape([1, 2, 2]), &
+    reshape(1, 2, 2), &
     dense(4) &
   ])
 

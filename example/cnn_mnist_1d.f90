@@ -1,7 +1,7 @@
-program cnn_mnist
+program cnn_mnist_1d
 
     use nf, only: network, sgd, &
-      input, conv2d, maxpool1d, maxpool2d, flatten, dense, reshape, reshape2d, locally_connected_1d, &
+      input, conv1d, maxpool1d, flatten, dense, reshape, locally_connected1d, &
       load_mnist, label_digits, softmax, relu
   
     implicit none
@@ -12,7 +12,7 @@ program cnn_mnist
     real, allocatable :: validation_images(:,:), validation_labels(:)
     real, allocatable :: testing_images(:,:), testing_labels(:)
     integer :: n
-    integer, parameter :: num_epochs = 10
+    integer, parameter :: num_epochs = 250
   
     call load_mnist(training_images, training_labels, &
                     validation_images, validation_labels, &
@@ -20,10 +20,10 @@ program cnn_mnist
   
     net = network([ &
       input(784), &
-      reshape2d([28,28]), &
-      locally_connected_1d(filters=8, kernel_size=3, activation=relu()), &
+      reshape(28, 28), &
+      locally_connected1d(filters=8, kernel_size=3, activation=relu()), &
       maxpool1d(pool_size=2), &
-      locally_connected_1d(filters=16, kernel_size=3, activation=relu()), &
+      locally_connected1d(filters=16, kernel_size=3, activation=relu()), &
       maxpool1d(pool_size=2), &
       dense(10, activation=softmax()) &
     ])
@@ -37,7 +37,7 @@ program cnn_mnist
         label_digits(training_labels), &
         batch_size=16, &
         epochs=1, &
-        optimizer=sgd(learning_rate=0.003) &
+        optimizer=sgd(learning_rate=0.01) &
       )
   
       print '(a,i2,a,f5.2,a)', 'Epoch ', n, ' done, Accuracy: ', accuracy( &
@@ -63,5 +63,5 @@ program cnn_mnist
       accuracy = real(good) / size(x, dim=2)
     end function accuracy
   
-  end program cnn_mnist
+end program cnn_mnist_1d
   

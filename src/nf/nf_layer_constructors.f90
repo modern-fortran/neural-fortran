@@ -9,15 +9,20 @@ module nf_layer_constructors
 
   private
   public :: &
+    conv1d, &
     conv2d, &
     dense, &
     dropout, &
     flatten, &
     input, locally_connected_1d, maxpool1d, &
     linear2d, &
+    locally_connected1d, &
+    maxpool1d, &
     maxpool2d, &
-    reshape, reshape2d, &
-    self_attention
+    reshape, &
+    self_attention, &
+    embedding, &
+    layernorm
 
   interface input
 
@@ -88,6 +93,28 @@ module nf_layer_constructors
 
   end interface input
 
+
+  interface reshape
+
+    module function reshape2d(dim1, dim2) result(res)
+      !! Rank-1 to rank-2 reshape layer constructor.
+      integer, intent(in) :: dim1, dim2
+        !! Shape of the output
+      type(layer) :: res
+        !! Resulting layer instance
+    end function reshape2d
+
+    module function reshape3d(dim1, dim2, dim3) result(res)
+      !! Rank-1 to rank-3 reshape layer constructor.
+      integer, intent(in) :: dim1, dim2, dim3
+        !! Shape of the output
+      type(layer) :: res
+        !! Resulting layer instance
+    end function reshape3d
+
+  end interface reshape
+
+
   interface
 
     module function dense(layer_size, activation) result(res)
@@ -152,6 +179,33 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function flatten
 
+    module function conv1d(filters, kernel_size, activation) result(res)
+      !! 1-d convolutional layer constructor.
+      !!
+      !! This layer is for building 1-d convolutional network.
+      !! Although the established convention is to call these layers 1-d,
+      !! the shape of the data is actually 2-d: image width
+      !! and the number of channels.
+      !! A conv1d layer must not be the first layer in the network.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: conv1d, layer
+      !! type(layer) :: conv1d_layer
+      !! conv1d_layer = dense(filters=32, kernel_size=3)
+      !! conv1d_layer = dense(filters=32, kernel_size=3, activation='relu')
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_size
+        !! Width of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function conv1d
+
     module function conv2d(filters, kernel_size, activation) result(res)
       !! 2-d convolutional layer constructor.
       !!
@@ -179,23 +233,22 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function conv2d
 
-    module function locally_connected_1d(filters, kernel_size, activation) result(res)
-      !! CHANGE THE COMMENTS!!!
-      !! 2-d convolutional layer constructor.
+    module function locally_connected1d(filters, kernel_size, activation) result(res)
+      !! 1-d locally connected network constructor
       !!
-      !! This layer is for building 2-d convolutional network.
-      !! Although the established convention is to call these layers 2-d,
-      !! the shape of the data is actuall 3-d: image width, image height,
+      !! This layer is for building 1-d locally connected network.
+      !! Although the established convention is to call these layers 1-d,
+      !! the shape of the data is actuall 2-d: image width,
       !! and the number of channels.
-      !! A conv2d layer must not be the first layer in the network.
+      !! A locally connected 1d layer must not be the first layer in the network.
       !!
       !! Example:
       !!
       !! ```
-      !! use nf, only :: conv2d, layer
-      !! type(layer) :: conv2d_layer
-      !! conv2d_layer = dense(filters=32, kernel_size=3)
-      !! conv2d_layer = dense(filters=32, kernel_size=3, activation='relu')
+      !! use nf, only :: locally_connected1d, layer
+      !! type(layer) :: locally_connected1d_layer
+      !! locally_connected1d_layer = dense(filters=32, kernel_size=3)
+      !! locally_connected1d_layer = dense(filters=32, kernel_size=3, activation='relu')
       !! ```
       integer, intent(in) :: filters
         !! Number of filters in the output of the layer
@@ -205,20 +258,20 @@ module nf_layer_constructors
         !! Activation function (default sigmoid)
       type(layer) :: res
         !! Resulting layer instance
-    end function locally_connected_1d
+    end function locally_connected1d
 
     module function maxpool1d(pool_size, stride) result(res)
-      !! 2-d maxpooling layer constructor.
+      !! 1-d maxpooling layer constructor.
       !!
-      !! This layer is for downscaling other layers, typically `conv2d`.
+      !! This layer is for downscaling other layers, typically `conv1d`.
       !!
       !! Example:
       !!
       !! ```
-      !! use nf, only :: maxpool2d, layer
-      !! type(layer) :: maxpool2d_layer
-      !! maxpool2d_layer = maxpool2d(pool_size=2)
-      !! maxpool2d_layer = maxpool2d(pool_size=2, stride=3)
+      !! use nf, only :: maxpool1d, layer
+      !! type(layer) :: maxpool1d_layer
+      !! maxpool1d_layer = maxpool1d(pool_size=2)
+      !! maxpool1d_layer = maxpool1d(pool_size=2, stride=3)
       !! ```
       integer, intent(in) :: pool_size
         !! Width of the pooling window, commonly 2
@@ -251,28 +304,6 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function maxpool2d
 
-    module function reshape(output_shape) result(res)
-      !! Rank-1 to rank-any reshape layer constructor.
-      !! Currently implemented is only rank-3 for the output of the reshape.
-      !!
-      !! This layer is for connecting 1-d inputs to conv2d or similar layers.
-      integer, intent(in) :: output_shape(:)
-        !! Shape of the output
-      type(layer) :: res
-        !! Resulting layer instance
-    end function reshape
-
-    module function reshape2d(output_shape) result(res)
-      !! Rank-1 to rank-any reshape layer constructor.
-      !! Currently implemented is only rank-3 for the output of the reshape.
-      !!
-      !! This layer is for connecting 1-d inputs to conv2d or similar layers.
-      integer, intent(in) :: output_shape(:)
-        !! Shape of the output
-      type(layer) :: res
-        !! Resulting layer instance
-    end function reshape2d
-
     module function linear2d(out_features) result(res)
       !! Rank-2 (sequence_length, out_features) linear layer constructor.
       !! sequence_length is determined at layer initialization, based on the
@@ -283,15 +314,40 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function linear2d
 
-  module function self_attention(num_heads) result(res)
-    !! Rank-2 (sequence_length, out_features) self attention constructor.
-    !! sequence_length and model_dimension are determined at layer initialization, based on the
-    !! output shape of the previous layer.
-    integer, intent(in) :: num_heads
-      !! Number of attention heads
-    type(layer) :: res
-      !! Resulting layer instance
-  end function self_attention
+    module function self_attention(num_heads) result(res)
+      !! Rank-2 (sequence_length, out_features) self attention constructor.
+      !! sequence_length and model_dimension are determined at layer initialization, based on the
+      !! output shape of the previous layer.
+      integer, intent(in) :: num_heads
+        !! Number of attention heads
+      type(layer) :: res
+        !! Resulting layer instance
+    end function self_attention
+
+    module function embedding(sequence_length, vocab_size, model_dimension, positional) result(res)
+      !! Embedding layer constructor.
+      !!
+      !! This layer is for inputting token indices from the dictionary to the network.
+      !! Works as a trainable lookup table that converts each index into a vector.
+      !! Embedding layer must be the first layer in a network.
+      integer, intent(in) :: sequence_length
+        !! max len of input sequence  
+      integer, intent(in) :: vocab_size
+        !! length of token vocabulary
+      integer, intent(in) :: model_dimension
+        !! size of target embeddings
+      integer, optional, intent(in) :: positional
+        !! positional encoding
+      type(layer) :: res
+    end function embedding
+
+    module function layernorm() result(res)
+      !! Layer Normalization
+      !! ((x − mean(x)) / sqrt(variance(x) + eps) * gamma + beta
+      !! Based upon `Ba, Jimmy Lei, Jamie Ryan Kiros, and Geoffrey E. Hinton(2016)`:
+      !! https://arxiv.org/abs/1607.06450v1
+      type(layer) :: res
+    end function layernorm
 
   end interface
 

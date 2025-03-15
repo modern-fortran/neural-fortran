@@ -1,4 +1,4 @@
-submodule(nf_reshape_layer) nf_reshape_layer_submodule
+submodule(nf_reshape3d_layer) nf_reshape3d_layer_submodule
 
   use nf_base_layer, only: base_layer
 
@@ -48,4 +48,4 @@ contains
 
   end subroutine init
 
-end submodule nf_reshape_layer_submodule
+end submodule nf_reshape3d_layer_submodule

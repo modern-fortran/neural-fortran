@@ -1,5 +1,6 @@
 submodule(nf_network) nf_network_submodule
 
+  use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
   use nf_dropout_layer, only: dropout_layer
@@ -7,15 +8,20 @@ submodule(nf_network) nf_network_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_locally_connected1d_layer, only: locally_connected1d_layer
+  use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_locally_connected_1d_layer, only: locally_connected_1d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
-  use nf_reshape_layer, only: reshape3d_layer
+  use nf_reshape2d_layer, only: reshape2d_layer
+  use nf_reshape3d_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
+  use nf_embedding_layer, only: embedding_layer
+  use nf_layernorm_layer, only: layernorm_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv2d, dense, flatten, input, maxpool1d, maxpool2d, reshape, reshape2d
+  use nf_layer_constructors, only: conv1d, conv2d, dense, flatten, input, maxpool1d, maxpool1d, maxpool2d, reshape, reshape2d
   use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
@@ -49,7 +55,7 @@ contains
       error stop 'Error: A network must have at least 2 layers.'
 
     ! The first layer must be an input layer
-    if (.not. layers(1) % name == 'input') &
+    if (.not. layers(1) % name == 'input' .and. .not. layers(1) % name == 'embedding') &
       error stop 'Error: First layer in the network must be an input layer.'
 
     !TODO Ensure that the layers are in allowed sequence:
@@ -76,6 +82,9 @@ contains
             type is(conv2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
+            type is(locally_connected1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
             type is(maxpool2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
@@ -83,6 +92,15 @@ contains
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(maxpool1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(reshape2d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(maxpool1d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(conv1d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(reshape2d_layer)
@@ -156,7 +174,6 @@ contains
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(conv2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-
           type is(flatten_layer)
             if (size(self % layers(n) % layer_shape) == 2) then
               call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
@@ -165,7 +182,6 @@ contains
             end if
           type is(maxpool2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-
           type is(reshape3d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(linear2d_layer)
@@ -175,6 +191,16 @@ contains
           type is(maxpool1d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(reshape2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(maxpool1d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(reshape2d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(conv1d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(locally_connected1d_layer)
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+          type is(layernorm_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         end select
       end if
@@ -220,8 +246,9 @@ contains
     integer :: n
 
     ! Set the input array into the input layer
-    select type(input_layer => self % layers(1) % p); type is(input1d_layer)
-      call input_layer % set(input)
+    select type(input_layer => self % layers(1) % p)
+      type is(input1d_layer)
+        call input_layer % set(input)
     end select
 
     do n = 2, size(self % layers)
@@ -230,6 +257,21 @@ contains
 
   end subroutine forward_1d
 
+  module subroutine forward_1d_int(self, input)
+    class(network), intent(in out) :: self
+    integer, intent(in) :: input(:)
+    integer :: n
+
+    select type(input_layer => self % layers(1) % p)
+      type is(embedding_layer)
+        call input_layer % forward(input)
+    end select
+
+    do n = 2, size(self % layers)
+      call self % layers(n) % forward(self % layers(n - 1))
+    end do
+
+  end subroutine forward_1d_int
 
   module subroutine forward_2d(self, input)
     class(network), intent(in out) :: self
@@ -294,6 +336,31 @@ contains
 
   end function predict_1d
 
+  module function predict_1d_int(self, input) result(res)
+    class(network), intent(in out) :: self
+    integer, intent(in) :: input(:)
+    real, allocatable :: res(:)
+    integer :: n, num_layers
+
+    num_layers = size(self % layers)
+
+    call self % set_training_mode(.false.)
+    call self % forward(input)
+    call self % set_training_mode(.true.)
+
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(dense_layer)
+        res = output_layer % output
+      type is(dropout_layer)
+        res = output_layer % output
+      type is(flatten_layer)
+        res = output_layer % output
+      class default
+        error stop 'network % output not implemented for ' // &
+          trim(self % layers(num_layers) % name) // ' layer'
+    end select
+
+  end function predict_1d_int
 
   module function predict_2d(self, input) result(res)
     class(network), intent(in out) :: self
@@ -451,7 +518,6 @@ contains
 
   end function get_num_params
 
-
   module function get_params(self) result(params)
     class(network), intent(in) :: self
     real, allocatable :: params(:)
@@ -470,7 +536,6 @@ contains
     end do
 
   end function get_params
-
 
   module function get_gradients(self) result(gradients)
     class(network), intent(in) :: self
@@ -631,6 +696,12 @@ contains
         type is(conv2d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
+        type is(conv1d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
+        type is(locally_connected1d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
       end select
     end do
 #endif
@@ -646,6 +717,12 @@ contains
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv2d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(conv1d_layer)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(locally_connected1d_layer)
           this_layer % dw = 0
           this_layer % db = 0
       end select
