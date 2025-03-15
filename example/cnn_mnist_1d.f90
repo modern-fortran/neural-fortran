@@ -63,5 +63,5 @@ program cnn_mnist_1d
       accuracy = real(good) / size(x, dim=2)
     end function accuracy
   
-  end program cnn_mnist_1d
+end program cnn_mnist_1d
   

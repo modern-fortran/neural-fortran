@@ -1,5 +1,4 @@
 submodule(nf_maxpool1d_layer) nf_maxpool1d_layer_submodule
-
   implicit none
 
 contains

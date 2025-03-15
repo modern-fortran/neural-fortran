@@ -14,7 +14,7 @@ module nf_layer_constructors
     dense, &
     dropout, &
     flatten, &
-    input, &
+    input, locally_connected_1d, maxpool1d, &
     linear2d, &
     locally_connected1d, &
     maxpool1d, &
