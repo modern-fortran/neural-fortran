@@ -1,6 +1,9 @@
 submodule(nf_layer_constructors) nf_layer_constructors_submodule
 
   use nf_layer, only: layer
+  use nf_avgpool1d_layer, only: avgpool1d_layer
+  use nf_avgpool2d_layer, only: avgpool2d_layer
+  use nf_avgpool3d_layer, only: avgpool3d_layer
   use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
@@ -12,6 +15,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_locally_connected1d_layer, only: locally_connected1d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_maxpool3d_layer, only: maxpool3d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape3d_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
@@ -140,6 +144,92 @@ contains
   end function flatten
 
 
+  module function avgpool1d(pool_size, stride) result(res)
+    integer, intent(in) :: pool_size
+    integer, intent(in), optional :: stride
+    integer :: stride_
+    type(layer) :: res
+
+    if (pool_size < 2) &
+      error stop 'pool_size must be >= 2 in a avgpool1d layer'
+
+    ! Stride defaults to pool_size if not provided
+    if (present(stride)) then
+      stride_ = stride
+    else
+      stride_ = pool_size
+    end if
+
+    if (stride_ < 1) &
+      error stop 'stride must be >= 1 in a avgpool1d layer'
+
+    res % name = 'avgpool1d'
+
+    allocate( &
+      res % p, &
+      source=avgpool1d_layer(pool_size, stride_) &
+    )
+
+  end function avgpool1d
+
+  module function avgpool2d(pool_size, stride) result(res)
+    integer, intent(in) :: pool_size
+    integer, intent(in), optional :: stride
+    integer :: stride_
+    type(layer) :: res
+
+    if (pool_size < 2) &
+      error stop 'pool_size must be >= 2 in a avgpool2d layer'
+
+    ! Stride defaults to pool_size if not provided
+    if (present(stride)) then
+      stride_ = stride
+    else
+      stride_ = pool_size
+    end if
+
+    if (stride_ < 1) &
+      error stop 'stride must be >= 1 in a avgpool2d layer'
+
+    res % name = 'avgpool2d'
+
+    allocate( &
+      res % p, &
+      source=avgpool2d_layer(pool_size, stride_) &
+    )
+
+  end function avgpool2d
+
+
+  module function avgpool3d(pool_size, stride) result(res)
+    integer, intent(in) :: pool_size
+    integer, intent(in), optional :: stride
+    integer :: stride_
+    type(layer) :: res
+
+    if (pool_size < 2) &
+      error stop 'pool_size must be >= 2 in a avgpool3d layer'
+
+    ! Stride defaults to pool_size if not provided
+    if (present(stride)) then
+      stride_ = stride
+    else
+      stride_ = pool_size
+    end if
+
+    if (stride_ < 1) &
+      error stop 'stride must be >= 1 in a avgpool3d layer'
+
+    res % name = 'avgpool3d'
+
+    allocate( &
+      res % p, &
+      source=avgpool3d_layer(pool_size, stride_) &
+    )
+
+  end function avgpool3d
+
+
   module function input1d(layer_size) result(res)
     integer, intent(in) :: layer_size
     type(layer) :: res
@@ -227,6 +317,35 @@ contains
     )
 
   end function maxpool2d
+
+
+  module function maxpool3d(pool_size, stride) result(res)
+    integer, intent(in) :: pool_size
+    integer, intent(in), optional :: stride
+    integer :: stride_
+    type(layer) :: res
+
+    if (pool_size < 2) &
+      error stop 'pool_size must be >= 2 in a maxpool3d layer'
+
+    ! Stride defaults to pool_size if not provided
+    if (present(stride)) then
+      stride_ = stride
+    else
+      stride_ = pool_size
+    end if
+
+    if (stride_ < 1) &
+      error stop 'stride must be >= 1 in a maxpool3d layer'
+
+    res % name = 'maxpool3d'
+
+    allocate( &
+      res % p, &
+      source=maxpool3d_layer(pool_size, stride_) &
+    )
+
+  end function maxpool3d
 
 
   module function reshape2d(dim1, dim2) result(res)
