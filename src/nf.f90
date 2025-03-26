@@ -3,6 +3,9 @@ module nf
   use nf_datasets_mnist, only: label_digits, load_mnist
   use nf_layer, only: layer
   use nf_layer_constructors, only: &
+    avgpool1d, &
+    avgpool2d, &
+    avgpool3d, &
     conv1d, &
     conv2d, &
     dense, &
@@ -15,6 +18,7 @@ module nf
     locally_connected1d, &
     maxpool1d, &
     maxpool2d, &
+    maxpool3d, &
     reshape, &
     self_attention
   use nf_loss, only: mse, quadratic
