@@ -1,7 +1,7 @@
 program cnn_mnist
 
   use nf, only: network, sgd, &
-    input, conv, maxpool2d, flatten, dense, reshape, &
+    input, conv, maxpool, flatten, dense, reshape, &
     load_mnist, label_digits, softmax, relu
 
   implicit none
@@ -22,9 +22,9 @@ program cnn_mnist
     input(784), &
     reshape(1, 28, 28), &
     conv(filters=8, kernel_width=3, kernel_height=3, activation=relu()), &
-    maxpool2d(pool_size=2), &
+    maxpool(pool_width=2, stride=2), &
     conv(filters=16, kernel_width=3, kernel_height=3, activation=relu()), &
-    maxpool2d(pool_size=2), &
+    maxpool(pool_width=2, stride=2), &
     dense(10, activation=softmax()) &
   ])
 

@@ -1,7 +1,7 @@
 program test_maxpool1d_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: maxpool1d, input, layer
+  use nf, only: maxpool, input, layer
   use nf_input2d_layer, only: input2d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
 
@@ -16,7 +16,7 @@ program test_maxpool1d_layer
   integer :: i
   logical :: ok = .true., gradient_ok = .true.
 
-  maxpool_layer = maxpool1d(pool_size)
+  maxpool_layer = maxpool(pool_width=pool_size, stride=stride)
 
   if (.not. maxpool_layer % name == 'maxpool1d') then
     ok = .false.

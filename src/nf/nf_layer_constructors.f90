@@ -16,8 +16,7 @@ module nf_layer_constructors
     input, &
     linear2d, &
     locally_connected1d, &
-    maxpool1d, &
-    maxpool2d, &
+    maxpool, &
     reshape, &
     self_attention, &
     embedding, &
@@ -151,9 +150,60 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function conv2d
-
+    
   end interface conv
 
+
+  interface maxpool
+
+    module function maxpool1d(pool_width, stride) result(res)
+      !! 1-d maxpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv1d`.
+      !!
+      !! This specific function is available under a generic name `maxpool`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: maxpool1d, layer
+      !! type(layer) :: maxpool1d_layer
+      !! maxpool1d_layer = maxpool1d(pool_width=2, stride=2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`;
+      type(layer) :: res
+        !! Resulting layer instance
+    end function maxpool1d
+
+    module function maxpool2d(pool_width, pool_height, stride) result(res)
+      !! 2-d maxpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv2d`.
+      !!
+      !! This specific function is available under a generic name `maxpool`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: maxpool2d, layer
+      !! type(layer) :: maxpool2d_layer
+      !! maxpool2d_layer = maxpool2d(pool_width=2, pool_height=2, stride=2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: pool_height
+        !! Height of the pooling window; currently must be equal to pool_width
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`;
+      type(layer) :: res
+        !! Resulting layer instance
+    end function maxpool2d
+
+  end interface maxpool
+  
 
   interface reshape
 
@@ -266,50 +316,6 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function locally_connected1d
-
-    module function maxpool1d(pool_size, stride) result(res)
-      !! 1-d maxpooling layer constructor.
-      !!
-      !! This layer is for downscaling other layers, typically `conv1d`.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: maxpool1d, layer
-      !! type(layer) :: maxpool1d_layer
-      !! maxpool1d_layer = maxpool1d(pool_size=2)
-      !! maxpool1d_layer = maxpool1d(pool_size=2, stride=3)
-      !! ```
-      integer, intent(in) :: pool_size
-        !! Width of the pooling window, commonly 2
-      integer, intent(in), optional :: stride
-        !! Stride of the pooling window, commonly equal to `pool_size`;
-        !! Defaults to `pool_size` if omitted.
-      type(layer) :: res
-        !! Resulting layer instance
-    end function maxpool1d
-
-    module function maxpool2d(pool_size, stride) result(res)
-      !! 2-d maxpooling layer constructor.
-      !!
-      !! This layer is for downscaling other layers, typically `conv2d`.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: maxpool2d, layer
-      !! type(layer) :: maxpool2d_layer
-      !! maxpool2d_layer = maxpool2d(pool_size=2)
-      !! maxpool2d_layer = maxpool2d(pool_size=2, stride=3)
-      !! ```
-      integer, intent(in) :: pool_size
-        !! Width of the pooling window, commonly 2
-      integer, intent(in), optional :: stride
-        !! Stride of the pooling window, commonly equal to `pool_size`;
-        !! Defaults to `pool_size` if omitted.
-      type(layer) :: res
-        !! Resulting layer instance
-    end function maxpool2d
 
     module function linear2d(out_features) result(res)
       !! Rank-2 (sequence_length, out_features) linear layer constructor.

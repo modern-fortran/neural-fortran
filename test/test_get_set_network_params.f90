@@ -1,6 +1,6 @@
 program test_get_set_network_params
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: conv, dense, flatten, input, maxpool2d, network
+  use nf, only: conv, dense, flatten, input, network
   implicit none
   type(network) :: net
   logical :: ok = .true.

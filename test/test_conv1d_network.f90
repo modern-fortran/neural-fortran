@@ -1,7 +1,7 @@
 program test_conv1d_network
 
     use iso_fortran_env, only: stderr => error_unit
-    use nf, only: conv, input, network, dense, sgd, maxpool1d
+    use nf, only: conv, input, network, dense, sgd, maxpool
   
     implicit none
   
@@ -87,7 +87,7 @@ program test_conv1d_network
       cnn = network([ &
         input(1, 8), &
         conv(filters=1, kernel_width=3), &
-        maxpool1d(pool_size=2), &
+        maxpool(pool_width=2, stride=2), &
         conv(filters=1, kernel_width=3), &
         dense(1) &
       ])
@@ -122,7 +122,7 @@ program test_conv1d_network
       cnn = network([ &
         input(1, 12), &
         conv(filters=1, kernel_width=3), & ! 1x12x12 input, 1x10x10 output
-        maxpool1d(pool_size=2), &           ! 1x10x10 input, 1x5x5 output
+        maxpool(pool_width=2, stride=2), &           ! 1x10x10 input, 1x5x5 output
         conv(filters=1, kernel_width=3), & ! 1x5x5 input, 1x3x3 output
         dense(9) &                          ! 9 outputs
       ])

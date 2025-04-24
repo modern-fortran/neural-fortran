@@ -12,8 +12,7 @@ module nf
     layernorm, &
     linear2d, &
     locally_connected1d, &
-    maxpool1d, &
-    maxpool2d, &
+    maxpool, &
     reshape, &
     self_attention
   use nf_loss, only: mse, quadratic
