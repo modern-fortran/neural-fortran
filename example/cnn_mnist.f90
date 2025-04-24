@@ -22,9 +22,9 @@ program cnn_mnist
     input(784), &
     reshape(1, 28, 28), &
     conv(filters=8, kernel_width=3, kernel_height=3, activation=relu()), &
-    maxpool(pool_width=2, stride=2), &
+    maxpool(pool_width=2, pool_height=2, stride=2), &
     conv(filters=16, kernel_width=3, kernel_height=3, activation=relu()), &
-    maxpool(pool_width=2, stride=2), &
+    maxpool(pool_width=2, pool_height=2, stride=2), &
     dense(10, activation=softmax()) &
   ])
 
