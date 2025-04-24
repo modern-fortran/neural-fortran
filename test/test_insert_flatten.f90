@@ -1,7 +1,7 @@
 program test_insert_flatten
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: network, input, conv2d, maxpool2d, flatten, dense, reshape
+  use nf, only: network, input, conv, maxpool2d, flatten, dense, reshape
 
   implicit none
 
@@ -20,7 +20,7 @@ program test_insert_flatten
 
   net = network([ &
     input(3, 32, 32), &
-    conv2d(filters=1, kernel_size=3), &
+    conv(filters=1, kernel_width=3, kernel_height=3), &
     dense(10) &
   ])
 
@@ -33,7 +33,7 @@ program test_insert_flatten
 
   net = network([ &
     input(3, 32, 32), &
-    conv2d(filters=1, kernel_size=3), &
+    conv(filters=1, kernel_width=3, kernel_height=3), &
     maxpool2d(pool_size=2, stride=2), &
     dense(10) &
   ])

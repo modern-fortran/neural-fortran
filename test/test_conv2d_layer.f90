@@ -1,7 +1,7 @@
 program test_conv2d_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: conv2d, input, layer
+  use nf, only: conv, input, layer
   use nf_input3d_layer, only: input3d_layer
 
   implicit none
@@ -12,7 +12,7 @@ program test_conv2d_layer
   real, parameter :: tolerance = 1e-7
   logical :: ok = .true.
 
-  conv_layer = conv2d(filters, kernel_size)
+  conv_layer = conv(filters, kernel_size, kernel_size)
 
   if (.not. conv_layer % name == 'conv2d') then
     ok = .false.
@@ -52,7 +52,7 @@ program test_conv2d_layer
   sample_input = 0
 
   input_layer = input(1, 3, 3)
-  conv_layer = conv2d(filters, kernel_size)
+  conv_layer = conv(filters, kernel_size, kernel_size)
   call conv_layer % init(input_layer)
 
   select type(this_layer => input_layer % p); type is(input3d_layer)

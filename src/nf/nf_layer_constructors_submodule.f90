@@ -24,9 +24,9 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
 
 contains
 
-  module function conv1d(filters, kernel_size, activation) result(res)
+  module function conv1d(filters, kernel_width, activation) result(res)
     integer, intent(in) :: filters
-    integer, intent(in) :: kernel_size
+    integer, intent(in) :: kernel_width
     class(activation_function), intent(in), optional :: activation
     type(layer) :: res
 
@@ -44,18 +44,25 @@ contains
 
     allocate( &
       res % p, &
-      source=conv1d_layer(filters, kernel_size, activation_tmp) &
+      source=conv1d_layer(filters, kernel_width, activation_tmp) &
     )
 
   end function conv1d
 
-  module function conv2d(filters, kernel_size, activation) result(res)
+  module function conv2d(filters, kernel_width, kernel_height, activation) result(res)
     integer, intent(in) :: filters
-    integer, intent(in) :: kernel_size
+    integer, intent(in) :: kernel_width
+    integer, intent(in) :: kernel_height
     class(activation_function), intent(in), optional :: activation
     type(layer) :: res
 
     class(activation_function), allocatable :: activation_tmp
+
+    ! Enforce kernel_width == kernel_height for now;
+    ! If non-square kernels show to be desired, we'll relax this constraint
+    ! and refactor conv2d_layer to work with non-square kernels.
+    if (kernel_width /= kernel_height) &
+      error stop 'kernel_width must equal kernel_height in a conv2d layer'
 
     res % name = 'conv2d'
 
@@ -69,7 +76,7 @@ contains
 
     allocate( &
       res % p, &
-      source=conv2d_layer(filters, kernel_size, activation_tmp) &
+      source=conv2d_layer(filters, kernel_width, activation_tmp) &
     )
 
   end function conv2d

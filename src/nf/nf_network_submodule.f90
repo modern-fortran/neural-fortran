@@ -18,7 +18,7 @@ submodule(nf_network) nf_network_submodule
   use nf_embedding_layer, only: embedding_layer
   use nf_layernorm_layer, only: layernorm_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv1d, conv2d, dense, flatten, input, maxpool1d, maxpool2d, reshape
+  use nf_layer_constructors, only: flatten
   use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices

@@ -9,8 +9,7 @@ module nf_layer_constructors
 
   private
   public :: &
-    conv1d, &
-    conv2d, &
+    conv, &
     dense, &
     dropout, &
     flatten, &
@@ -92,6 +91,68 @@ module nf_layer_constructors
     end function input3d
 
   end interface input
+
+
+  interface conv
+
+    module function conv1d(filters, kernel_width, activation) result(res)
+      !! 1-d convolutional layer constructor.
+      !!
+      !! This layer is for building 1-d convolutional network.
+      !! Although the established convention is to call these layers 1-d,
+      !! the shape of the data is actually 2-d: image width and the number of channels. 
+      !! A conv1d layer must not be the first layer in the network.
+      !!
+      !! This specific function is available under a generic name `conv`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: conv1d, layer
+      !! type(layer) :: conv1d_layer
+      !! conv1d_layer = conv1d(filters=32, kernel_size=3)
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_width
+        !! Width of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function conv1d
+
+    module function conv2d(filters, kernel_width, kernel_height, activation) result(res)
+      !! 2-d convolutional layer constructor.
+      !!
+      !! This layer is for building 2-d convolutional network.
+      !! Although the established convention is to call these layers 2-d,
+      !! the shape of the data is actually 3-d: image width, image height,
+      !! and the number of channels.  
+      !! A conv2d layer must not be the first layer in the network.
+      !!
+      !! This specific function is available under a generic name `conv`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: conv2d, layer
+      !! type(layer) :: conv2d_layer  
+      !! conv2d_layer = conv2d(filters=32, kernel_width=3, kernel_height=3)
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_width
+        !! Width of the convolution window, commonly 3 or 5
+      integer, intent(in) :: kernel_height
+        !! Height of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function conv2d
+
+  end interface conv
 
 
   interface reshape
@@ -179,66 +240,12 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function flatten
 
-    module function conv1d(filters, kernel_size, activation) result(res)
-      !! 1-d convolutional layer constructor.
-      !!
-      !! This layer is for building 1-d convolutional network.
-      !! Although the established convention is to call these layers 1-d,
-      !! the shape of the data is actually 2-d: image width
-      !! and the number of channels.
-      !! A conv1d layer must not be the first layer in the network.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: conv1d, layer
-      !! type(layer) :: conv1d_layer
-      !! conv1d_layer = dense(filters=32, kernel_size=3)
-      !! conv1d_layer = dense(filters=32, kernel_size=3, activation='relu')
-      !! ```
-      integer, intent(in) :: filters
-        !! Number of filters in the output of the layer
-      integer, intent(in) :: kernel_size
-        !! Width of the convolution window, commonly 3 or 5
-      class(activation_function), intent(in), optional :: activation
-        !! Activation function (default sigmoid)
-      type(layer) :: res
-        !! Resulting layer instance
-    end function conv1d
-
-    module function conv2d(filters, kernel_size, activation) result(res)
-      !! 2-d convolutional layer constructor.
-      !!
-      !! This layer is for building 2-d convolutional network.
-      !! Although the established convention is to call these layers 2-d,
-      !! the shape of the data is actuall 3-d: image width, image height,
-      !! and the number of channels.
-      !! A conv2d layer must not be the first layer in the network.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: conv2d, layer
-      !! type(layer) :: conv2d_layer
-      !! conv2d_layer = dense(filters=32, kernel_size=3)
-      !! conv2d_layer = dense(filters=32, kernel_size=3, activation='relu')
-      !! ```
-      integer, intent(in) :: filters
-        !! Number of filters in the output of the layer
-      integer, intent(in) :: kernel_size
-        !! Width of the convolution window, commonly 3 or 5
-      class(activation_function), intent(in), optional :: activation
-        !! Activation function (default sigmoid)
-      type(layer) :: res
-        !! Resulting layer instance
-    end function conv2d
-
     module function locally_connected1d(filters, kernel_size, activation) result(res)
       !! 1-d locally connected network constructor
       !!
       !! This layer is for building 1-d locally connected network.
       !! Although the established convention is to call these layers 1-d,
-      !! the shape of the data is actuall 2-d: image width,
+      !! the shape of the data is actually 2-d: image width,
       !! and the number of channels.
       !! A locally connected 1d layer must not be the first layer in the network.
       !!
