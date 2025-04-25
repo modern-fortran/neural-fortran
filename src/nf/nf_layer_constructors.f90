@@ -107,7 +107,7 @@ module nf_layer_constructors
       !! Example:
       !!
       !! ```
-      !! use nf, only :: conv1d, layer
+      !! use nf, only :: conv, layer
       !! type(layer) :: conv1d_layer
       !! conv1d_layer = conv1d(filters=32, kernel_size=3)
       !! ```
