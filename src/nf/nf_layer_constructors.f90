@@ -137,7 +137,7 @@ module nf_layer_constructors
       !! ```
       !! use nf, only :: conv, layer
       !! type(layer) :: conv2d_layer  
-      !! conv2d_layer = conv2d(filters=32, kernel_width=3, kernel_height=3)
+      !! conv2d_layer = conv(filters=32, kernel_width=3, kernel_height=3)
       !! ```
       integer, intent(in) :: filters
         !! Number of filters in the output of the layer
