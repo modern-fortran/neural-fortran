@@ -9,16 +9,14 @@ module nf_layer_constructors
 
   private
   public :: &
-    conv1d, &
-    conv2d, &
+    conv, &
     dense, &
     dropout, &
     flatten, &
     input, &
     linear2d, &
-    locally_connected1d, &
-    maxpool1d, &
-    maxpool2d, &
+    locally_connected, &
+    maxpool, &
     reshape, &
     self_attention, &
     embedding, &
@@ -93,6 +91,151 @@ module nf_layer_constructors
 
   end interface input
 
+
+  interface conv
+
+    module function conv1d(filters, kernel_width, activation) result(res)
+      !! 1-d convolutional layer constructor.
+      !!
+      !! This layer is for building 1-d convolutional network.
+      !! Although the established convention is to call these layers 1-d,
+      !! the shape of the data is actually 2-d: image width and the number of channels. 
+      !! A conv1d layer must not be the first layer in the network.
+      !!
+      !! This specific function is available under a generic name `conv`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: conv, layer
+      !! type(layer) :: conv1d_layer
+      !! conv1d_layer = conv(filters=32, kernel_size=3)
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_width
+        !! Width of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function conv1d
+
+    module function conv2d(filters, kernel_width, kernel_height, activation) result(res)
+      !! 2-d convolutional layer constructor.
+      !!
+      !! This layer is for building 2-d convolutional network.
+      !! Although the established convention is to call these layers 2-d,
+      !! the shape of the data is actually 3-d: image width, image height,
+      !! and the number of channels.  
+      !! A conv2d layer must not be the first layer in the network.
+      !!
+      !! This specific function is available under a generic name `conv`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: conv, layer
+      !! type(layer) :: conv2d_layer  
+      !! conv2d_layer = conv(filters=32, kernel_width=3, kernel_height=3)
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_width
+        !! Width of the convolution window, commonly 3 or 5
+      integer, intent(in) :: kernel_height
+        !! Height of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function conv2d
+    
+  end interface conv
+
+
+  interface locally_connected
+
+    module function locally_connected1d(filters, kernel_size, activation) result(res)
+      !! 1-d locally connected network constructor
+      !!
+      !! This layer is for building 1-d locally connected network.
+      !! Although the established convention is to call these layers 1-d,
+      !! the shape of the data is actually 2-d: image width,
+      !! and the number of channels.
+      !! A locally connected 1d layer must not be the first layer in the network.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: locally_connected1d, layer
+      !! type(layer) :: locally_connected1d_layer
+      !! locally_connected1d_layer = dense(filters=32, kernel_size=3)
+      !! locally_connected1d_layer = dense(filters=32, kernel_size=3, activation='relu')
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_size
+        !! Width of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function locally_connected1d
+
+  end interface locally_connected
+
+
+  interface maxpool
+
+    module function maxpool1d(pool_width, stride) result(res)
+      !! 1-d maxpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv1d`.
+      !!
+      !! This specific function is available under a generic name `maxpool`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: maxpool1d, layer
+      !! type(layer) :: maxpool1d_layer
+      !! maxpool1d_layer = maxpool1d(pool_width=2, stride=2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`;
+      type(layer) :: res
+        !! Resulting layer instance
+    end function maxpool1d
+
+    module function maxpool2d(pool_width, pool_height, stride) result(res)
+      !! 2-d maxpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv2d`.
+      !!
+      !! This specific function is available under a generic name `maxpool`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: maxpool2d, layer
+      !! type(layer) :: maxpool2d_layer
+      !! maxpool2d_layer = maxpool2d(pool_width=2, pool_height=2, stride=2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: pool_height
+        !! Height of the pooling window; currently must be equal to pool_width
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`;
+      type(layer) :: res
+        !! Resulting layer instance
+    end function maxpool2d
+
+  end interface maxpool
+  
 
   interface reshape
 
@@ -178,131 +321,6 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function flatten
-
-    module function conv1d(filters, kernel_size, activation) result(res)
-      !! 1-d convolutional layer constructor.
-      !!
-      !! This layer is for building 1-d convolutional network.
-      !! Although the established convention is to call these layers 1-d,
-      !! the shape of the data is actually 2-d: image width
-      !! and the number of channels.
-      !! A conv1d layer must not be the first layer in the network.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: conv1d, layer
-      !! type(layer) :: conv1d_layer
-      !! conv1d_layer = dense(filters=32, kernel_size=3)
-      !! conv1d_layer = dense(filters=32, kernel_size=3, activation='relu')
-      !! ```
-      integer, intent(in) :: filters
-        !! Number of filters in the output of the layer
-      integer, intent(in) :: kernel_size
-        !! Width of the convolution window, commonly 3 or 5
-      class(activation_function), intent(in), optional :: activation
-        !! Activation function (default sigmoid)
-      type(layer) :: res
-        !! Resulting layer instance
-    end function conv1d
-
-    module function conv2d(filters, kernel_size, activation) result(res)
-      !! 2-d convolutional layer constructor.
-      !!
-      !! This layer is for building 2-d convolutional network.
-      !! Although the established convention is to call these layers 2-d,
-      !! the shape of the data is actuall 3-d: image width, image height,
-      !! and the number of channels.
-      !! A conv2d layer must not be the first layer in the network.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: conv2d, layer
-      !! type(layer) :: conv2d_layer
-      !! conv2d_layer = dense(filters=32, kernel_size=3)
-      !! conv2d_layer = dense(filters=32, kernel_size=3, activation='relu')
-      !! ```
-      integer, intent(in) :: filters
-        !! Number of filters in the output of the layer
-      integer, intent(in) :: kernel_size
-        !! Width of the convolution window, commonly 3 or 5
-      class(activation_function), intent(in), optional :: activation
-        !! Activation function (default sigmoid)
-      type(layer) :: res
-        !! Resulting layer instance
-    end function conv2d
-
-    module function locally_connected1d(filters, kernel_size, activation) result(res)
-      !! 1-d locally connected network constructor
-      !!
-      !! This layer is for building 1-d locally connected network.
-      !! Although the established convention is to call these layers 1-d,
-      !! the shape of the data is actuall 2-d: image width,
-      !! and the number of channels.
-      !! A locally connected 1d layer must not be the first layer in the network.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: locally_connected1d, layer
-      !! type(layer) :: locally_connected1d_layer
-      !! locally_connected1d_layer = dense(filters=32, kernel_size=3)
-      !! locally_connected1d_layer = dense(filters=32, kernel_size=3, activation='relu')
-      !! ```
-      integer, intent(in) :: filters
-        !! Number of filters in the output of the layer
-      integer, intent(in) :: kernel_size
-        !! Width of the convolution window, commonly 3 or 5
-      class(activation_function), intent(in), optional :: activation
-        !! Activation function (default sigmoid)
-      type(layer) :: res
-        !! Resulting layer instance
-    end function locally_connected1d
-
-    module function maxpool1d(pool_size, stride) result(res)
-      !! 1-d maxpooling layer constructor.
-      !!
-      !! This layer is for downscaling other layers, typically `conv1d`.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: maxpool1d, layer
-      !! type(layer) :: maxpool1d_layer
-      !! maxpool1d_layer = maxpool1d(pool_size=2)
-      !! maxpool1d_layer = maxpool1d(pool_size=2, stride=3)
-      !! ```
-      integer, intent(in) :: pool_size
-        !! Width of the pooling window, commonly 2
-      integer, intent(in), optional :: stride
-        !! Stride of the pooling window, commonly equal to `pool_size`;
-        !! Defaults to `pool_size` if omitted.
-      type(layer) :: res
-        !! Resulting layer instance
-    end function maxpool1d
-
-    module function maxpool2d(pool_size, stride) result(res)
-      !! 2-d maxpooling layer constructor.
-      !!
-      !! This layer is for downscaling other layers, typically `conv2d`.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: maxpool2d, layer
-      !! type(layer) :: maxpool2d_layer
-      !! maxpool2d_layer = maxpool2d(pool_size=2)
-      !! maxpool2d_layer = maxpool2d(pool_size=2, stride=3)
-      !! ```
-      integer, intent(in) :: pool_size
-        !! Width of the pooling window, commonly 2
-      integer, intent(in), optional :: stride
-        !! Stride of the pooling window, commonly equal to `pool_size`;
-        !! Defaults to `pool_size` if omitted.
-      type(layer) :: res
-        !! Resulting layer instance
-    end function maxpool2d
 
     module function linear2d(out_features) result(res)
       !! Rank-2 (sequence_length, out_features) linear layer constructor.

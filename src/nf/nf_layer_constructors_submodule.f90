@@ -24,9 +24,9 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
 
 contains
 
-  module function conv1d(filters, kernel_size, activation) result(res)
+  module function conv1d(filters, kernel_width, activation) result(res)
     integer, intent(in) :: filters
-    integer, intent(in) :: kernel_size
+    integer, intent(in) :: kernel_width
     class(activation_function), intent(in), optional :: activation
     type(layer) :: res
 
@@ -44,18 +44,25 @@ contains
 
     allocate( &
       res % p, &
-      source=conv1d_layer(filters, kernel_size, activation_tmp) &
+      source=conv1d_layer(filters, kernel_width, activation_tmp) &
     )
 
   end function conv1d
 
-  module function conv2d(filters, kernel_size, activation) result(res)
+  module function conv2d(filters, kernel_width, kernel_height, activation) result(res)
     integer, intent(in) :: filters
-    integer, intent(in) :: kernel_size
+    integer, intent(in) :: kernel_width
+    integer, intent(in) :: kernel_height
     class(activation_function), intent(in), optional :: activation
     type(layer) :: res
 
     class(activation_function), allocatable :: activation_tmp
+
+    ! Enforce kernel_width == kernel_height for now;
+    ! If non-square kernels show to be desired, we'll relax this constraint
+    ! and refactor conv2d_layer to work with non-square kernels.
+    if (kernel_width /= kernel_height) &
+      error stop 'kernel_width must equal kernel_height in a conv2d layer'
 
     res % name = 'conv2d'
 
@@ -69,7 +76,7 @@ contains
 
     allocate( &
       res % p, &
-      source=conv2d_layer(filters, kernel_size, activation_tmp) &
+      source=conv2d_layer(filters, kernel_width, activation_tmp) &
     )
 
   end function conv2d
@@ -172,58 +179,49 @@ contains
     res % initialized = .true.
   end function input3d
 
-  module function maxpool1d(pool_size, stride) result(res)
-    integer, intent(in) :: pool_size
-    integer, intent(in), optional :: stride
-    integer :: stride_
+  module function maxpool1d(pool_width, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: stride
     type(layer) :: res
 
-    if (pool_size < 2) &
-      error stop 'pool_size must be >= 2 in a maxpool1d layer'
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a maxpool1d layer'
 
-    ! Stride defaults to pool_size if not provided
-    if (present(stride)) then
-      stride_ = stride
-    else
-      stride_ = pool_size
-    end if
-
-    if (stride_ < 1) &
+    if (stride < 1) &
       error stop 'stride must be >= 1 in a maxpool1d layer'
 
     res % name = 'maxpool1d'
 
     allocate( &
       res % p, &
-      source=maxpool1d_layer(pool_size, stride_) &
+      source=maxpool1d_layer(pool_width, stride) &
     )
 
   end function maxpool1d
 
-  module function maxpool2d(pool_size, stride) result(res)
-    integer, intent(in) :: pool_size
-    integer, intent(in), optional :: stride
-    integer :: stride_
+  module function maxpool2d(pool_width, pool_height, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: pool_height
+    integer, intent(in) :: stride
     type(layer) :: res
 
-    if (pool_size < 2) &
-      error stop 'pool_size must be >= 2 in a maxpool2d layer'
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a maxpool2d layer'
 
-    ! Stride defaults to pool_size if not provided
-    if (present(stride)) then
-      stride_ = stride
-    else
-      stride_ = pool_size
-    end if
+    ! Enforce pool_width == pool_height for now;
+    ! If non-square poolings show to be desired, we'll relax this constraint
+    ! and refactor maxpool2d_layer to work with non-square kernels.
+    if (pool_width /= pool_height) &
+      error stop 'pool_width must equal pool_height in a maxpool2d layer'
 
-    if (stride_ < 1) &
+    if (stride < 1) &
       error stop 'stride must be >= 1 in a maxpool2d layer'
 
     res % name = 'maxpool2d'
 
     allocate( &
       res % p, &
-      source=maxpool2d_layer(pool_size, stride_) &
+      source=maxpool2d_layer(pool_width, stride) &
     )
 
   end function maxpool2d
