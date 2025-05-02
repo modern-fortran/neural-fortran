@@ -1,7 +1,7 @@
 program cnn_mnist_1d
 
     use nf, only: network, sgd, &
-      input, maxpool, flatten, dense, reshape, locally_connected1d, &
+      input, maxpool, flatten, dense, reshape, locally_connected, &
       load_mnist, label_digits, softmax, relu
   
     implicit none
@@ -21,9 +21,9 @@ program cnn_mnist_1d
     net = network([ &
       input(784), &
       reshape(28, 28), &
-      locally_connected1d(filters=8, kernel_size=3, activation=relu()), &
+      locally_connected(filters=8, kernel_size=3, activation=relu()), &
       maxpool(pool_width=2, stride=2), &
-      locally_connected1d(filters=16, kernel_size=3, activation=relu()), &
+      locally_connected(filters=16, kernel_size=3, activation=relu()), &
       maxpool(pool_width=2, stride=2), &
       dense(10, activation=softmax()) &
     ])

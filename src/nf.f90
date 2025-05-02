@@ -11,7 +11,7 @@ module nf
     input, &
     layernorm, &
     linear2d, &
-    locally_connected1d, &
+    locally_connected, &
     maxpool, &
     reshape, &
     self_attention

@@ -15,7 +15,7 @@ module nf_layer_constructors
     flatten, &
     input, &
     linear2d, &
-    locally_connected1d, &
+    locally_connected, &
     maxpool, &
     reshape, &
     self_attention, &
@@ -154,6 +154,38 @@ module nf_layer_constructors
   end interface conv
 
 
+  interface locally_connected
+
+    module function locally_connected1d(filters, kernel_size, activation) result(res)
+      !! 1-d locally connected network constructor
+      !!
+      !! This layer is for building 1-d locally connected network.
+      !! Although the established convention is to call these layers 1-d,
+      !! the shape of the data is actually 2-d: image width,
+      !! and the number of channels.
+      !! A locally connected 1d layer must not be the first layer in the network.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: locally_connected1d, layer
+      !! type(layer) :: locally_connected1d_layer
+      !! locally_connected1d_layer = dense(filters=32, kernel_size=3)
+      !! locally_connected1d_layer = dense(filters=32, kernel_size=3, activation='relu')
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_size
+        !! Width of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      type(layer) :: res
+        !! Resulting layer instance
+    end function locally_connected1d
+
+  end interface locally_connected
+
+
   interface maxpool
 
     module function maxpool1d(pool_width, stride) result(res)
@@ -289,33 +321,6 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function flatten
-
-    module function locally_connected1d(filters, kernel_size, activation) result(res)
-      !! 1-d locally connected network constructor
-      !!
-      !! This layer is for building 1-d locally connected network.
-      !! Although the established convention is to call these layers 1-d,
-      !! the shape of the data is actually 2-d: image width,
-      !! and the number of channels.
-      !! A locally connected 1d layer must not be the first layer in the network.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: locally_connected1d, layer
-      !! type(layer) :: locally_connected1d_layer
-      !! locally_connected1d_layer = dense(filters=32, kernel_size=3)
-      !! locally_connected1d_layer = dense(filters=32, kernel_size=3, activation='relu')
-      !! ```
-      integer, intent(in) :: filters
-        !! Number of filters in the output of the layer
-      integer, intent(in) :: kernel_size
-        !! Width of the convolution window, commonly 3 or 5
-      class(activation_function), intent(in), optional :: activation
-        !! Activation function (default sigmoid)
-      type(layer) :: res
-        !! Resulting layer instance
-    end function locally_connected1d
 
     module function linear2d(out_features) result(res)
       !! Rank-2 (sequence_length, out_features) linear layer constructor.

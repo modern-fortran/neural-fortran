@@ -1,7 +1,7 @@
 program test_locally_connected1d_layer
 
     use iso_fortran_env, only: stderr => error_unit
-    use nf, only: locally_connected1d, input, layer
+    use nf, only: locally_connected, input, layer
     use nf_input2d_layer, only: input2d_layer
   
     implicit none
@@ -12,7 +12,7 @@ program test_locally_connected1d_layer
     real, parameter :: tolerance = 1e-7
     logical :: ok = .true.
   
-    locally_connected_1d_layer = locally_connected1d(filters, kernel_size)
+    locally_connected_1d_layer = locally_connected(filters, kernel_size)
   
     if (.not. locally_connected_1d_layer % name == 'locally_connected1d') then
       ok = .false.
@@ -52,7 +52,7 @@ program test_locally_connected1d_layer
     sample_input = 0
   
     input_layer = input(1, 3)
-    locally_connected_1d_layer = locally_connected1d(filters, kernel_size)
+    locally_connected_1d_layer = locally_connected(filters, kernel_size)
     call locally_connected_1d_layer % init(input_layer)
   
     select type(this_layer => input_layer % p); type is(input2d_layer)
@@ -61,7 +61,6 @@ program test_locally_connected1d_layer
   
     call locally_connected_1d_layer % forward(input_layer)
     call locally_connected_1d_layer % get_output(output)
-  
   
     if (.not. all(abs(output) < tolerance)) then
       ok = .false.
