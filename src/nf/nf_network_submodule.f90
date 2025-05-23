@@ -649,6 +649,7 @@ contains
     integer, intent(in), optional :: batch_size
     integer :: batch_size_
     real, allocatable :: params(:)
+    real, pointer :: weights(:), biases(:), gradient(:)
     integer :: n
 
     ! Passing the optimizer instance is optional. If not provided, and if the
@@ -693,9 +694,19 @@ contains
     end do
 #endif
 
-    params = self % get_params()
-    call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
-    call self % set_params(params)
+    !params = self % get_params()
+    !call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
+    !call self % set_params(params)
+
+    do n = 2, size(self % layers)
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call self % optimizer % minimize(weights, biases, self % get_gradients() / batch_size_)
+          !call this_layer % set_params(weights, biases)
+      end select
+    end do
+
 
     ! Flush network gradients to zero.
     do n = 2, size(self % layers)

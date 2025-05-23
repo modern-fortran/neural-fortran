@@ -30,11 +30,12 @@ module nf_optimizers
       integer, intent(in) :: num_params
     end subroutine init
 
-    pure subroutine minimize(self, param, gradient)
+    pure subroutine minimize(self, weights, biases, gradient)
       import :: optimizer_base_type
       class(optimizer_base_type), intent(inout) :: self
-      real, intent(inout) :: param(:)
-      real, intent(in) :: gradient(:)
+      real, intent(inout), pointer :: weights(:)
+      real, intent(inout), pointer :: biases(:)
+      real, intent(in), pointer :: gradient(:)
     end subroutine minimize
 
   end interface
@@ -116,12 +117,13 @@ contains
   end subroutine init_sgd
 
 
-  pure subroutine minimize_sgd(self, param, gradient)
+  pure subroutine minimize_sgd(self, weights, biases, gradient)
     !! Concrete implementation of a stochastic gradient descent optimizer
     !! update rule.
     class(sgd), intent(inout) :: self
-    real, intent(inout) :: param(:)
-    real, intent(in) :: gradient(:)
+    real, intent(inout), pointer :: weights(:)
+    real, intent(inout), pointer :: biases(:)
+    real, intent(in), pointer :: gradient(:)
 
     if (self % momentum > 0) then
       ! Apply momentum update
@@ -129,14 +131,18 @@ contains
         - self % learning_rate * gradient
       if (self % nesterov) then
         ! Apply Nesterov update
-        param = param + self % momentum * self % velocity &
+        weights = weights + self % momentum * self % velocity &
+          - self % learning_rate * gradient
+        biases = biases + self % momentum * self % velocity &
           - self % learning_rate * gradient
       else
-        param = param + self % velocity
+        weights = weights + self % velocity
+        biases = biases + self % velocity
       end if
     else
       ! Apply regular update
-      param = param - self % learning_rate * gradient
+      weights = weights - self % learning_rate * gradient
+      biases = biases - self % learning_rate * gradient
     end if
 
   end subroutine minimize_sgd
@@ -152,18 +158,21 @@ contains
   end subroutine init_rmsprop
 
 
-  pure subroutine minimize_rmsprop(self, param, gradient)
+  pure subroutine minimize_rmsprop(self, weights, biases, gradient)
     !! Concrete implementation of a RMSProp optimizer update rule.
     class(rmsprop), intent(inout) :: self
-    real, intent(inout) :: param(:)
-    real, intent(in) :: gradient(:)
+    real, intent(inout), pointer :: weights(:)
+    real, intent(inout), pointer :: biases(:)
+    real, intent(in), pointer :: gradient(:)
 
     ! Compute the RMS of the gradient using the RMSProp rule
     self % rms_gradient = self % decay_rate * self % rms_gradient &
       + (1 - self % decay_rate) * gradient**2
 
     ! Update the network parameters based on the new RMS of the gradient
-    param = param - self % learning_rate &
+    weights = weights - self % learning_rate &
+      / sqrt(self % rms_gradient + self % epsilon) * gradient
+    biases = biases - self % learning_rate &
       / sqrt(self % rms_gradient + self % epsilon) * gradient
 
   end subroutine minimize_rmsprop
@@ -180,17 +189,18 @@ contains
   end subroutine init_adam
 
 
-  pure subroutine minimize_adam(self, param, gradient)
+  pure subroutine minimize_adam(self, weights, biases, gradient)
     !! Concrete implementation of an Adam optimizer update rule.
     class(adam), intent(inout) :: self
-    real, intent(inout) :: param(:)
-    real, intent(in) :: gradient(:)
+    real, intent(inout), pointer :: weights(:)
+    real, intent(inout), pointer :: biases(:)
+    real, intent(in), pointer :: gradient(:)
 
     self % t = self % t + 1
 
     ! If weight_decay_l2 > 0, use L2 regularization;
     ! otherwise, default to regular Adam.
-    associate(g => gradient + self % weight_decay_l2 * param)
+    associate(g => gradient + self % weight_decay_l2 * weights)
       self % m = self % beta1 * self % m + (1 - self % beta1) * g
       self % v = self % beta2 * self % v + (1 - self % beta2) * g**2
     end associate
@@ -202,9 +212,15 @@ contains
     )
 
     ! Update parameters.
-    param = param &
+    weights = weights &
       - self % learning_rate * (m_hat / (sqrt(v_hat) + self % epsilon) &
-      + self % weight_decay_decoupled * param)
+      + self % weight_decay_decoupled * weights)
+    
+    ! Update biases (without weight decay for biases)
+    associate(g => gradient)
+      biases = biases &
+        - self % learning_rate * (m_hat / (sqrt(v_hat) + self % epsilon))
+    end associate
 
     end associate
 
@@ -221,19 +237,21 @@ contains
   end subroutine init_adagrad
 
 
-  pure subroutine minimize_adagrad(self, param, gradient)
+  pure subroutine minimize_adagrad(self, weights, biases, gradient)
     !! Concrete implementation of an Adagrad optimizer update rule.
     class(adagrad), intent(inout) :: self
-    real, intent(inout) :: param(:)
-    real, intent(in) :: gradient(:)
+    real, intent(inout), pointer :: weights(:)
+    real, intent(inout), pointer :: biases(:)
+    real, intent(in), pointer :: gradient(:)
 
     ! Update the current time step
     self % t = self % t + 1
 
+    ! For weights
     associate( &
       ! If weight_decay_l2 > 0, use L2 regularization;
       ! otherwise, default to regular Adagrad.
-      g => gradient + self % weight_decay_l2 * param, &
+      g => gradient + self % weight_decay_l2 * weights, &
       ! Amortize the learning rate as function of the current time step.
       learning_rate => self % learning_rate &
         / (1 + (self % t - 1) * self % learning_rate_decay) &
@@ -241,9 +259,19 @@ contains
 
       self % sum_squared_gradient = self % sum_squared_gradient + g**2
 
-      param = param - learning_rate * g / (sqrt(self % sum_squared_gradient) &
+      weights = weights - learning_rate * g / (sqrt(self % sum_squared_gradient) &
         + self % epsilon)
 
+    end associate
+    
+    ! For biases (without weight decay)
+    associate( &
+      g => gradient, &
+      learning_rate => self % learning_rate &
+        / (1 + (self % t - 1) * self % learning_rate_decay) &
+    )
+      biases = biases - learning_rate * g / (sqrt(self % sum_squared_gradient) &
+        + self % epsilon)
     end associate
 
   end subroutine minimize_adagrad

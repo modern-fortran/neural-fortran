@@ -77,6 +77,15 @@ contains
   end function get_params
 
 
+  module subroutine get_params_ptr(self, w_ptr, b_ptr)
+    class(dense_layer), intent(in), target :: self
+    real, pointer :: w_ptr(:,:)
+    real, pointer :: b_ptr(:)
+    w_ptr => self % weights
+    b_ptr => self % biases
+  end subroutine get_params_ptr
+
+
   module function get_gradients(self) result(gradients)
     class(dense_layer), intent(in), target :: self
     real, allocatable :: gradients(:)
