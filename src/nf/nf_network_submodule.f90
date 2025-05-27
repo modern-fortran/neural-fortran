@@ -694,10 +694,6 @@ contains
     end do
 #endif
 
-    !params = self % get_params()
-    !call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
-    !call self % set_params(params)
-
     do n = 2, size(self % layers)
       select type(this_layer => self % layers(n) % p)
         type is(dense_layer)
@@ -705,10 +701,14 @@ contains
           call this_layer % get_gradients_ptr(dw, db)
           call self % optimizer % minimize(weights, dw / batch_size_)
           call self % optimizer % minimize(biases, db / batch_size_)
-          !call this_layer % set_params(weights, biases)
+        type is(locally_connected1d_layer)
+          !TODO
+        type is(conv1d_layer)
+          !TODO
+        type is(conv2d_layer)
+          !TODO
       end select
     end do
-
 
     ! Flush network gradients to zero.
     do n = 2, size(self % layers)
