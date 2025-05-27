@@ -102,6 +102,15 @@ contains
   end function get_gradients
 
 
+  module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
+    class(dense_layer), intent(in), target :: self
+    real, pointer :: dw_ptr(:,:)
+    real, pointer :: db_ptr(:)
+    dw_ptr => self % dw
+    db_ptr => self % db
+  end subroutine get_gradients_ptr
+
+
   module subroutine set_params(self, params)
     class(dense_layer), intent(in out) :: self
     real, intent(in), target :: params(:)

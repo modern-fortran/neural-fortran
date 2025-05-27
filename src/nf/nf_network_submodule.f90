@@ -649,7 +649,7 @@ contains
     integer, intent(in), optional :: batch_size
     integer :: batch_size_
     real, allocatable :: params(:)
-    real, pointer :: weights(:), biases(:), gradient(:)
+    real, pointer :: weights(:,:), biases(:), dw(:,:), db(:)
     integer :: n
 
     ! Passing the optimizer instance is optional. If not provided, and if the
@@ -702,7 +702,9 @@ contains
       select type(this_layer => self % layers(n) % p)
         type is(dense_layer)
           call this_layer % get_params_ptr(weights, biases)
-          call self % optimizer % minimize(weights, biases, self % get_gradients() / batch_size_)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % optimizer % minimize(weights, dw / batch_size_)
+          call self % optimizer % minimize(biases, db / batch_size_)
           !call this_layer % set_params(weights, biases)
       end select
     end do

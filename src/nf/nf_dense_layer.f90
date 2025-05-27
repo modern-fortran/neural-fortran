@@ -34,6 +34,7 @@ module nf_dense_layer
     procedure :: backward
     procedure :: forward
     procedure :: get_gradients
+    procedure :: get_gradients_ptr
     procedure :: get_num_params
     procedure :: get_params
     procedure :: get_params_ptr
@@ -111,6 +112,12 @@ module nf_dense_layer
       real, allocatable :: gradients(:)
         !! Gradients of this layer
     end function get_gradients
+
+    module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
+      class(dense_layer), intent(in), target :: self
+      real, pointer :: dw_ptr(:,:)
+      real, pointer :: db_ptr(:)
+    end subroutine get_gradients_ptr
 
     module subroutine set_params(self, params)
       !! Set the parameters of this layer.
