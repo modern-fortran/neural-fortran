@@ -79,9 +79,9 @@ contains
 
   module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(dense_layer), intent(in), target :: self
-    real, pointer :: w_ptr(:,:)
-    real, pointer :: b_ptr(:)
-    w_ptr => self % weights
+    real, pointer, intent(out) :: w_ptr(:)
+    real, pointer, intent(out) :: b_ptr(:)
+    w_ptr(1:size(self % weights)) => self % weights
     b_ptr => self % biases
   end subroutine get_params_ptr
 
@@ -104,9 +104,9 @@ contains
 
   module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
     class(dense_layer), intent(in), target :: self
-    real, pointer :: dw_ptr(:,:)
-    real, pointer :: db_ptr(:)
-    dw_ptr => self % dw
+    real, pointer, intent(out) :: dw_ptr(:)
+    real, pointer, intent(out) :: db_ptr(:)
+    dw_ptr(1:size(self % dw)) => self % dw
     db_ptr => self % db
   end subroutine get_gradients_ptr
 

@@ -649,7 +649,7 @@ contains
     integer, intent(in), optional :: batch_size
     integer :: batch_size_
     real, allocatable :: params(:)
-    real, pointer :: weights(:,:), biases(:), dw(:,:), db(:)
+    real, pointer :: weights(:), biases(:), dw(:), db(:)
     integer :: n
 
     ! Passing the optimizer instance is optional. If not provided, and if the

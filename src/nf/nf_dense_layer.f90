@@ -100,8 +100,8 @@ module nf_dense_layer
 
     module subroutine get_params_ptr(self, w_ptr, b_ptr)
       class(dense_layer), intent(in), target :: self
-      real, pointer :: w_ptr(:,:)
-      real, pointer :: b_ptr(:)
+      real, pointer, intent(out) :: w_ptr(:)
+      real, pointer, intent(out) :: b_ptr(:)
     end subroutine get_params_ptr
 
     module function get_gradients(self) result(gradients)
@@ -115,8 +115,8 @@ module nf_dense_layer
 
     module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
       class(dense_layer), intent(in), target :: self
-      real, pointer :: dw_ptr(:,:)
-      real, pointer :: db_ptr(:)
+      real, pointer, intent(out) :: dw_ptr(:)
+      real, pointer, intent(out) :: db_ptr(:)
     end subroutine get_gradients_ptr
 
     module subroutine set_params(self, params)
