@@ -701,28 +701,27 @@ contains
           call this_layer % get_gradients_ptr(dw, db)
           call self % optimizer % minimize(weights, dw / batch_size_)
           call self % optimizer % minimize(biases, db / batch_size_)
-        type is(locally_connected1d_layer)
-          !TODO
-        type is(conv1d_layer)
-          !TODO
-        type is(conv2d_layer)
-          !TODO
-      end select
-    end do
-
-    ! Flush network gradients to zero.
-    do n = 2, size(self % layers)
-      select type(this_layer => self % layers(n) % p)
-        type is(dense_layer)
-          this_layer % dw = 0
-          this_layer % db = 0
-        type is(conv2d_layer)
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv1d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % optimizer % minimize(weights, dw / batch_size_)
+          call self % optimizer % minimize(biases, db / batch_size_)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(conv2d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % optimizer % minimize(weights, dw / batch_size_)
+          call self % optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
         type is(locally_connected1d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % optimizer % minimize(weights, dw / batch_size_)
+          call self % optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
       end select
