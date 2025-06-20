@@ -22,6 +22,7 @@ module nf_layer
     integer, allocatable :: layer_shape(:)
     integer, allocatable :: input_layer_shape(:)
     logical :: initialized = .false.
+    class(optimizer_base_type), allocatable :: optimizer
 
   contains
 

@@ -597,11 +597,25 @@ contains
     ! If not provided, we default to SGD with its default settings.
     if (present(optimizer)) then
       self % optimizer = optimizer
+
+      do n = 1, size(self % layers)
+        self % layers(n) % optimizer = optimizer
+      end do
+
     else
       self % optimizer = sgd()
+
+      do n = 1, size(self % layers)
+        self % layers(n) % optimizer = sgd()
+      end do
+
     end if
 
     call self % optimizer % init(self % get_num_params())
+
+    do n = 1, size(self % layers)
+      call self % layers(n) % optimizer % init(self % layers(n) % get_num_params())
+    end do
 
     ! Passing the loss instance is optional.
     ! If not provided, we default to quadratic().
@@ -662,10 +676,26 @@ contains
     if (.not. allocated(self % optimizer)) then
       if (present(optimizer)) then
         self % optimizer = optimizer
+        
+        do n = 1, size(self % layers)
+          self % layers(n) % optimizer = optimizer
+        end do
+
       else
         self % optimizer = sgd()
+
+        do n = 1, size(self % layers)
+          self % layers(n) % optimizer = sgd()
+        end do
+
       end if
+
       call self % optimizer % init(self % get_num_params())
+
+      do n = 1, size(self % layers)
+        call self % layers(n) % optimizer % init(self % layers(n) % get_num_params())
+      end do
+
     end if
 
     if (present(batch_size)) then
@@ -699,29 +729,29 @@ contains
         type is(dense_layer)
           call this_layer % get_params_ptr(weights, biases)
           call this_layer % get_gradients_ptr(dw, db)
-          call self % optimizer % minimize(weights, dw / batch_size_)
-          call self % optimizer % minimize(biases, db / batch_size_)
+          call self % layers(n) %optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) %optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv1d_layer)
           call this_layer % get_params_ptr(weights, biases)
           call this_layer % get_gradients_ptr(dw, db)
-          call self % optimizer % minimize(weights, dw / batch_size_)
-          call self % optimizer % minimize(biases, db / batch_size_)
+          call self % layers(n) %optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) %optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv2d_layer)
           call this_layer % get_params_ptr(weights, biases)
           call this_layer % get_gradients_ptr(dw, db)
-          call self % optimizer % minimize(weights, dw / batch_size_)
-          call self % optimizer % minimize(biases, db / batch_size_)
+          call self % layers(n) %optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) %optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
         type is(locally_connected1d_layer)
           call this_layer % get_params_ptr(weights, biases)
           call this_layer % get_gradients_ptr(dw, db)
-          call self % optimizer % minimize(weights, dw / batch_size_)
-          call self % optimizer % minimize(biases, db / batch_size_)
+          call self % layers(n) %optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) %optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
       end select
