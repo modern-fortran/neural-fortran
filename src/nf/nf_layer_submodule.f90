@@ -3,7 +3,6 @@ submodule(nf_layer) nf_layer_submodule
   use iso_fortran_env, only: stderr => error_unit
   use nf_avgpool1d_layer, only: avgpool1d_layer
   use nf_avgpool2d_layer, only: avgpool2d_layer
-  use nf_avgpool3d_layer, only: avgpool3d_layer
   use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
@@ -15,7 +14,6 @@ submodule(nf_layer) nf_layer_submodule
   use nf_locally_connected1d_layer, only: locally_connected1d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
-  use nf_maxpool3d_layer, only: maxpool3d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape3d_layer, only: reshape3d_layer
   use nf_linear2d_layer, only: linear2d_layer
@@ -58,13 +56,9 @@ contains
 
         ! Upstream layers permitted: input2d, input3d, conv1d, conv2d, locally_connected1d, maxpool1d, maxpool2d
         select type(prev_layer => previous % p)
-          type is(maxpool3d_layer)
-            call this_layer % backward(prev_layer % output, gradient)
           type is(avgpool1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(avgpool2d_layer)
-            call this_layer % backward(prev_layer % output, gradient)
-          type is(avgpool3d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(input2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -459,13 +453,9 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(maxpool2d_layer)
             call this_layer % forward(prev_layer % output)
-          type is(maxpool3d_layer)
-            call this_layer % forward(prev_layer % output)
           type is(avgpool1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(avgpool2d_layer)
-            call this_layer % forward(prev_layer % output)
-          type is(avgpool3d_layer)
             call this_layer % forward(prev_layer % output)
           type is(reshape2d_layer)
             call this_layer % forward(prev_layer % output)
@@ -660,13 +650,9 @@ contains
         self % layer_shape = shape(this_layer % output)
       type is(maxpool2d_layer)
         self % layer_shape = shape(this_layer % output)
-      type is(maxpool3d_layer)
-        self % layer_shape = shape(this_layer % output)
       type is(avgpool1d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(avgpool2d_layer)
-        self % layer_shape = shape(this_layer % output)
-      type is(avgpool3d_layer)
         self % layer_shape = shape(this_layer % output)
     end select
 
@@ -722,13 +708,9 @@ contains
         num_params = 0
       type is (maxpool2d_layer)
         num_params = 0
-      type is (maxpool3d_layer)
-        num_params = 0
       type is (avgpool1d_layer)
         num_params = 0
       type is (avgpool2d_layer)
-        num_params = 0
-      type is (avgpool3d_layer)
         num_params = 0
       type is (flatten_layer)
         num_params = 0
@@ -775,13 +757,9 @@ contains
         ! No parameters to get.
       type is (maxpool2d_layer)
         ! No parameters to get.
-      type is (maxpool3d_layer)
-      ! No parameters to get.
       type is (avgpool1d_layer)
       ! No parameters to get.
       type is (avgpool2d_layer)
-      ! No parameters to get.
-      type is (avgpool3d_layer)
       ! No parameters to get.
       type is (flatten_layer)
         ! No parameters to get.
@@ -828,13 +806,9 @@ contains
         ! No gradients to get.
       type is (maxpool2d_layer)
         ! No gradients to get.
-      type is (maxpool3d_layer)
-      ! No gradients to get.
       type is (avgpool1d_layer)
       ! No gradients to get.
       type is (avgpool2d_layer)
-      ! No gradients to get.
-      type is (avgpool3d_layer)
       ! No gradients to get.
       type is (flatten_layer)
         ! No gradients to get.
@@ -912,11 +886,6 @@ contains
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
-        
-      type is (maxpool3d_layer)
-        ! No parameters to set.
-        write(stderr, '(a)') 'Warning: calling set_params() ' &
-          // 'on a zero-parameter layer; nothing to do.'
 
       type is (avgpool1d_layer)
           ! No parameters to set.
@@ -924,11 +893,6 @@ contains
             // 'on a zero-parameter layer; nothing to do.'
 
       type is (avgpool2d_layer)
-        ! No parameters to set.
-        write(stderr, '(a)') 'Warning: calling set_params() ' &
-          // 'on a zero-parameter layer; nothing to do.'
-        
-      type is (avgpool3d_layer)
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'

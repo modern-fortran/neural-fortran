@@ -21,8 +21,6 @@ add_library(neural-fortran
   src/nf/nf_avgpool1d_layer_submodule.f90
   src/nf/nf_avgpool2d_layer.f90
   src/nf/nf_avgpool2d_layer_submodule.f90
-  src/nf/nf_avgpool3d_layer.f90
-  src/nf/nf_avgpool3d_layer_submodule.f90
   src/nf/nf_base_layer.f90
   src/nf/nf_conv1d_layer.f90
   src/nf/nf_conv1d_layer_submodule.f90
@@ -61,8 +59,6 @@ add_library(neural-fortran
   src/nf/nf_maxpool1d_layer_submodule.f90
   src/nf/nf_maxpool2d_layer.f90
   src/nf/nf_maxpool2d_layer_submodule.f90
-  src/nf/nf_maxpool3d_layer.f90
-  src/nf/nf_maxpool3d_layer_submodule.f90
   src/nf/nf_metrics.f90
   src/nf/nf_multihead_attention.f90
   src/nf/nf_multihead_attention_submodule.f90

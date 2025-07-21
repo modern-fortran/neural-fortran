@@ -11,7 +11,6 @@ module nf_layer_constructors
   public :: &
     avgpool1d, &
     avgpool2d, &
-    avgpool3d, &
     conv1d, &
     conv2d, &
     dense, &
@@ -22,7 +21,6 @@ module nf_layer_constructors
     locally_connected1d, &
     maxpool1d, &
     maxpool2d, &
-    maxpool3d, &
     reshape, &
     self_attention, &
     embedding, &
@@ -227,28 +225,6 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function avgpool2d
 
-    module function avgpool3d(pool_size, stride) result(res)
-      !! 3-d avgpooling layer constructor.
-      !!
-      !! This layer is for downscaling other layers, typically `conv3d`.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: avgpool3d, layer
-      !! type(layer) :: avgpool3d_layer
-      !! avgpool3d_layer = avgpool3d(pool_size=2)
-      !! avgpool3d_layer = avgpool3d(pool_size=2, stride=3)
-      !! ```
-      integer, intent(in) :: pool_size
-        !! Width of the pooling window, commonly 2
-      integer, intent(in), optional :: stride
-        !! Stride of the pooling window, commonly equal to `pool_size`;
-        !! Defaults to `pool_size` if omitted.
-      type(layer) :: res
-        !! Resulting layer instance
-    end function avgpool3d
-
     module function conv1d(filters, kernel_size, activation) result(res)
       !! 1-d convolutional layer constructor.
       !!
@@ -373,29 +349,7 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function maxpool2d
-
-    module function maxpool3d(pool_size, stride) result(res)
-      !! 3-d maxpooling layer constructor.
-      !!
-      !! This layer is for downscaling other layers, typically `conv3d`.
-      !!
-      !! Example:
-      !!
-      !! ```
-      !! use nf, only :: maxpool3d, layer
-      !! type(layer) :: maxpool3d_layer
-      !! maxpool3d_layer = maxpool3d(pool_size=2)
-      !! maxpool3d_layer = maxpool3d(pool_size=2, stride=3)
-      !! ```
-      integer, intent(in) :: pool_size
-        !! Width of the pooling window, commonly 2
-      integer, intent(in), optional :: stride
-        !! Stride of the pooling window, commonly equal to `pool_size`;
-        !! Defaults to `pool_size` if omitted.
-      type(layer) :: res
-        !! Resulting layer instance
-    end function maxpool3d
-
+  
     module function linear2d(out_features) result(res)
       !! Rank-2 (sequence_length, out_features) linear layer constructor.
       !! sequence_length is determined at layer initialization, based on the
