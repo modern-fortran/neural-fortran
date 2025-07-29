@@ -86,22 +86,6 @@ contains
   end subroutine get_params_ptr
 
 
-  module function get_gradients(self) result(gradients)
-    class(dense_layer), intent(in), target :: self
-    real, allocatable :: gradients(:)
-
-    real, pointer :: dw_(:) => null()
-
-    dw_(1:size(self % dw)) => self % dw
-
-    gradients = [ &
-      dw_, &
-      self % db &
-    ]
-
-  end function get_gradients
-
-
   module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
     class(dense_layer), intent(in), target :: self
     real, pointer, intent(out) :: dw_ptr(:)

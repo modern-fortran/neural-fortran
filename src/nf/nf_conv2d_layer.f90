@@ -32,7 +32,6 @@ module nf_conv2d_layer
 
     procedure :: forward
     procedure :: backward
-    procedure :: get_gradients
     procedure :: get_gradients_ptr
     procedure :: get_num_params
     procedure :: get_params
@@ -109,15 +108,6 @@ module nf_conv2d_layer
       real, pointer, intent(out) :: b_ptr(:)
         !! Pointer to the biases
     end subroutine get_params_ptr
-
-    module function get_gradients(self) result(gradients)
-      !! Return the gradients of this layer.
-      !! The gradients are ordered as weights first, biases second.
-      class(conv2d_layer), intent(in), target :: self
-        !! A `conv2d_layer` instance
-      real, allocatable :: gradients(:)
-        !! Gradients to get
-    end function get_gradients
 
     module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
       !! Return pointers to the gradients of this layer.

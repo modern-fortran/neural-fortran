@@ -29,7 +29,6 @@ module nf_layer
     procedure :: forward
     procedure :: get_num_params
     procedure :: get_params
-    procedure :: get_gradients
     procedure :: set_params
     procedure :: init
     procedure :: print_info
@@ -160,14 +159,6 @@ module nf_layer
       real, allocatable :: params(:)
         !! Parameters of this layer
     end function get_params
-
-    module function get_gradients(self) result(gradients)
-      !! Returns the gradients of this layer.
-      class(layer), intent(in) :: self
-        !! Layer instance
-      real, allocatable :: gradients(:)
-        !! Gradients of this layer
-    end function get_gradients
 
     module subroutine set_params(self, params)
       !! Returns the parameters of this layer.

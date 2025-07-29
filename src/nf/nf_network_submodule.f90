@@ -524,25 +524,6 @@ contains
 
   end function get_params
 
-  module function get_gradients(self) result(gradients)
-    class(network), intent(in) :: self
-    real, allocatable :: gradients(:)
-    integer :: n, nstart, nend
-
-    allocate(gradients(self % get_num_params()))
-
-    nstart = 1
-    do n = 1, size(self % layers)
-
-      if (self % layers(n) % get_num_params() < 1) cycle
-
-      nend = nstart + self % layers(n) % get_num_params() - 1
-      gradients(nstart:nend) = self % layers(n) % get_gradients()
-      nstart = nend + 1
-    end do
-
-  end function get_gradients
-
 
   module subroutine set_params(self, params)
     class(network), intent(in out) :: self

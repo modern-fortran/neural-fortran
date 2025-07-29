@@ -21,7 +21,6 @@ module nf_network
   contains
 
     procedure :: backward
-    procedure :: get_gradients
     procedure :: get_num_params
     procedure :: get_params
     procedure :: print_info
@@ -216,7 +215,6 @@ module nf_network
       !! Network instance
     end function get_num_params
 
-
     module function get_params(self) result(params)
       !! Get the network parameters (weights and biases).
       class(network), intent(in) :: self
@@ -224,13 +222,6 @@ module nf_network
       real, allocatable :: params(:)
         !! Network parameters to get
     end function get_params
-
-    module function get_gradients(self) result(gradients)
-      class(network), intent(in) :: self
-        !! Network instance
-      real, allocatable :: gradients(:)
-        !! Network gradients to set
-    end function get_gradients
 
     module subroutine set_params(self, params)
       !! Set the network parameters (weights and biases).
