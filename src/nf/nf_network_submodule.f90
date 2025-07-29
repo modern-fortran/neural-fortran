@@ -750,6 +750,20 @@ contains
           call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
+        type is(linear2d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(layernorm_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
+          this_layer % d_gamma = 0
+          this_layer % d_beta = 0
       end select
     end do
 

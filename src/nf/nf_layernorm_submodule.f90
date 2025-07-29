@@ -112,25 +112,31 @@ contains
   module function get_params(self) result(params)
     class(layernorm_layer), intent(in), target :: self
     real, allocatable :: params(:)
-
-    params = [ &
-      self % gamma, &
-      self % beta &
-    ]
-
+    params = [self % gamma, self % beta]
   end function get_params
+
+
+  module subroutine get_params_ptr(self, g_ptr, b_ptr)
+    class(layernorm_layer), intent(in), target :: self
+    real, pointer, intent(out) :: g_ptr(:), b_ptr(:)
+    g_ptr => self % gamma
+    b_ptr => self % beta
+  end subroutine get_params_ptr
 
 
   module function get_gradients(self) result(gradients)
     class(layernorm_layer), intent(in), target :: self
     real, allocatable :: gradients(:)
-
-    gradients = [ &
-      self % d_gamma, &
-      self % d_beta &
-    ]
-
+    gradients = [self % d_gamma, self % d_beta]
   end function get_gradients
+
+
+  module subroutine get_gradients_ptr(self, dg_ptr, db_ptr)
+    class(layernorm_layer), intent(in), target :: self
+    real, pointer, intent(out) :: dg_ptr(:), db_ptr(:)
+    dg_ptr => self % d_gamma
+    db_ptr => self % d_beta
+  end subroutine get_gradients_ptr
 
 
   module subroutine set_params(self, params)
