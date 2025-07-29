@@ -149,7 +149,7 @@ contains
         param = param + self % velocity(self % start_index:end_index)
       end if
 
-      if (self % start_index == 1) then
+      if (end_index < size(param)) then
         ! We updated the weights part, now we shift forward for the biases part
         self % start_index = end_index + 1
       else
@@ -194,7 +194,7 @@ contains
       / sqrt(self % rms_gradient(self % start_index:end_index) + self % epsilon) &
       * gradient
 
-    if (self % start_index == 1) then
+    if (end_index < size(param)) then
       ! We updated the weights part, now we shift forward for the biases part
       self % start_index = end_index + 1
     else
@@ -251,7 +251,7 @@ contains
 
     end associate
 
-    if (self % start_index == 1) then
+    if (end_index < size(param)) then
       ! We updated the weights part, now we shift forward for the biases part
       self % start_index = end_index + 1
     else
@@ -302,7 +302,7 @@ contains
 
     end associate
 
-    if (self % start_index == 1) then
+    if (end_index < size(param)) then
       ! We updated the weights part, now we shift forward for the biases part
       self % start_index = end_index + 1
     else
