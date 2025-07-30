@@ -31,9 +31,10 @@ module nf_conv1d_layer
   
       procedure :: forward
       procedure :: backward
-      procedure :: get_gradients
+      procedure :: get_gradients_ptr
       procedure :: get_num_params
       procedure :: get_params
+      procedure :: get_params_ptr
       procedure :: init
       procedure :: set_params
   
@@ -97,14 +98,25 @@ module nf_conv1d_layer
           !! Parameters to get
       end function get_params
   
-      module function get_gradients(self) result(gradients)
-        !! Return the gradients of this layer.
-        !! The gradients are ordered as weights first, biases second.
+      module subroutine get_params_ptr(self, w_ptr, b_ptr)
+        !! Return pointers to the parameters (weights and biases) of this layer.
         class(conv1d_layer), intent(in), target :: self
           !! A `conv1d_layer` instance
-        real, allocatable :: gradients(:)
-          !! Gradients to get
-      end function get_gradients
+        real, pointer, intent(out) :: w_ptr(:)
+          !! Pointer to the kernel weights (flattened)
+        real, pointer, intent(out) :: b_ptr(:)
+          !! Pointer to the biases
+      end subroutine get_params_ptr
+
+      module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
+        !! Return pointers to the gradients of this layer.
+        class(conv1d_layer), intent(in), target :: self
+          !! A `conv1d_layer` instance
+        real, pointer, intent(out) :: dw_ptr(:)
+          !! Pointer to the kernel weight gradients (flattened)
+        real, pointer, intent(out) :: db_ptr(:)
+          !! Pointer to the bias gradients
+      end subroutine get_gradients_ptr
   
       module subroutine set_params(self, params)
         !! Set the parameters of the layer.

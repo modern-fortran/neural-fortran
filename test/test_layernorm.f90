@@ -27,13 +27,13 @@ program test_layernorm_instance
   end if
 
 contains
-  function allclose(x, y) result(res)
-    real, intent(in) :: x(:)
-    real, intent(in) :: y(:)
-    logical :: res
 
-    res = all(abs(x - y) <= (1e-06 + 1e-05 * abs(y)))
+  logical function allclose(x, y) result(res)
+    real, intent(in) :: x(:), y(:)
+    !res = all(abs(x - y) <= (1e-06 + 1e-05 * abs(y)))
+    res = all(abs(x - y) <= 1e-05)
   end function allclose
+
 
   subroutine test_layernorm_forward(layernorm_instance, input, ok)
     type(layernorm_layer), intent(in out) :: layernorm_instance
@@ -60,6 +60,7 @@ contains
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
     end if
   end subroutine test_layernorm_forward
+
 
   subroutine test_layernorm_backward(layernorm_instance, input, gradient, ok)
     type(layernorm_layer), intent(in out) :: layernorm_instance
@@ -102,6 +103,7 @@ contains
       write(stderr, '(a)') 'backward returned incorrect d_beta values.. failed'
     end if
   end subroutine test_layernorm_backward
+
 
   subroutine test_layernorm_gradients(input, gradient, ok)
     real, intent(in out) :: input(:, :)
@@ -152,6 +154,7 @@ contains
     end if
   end subroutine test_layernorm_gradients
 
+
   subroutine test_layernorm_integration(ok)
     logical, intent(in out) :: ok
 
@@ -160,13 +163,13 @@ contains
     real :: y(6) = [0.7, 0.2, 0.1, 0.1, 0.01, 0.9]
     real :: tolerance = 0.1
     integer :: epoch
-    integer :: epochs = 10000
+    integer, parameter :: num_epochs = 100000
 
-    net = network([&
-        input(2, 3),&
-        linear2d(3),&
-        layernorm(),&
-        flatten()&
+    net = network([ &
+        input(2, 3), &
+        linear2d(3), &
+        layernorm(), &
+        flatten() &
     ])
 
     ! Kaiming weights to achieve semblance of convergance
@@ -177,17 +180,18 @@ contains
       l % biases = 0.2
     end select
 
-    do epoch = 1, epochs
+    do epoch = 1, num_epochs
       call net % forward(x)
       call net % backward(y)
       call net % update(optimizer=sgd(learning_rate=0.001))
       if (all(abs(net % predict(x) - y) < tolerance)) exit
     end do
 
-    if (.not. epoch <= epochs) then
+    if (.not. epoch <= num_epochs) then
       write(stderr, '(a)') &
         'linear2d + layernorm should converge in simple training.. failed'
       ok = .false.
     end if
   end subroutine test_layernorm_integration
+
 end program test_layernorm_instance

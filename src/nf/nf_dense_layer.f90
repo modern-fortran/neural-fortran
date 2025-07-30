@@ -33,9 +33,10 @@ module nf_dense_layer
 
     procedure :: backward
     procedure :: forward
-    procedure :: get_gradients
+    procedure :: get_gradients_ptr
     procedure :: get_num_params
     procedure :: get_params
+    procedure :: get_params_ptr
     procedure :: init
     procedure :: set_params
 
@@ -96,14 +97,17 @@ module nf_dense_layer
         !! Parameters of this layer
     end function get_params
 
-    module function get_gradients(self) result(gradients)
-      !! Return the gradients of this layer.
-      !! The gradients are ordered as weights first, biases second.
+    module subroutine get_params_ptr(self, w_ptr, b_ptr)
       class(dense_layer), intent(in), target :: self
-        !! Dense layer instance
-      real, allocatable :: gradients(:)
-        !! Gradients of this layer
-    end function get_gradients
+      real, pointer, intent(out) :: w_ptr(:)
+      real, pointer, intent(out) :: b_ptr(:)
+    end subroutine get_params_ptr
+
+    module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
+      class(dense_layer), intent(in), target :: self
+      real, pointer, intent(out) :: dw_ptr(:)
+      real, pointer, intent(out) :: db_ptr(:)
+    end subroutine get_gradients_ptr
 
     module subroutine set_params(self, params)
       !! Set the parameters of this layer.
