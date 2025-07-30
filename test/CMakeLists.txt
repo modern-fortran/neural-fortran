@@ -8,7 +8,7 @@ foreach(execid
   dense_layer
   conv1d_layer
   conv2d_layer
-  locally_connected1d_layer
+  locally_connected2d_layer
   maxpool1d_layer
   maxpool2d_layer
   flatten_layer

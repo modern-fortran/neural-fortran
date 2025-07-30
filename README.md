@@ -33,7 +33,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Embedding | `embedding` | n/a | 2 | ✅ | ✅ |
 | Dense (fully-connected) | `dense` | `input1d`, `dense`, `dropout`, `flatten` | 1 | ✅ | ✅ |
 | Dropout | `dropout` | `dense`, `flatten`, `input1d` | 1 | ✅ | ✅ |
-| Locally connected (1-d) | `locally_connected` | `input`, `locally_connected`, `conv`, `maxpool`, `reshape` | 2 | ✅ | ✅ |
+| Locally connected (2-d) | `locally_connected` | `input`, `locally_connected`, `conv`, `maxpool`, `reshape` | 2 | ✅ | ✅ |
 | Convolutional (1-d and 2-d) | `conv` | `input`, `conv`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
 | Max-pooling (1-d and 2-d) | `maxpool` | `input`, `conv`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
 | Linear (2-d) | `linear2d` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |

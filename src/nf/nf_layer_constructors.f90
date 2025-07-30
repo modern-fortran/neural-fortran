@@ -156,7 +156,7 @@ module nf_layer_constructors
 
   interface locally_connected
 
-    module function locally_connected1d(filters, kernel_size, activation) result(res)
+    module function locally_connected2d(filters, kernel_size, activation) result(res)
       !! 1-d locally connected network constructor
       !!
       !! This layer is for building 1-d locally connected network.
@@ -168,10 +168,10 @@ module nf_layer_constructors
       !! Example:
       !!
       !! ```
-      !! use nf, only :: locally_connected1d, layer
-      !! type(layer) :: locally_connected1d_layer
-      !! locally_connected1d_layer = dense(filters=32, kernel_size=3)
-      !! locally_connected1d_layer = dense(filters=32, kernel_size=3, activation='relu')
+      !! use nf, only :: locally_connected2d, layer
+      !! type(layer) :: locally_connected2d_layer
+      !! locally_connected2d_layer = dense(filters=32, kernel_size=3)
+      !! locally_connected2d_layer = dense(filters=32, kernel_size=3, activation='relu')
       !! ```
       integer, intent(in) :: filters
         !! Number of filters in the output of the layer
@@ -181,7 +181,7 @@ module nf_layer_constructors
         !! Activation function (default sigmoid)
       type(layer) :: res
         !! Resulting layer instance
-    end function locally_connected1d
+    end function locally_connected2d
 
   end interface locally_connected
 

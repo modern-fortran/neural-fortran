@@ -9,7 +9,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
-  use nf_locally_connected1d_layer, only: locally_connected1d_layer
+  use nf_locally_connected2d_layer, only: locally_connected2d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
@@ -81,7 +81,7 @@ contains
 
   end function conv2d
 
-  module function locally_connected1d(filters, kernel_size, activation) result(res)
+  module function locally_connected2d(filters, kernel_size, activation) result(res)
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in), optional :: activation
@@ -89,7 +89,7 @@ contains
 
     class(activation_function), allocatable :: activation_tmp
 
-    res % name = 'locally_connected1d'
+    res % name = 'locally_connected2d'
 
     if (present(activation)) then
       allocate(activation_tmp, source=activation)
@@ -101,10 +101,10 @@ contains
 
     allocate( &
       res % p, &
-      source=locally_connected1d_layer(filters, kernel_size, activation_tmp) &
+      source=locally_connected2d_layer(filters, kernel_size, activation_tmp) &
     )
 
-  end function locally_connected1d
+  end function locally_connected2d
 
 
   module function dense(layer_size, activation) result(res)

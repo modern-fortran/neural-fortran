@@ -8,7 +8,7 @@ submodule(nf_network) nf_network_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
-  use nf_locally_connected1d_layer, only: locally_connected1d_layer
+  use nf_locally_connected2d_layer, only: locally_connected2d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
@@ -79,7 +79,7 @@ contains
             type is(conv2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
-            type is(locally_connected1d_layer)
+            type is(locally_connected2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(maxpool2d_layer)
@@ -185,7 +185,7 @@ contains
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(conv1d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(locally_connected1d_layer)
+          type is(locally_connected2d_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
           type is(layernorm_layer)
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
@@ -663,7 +663,7 @@ contains
         type is(conv1d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
-        type is(locally_connected1d_layer)
+        type is(locally_connected2d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
       end select
@@ -693,7 +693,7 @@ contains
           call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
-        type is(locally_connected1d_layer)
+        type is(locally_connected2d_layer)
           call this_layer % get_params_ptr(weights, biases)
           call this_layer % get_gradients_ptr(dw, db)
           call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)

@@ -1,4 +1,4 @@
-program test_locally_connected1d_layer
+program test_locally_connected2d_layer
 
     use iso_fortran_env, only: stderr => error_unit
     use nf, only: locally_connected, input, layer
@@ -14,19 +14,19 @@ program test_locally_connected1d_layer
   
     locally_connected_1d_layer = locally_connected(filters, kernel_size)
   
-    if (.not. locally_connected_1d_layer % name == 'locally_connected1d') then
+    if (.not. locally_connected_1d_layer % name == 'locally_connected2d') then
       ok = .false.
-      write(stderr, '(a)') 'locally_connected1d layer has its name set correctly.. failed'
+      write(stderr, '(a)') 'locally_connected2d layer has its name set correctly.. failed'
     end if
   
     if (locally_connected_1d_layer % initialized) then
       ok = .false.
-      write(stderr, '(a)') 'locally_connected1d layer should not be marked as initialized yet.. failed'
+      write(stderr, '(a)') 'locally_connected2d layer should not be marked as initialized yet.. failed'
     end if
   
     if (.not. locally_connected_1d_layer % activation == 'relu') then
       ok = .false.
-      write(stderr, '(a)') 'locally_connected1d layer defaults to relu activation.. failed'
+      write(stderr, '(a)') 'locally_connected2d layer defaults to relu activation.. failed'
     end if
   
     input_layer = input(3, 32)
@@ -34,17 +34,17 @@ program test_locally_connected1d_layer
   
     if (.not. locally_connected_1d_layer % initialized) then
       ok = .false.
-      write(stderr, '(a)') 'locally_connected1d layer should now be marked as initialized.. failed'
+      write(stderr, '(a)') 'locally_connected2d layer should now be marked as initialized.. failed'
     end if
   
     if (.not. all(locally_connected_1d_layer % input_layer_shape == [3, 32])) then
       ok = .false.
-      write(stderr, '(a)') 'locally_connected1d layer input layer shape should be correct.. failed'
+      write(stderr, '(a)') 'locally_connected2d layer input layer shape should be correct.. failed'
     end if
   
     if (.not. all(locally_connected_1d_layer % layer_shape == [filters, 30])) then
       ok = .false.
-      write(stderr, '(a)') 'locally_connected1d layer input layer shape should be correct.. failed'
+      write(stderr, '(a)') 'locally_connected2d layer input layer shape should be correct.. failed'
     end if
   
     ! Minimal locally_connected_1d layer: 1 channel, 3x3 pixel image;
@@ -64,14 +64,14 @@ program test_locally_connected1d_layer
   
     if (.not. all(abs(output) < tolerance)) then
       ok = .false.
-      write(stderr, '(a)') 'locally_connected1d layer with zero input and sigmoid function must forward to all 0.5.. failed'
+      write(stderr, '(a)') 'locally_connected2d layer with zero input and sigmoid function must forward to all 0.5.. failed'
     end if
   
     if (ok) then
-      print '(a)', 'test_locally_connected1d_layer: All tests passed.'
+      print '(a)', 'test_locally_connected2d_layer: All tests passed.'
     else
-      write(stderr, '(a)') 'test_locally_connected1d_layer: One or more tests failed.'
+      write(stderr, '(a)') 'test_locally_connected2d_layer: One or more tests failed.'
       stop 1
     end if
   
-end program test_locally_connected1d_layer
+end program test_locally_connected2d_layer
