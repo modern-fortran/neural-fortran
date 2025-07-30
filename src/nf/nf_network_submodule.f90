@@ -574,27 +574,8 @@ contains
     integer :: i, j, n
     integer :: istart, iend, indices(2)
 
-    ! Passing the optimizer instance is optional.
-    ! If not provided, we default to SGD with its default settings.
-    if (present(optimizer)) then
-      self % optimizer = optimizer
-
-      do n = 1, size(self % layers)
-        self % layers(n) % optimizer = optimizer
-      end do
-
-    else
-      self % optimizer = sgd()
-
-      do n = 1, size(self % layers)
-        self % layers(n) % optimizer = sgd()
-      end do
-
-    end if
-
-    do n = 1, size(self % layers)
-      call self % layers(n) % optimizer % init(self % layers(n) % get_num_params())
-    end do
+    ! The optional optimizer instance is passed through to the update() method
+    ! where it is optional as well.
 
     ! Passing the loss instance is optional.
     ! If not provided, we default to quadratic().
@@ -628,7 +609,7 @@ contains
           call self % backward(output_data(:,j))
         end do
 
-        call self % update(batch_size=batch_size)
+        call self % update(optimizer=optimizer, batch_size=batch_size)
 
       end do batch_loop
     end do epoch_loop
@@ -645,34 +626,22 @@ contains
     real, pointer :: weights(:), biases(:), dw(:), db(:)
     integer :: n
 
-    ! Passing the optimizer instance is optional. If not provided, and if the
-    ! optimizer has not already been set, we default to the default SGD. The
-    ! instantiation and initialization below of the optimizer is normally done
-    ! at the beginning of the network % train() method. However, if the user
-    ! wants to call network % update() directly, for example if they use their
-    ! own custom mini-batching routine, we initialize the optimizer here as
-    ! well. If it's initialized already, this step is a cheap no-op.
-    if (.not. allocated(self % optimizer)) then
+    ! You can optionally pass an optimizer instance to the update() method.
+    ! This is necessary if you're not using the train() method, for example if
+    ! you're using your own custom mini-batching routine and calling the
+    ! forward(), backward(), and update() methods directly.
+    if (.not. allocated(self % layers(1) % optimizer)) then
       if (present(optimizer)) then
-        self % optimizer = optimizer
-        
         do n = 1, size(self % layers)
           self % layers(n) % optimizer = optimizer
+          call self % layers(n) % optimizer % init(self % layers(n) % get_num_params())
         end do
-
       else
-        self % optimizer = sgd()
-
         do n = 1, size(self % layers)
           self % layers(n) % optimizer = sgd()
+          call self % layers(n) % optimizer % init(self % layers(n) % get_num_params())
         end do
-
       end if
-
-      do n = 1, size(self % layers)
-        call self % layers(n) % optimizer % init(self % layers(n) % get_num_params())
-      end do
-
     end if
 
     if (present(batch_size)) then

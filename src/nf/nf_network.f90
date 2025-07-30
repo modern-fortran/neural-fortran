@@ -16,7 +16,6 @@ module nf_network
 
     type(layer), allocatable :: layers(:)
     class(loss_type), allocatable :: loss
-    class(optimizer_base_type), allocatable :: optimizer
 
   contains
 
