@@ -61,22 +61,6 @@ contains
   end function get_num_params
 
 
-  module function get_params(self) result(params)
-    class(dense_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-
-    real, pointer :: w_(:) => null()
-
-    w_(1:size(self % weights)) => self % weights
-
-    params = [ &
-      w_, &
-      self % biases &
-    ]
-
-  end function get_params
-
-
   module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(dense_layer), intent(in), target :: self
     real, pointer, intent(out) :: w_ptr(:)

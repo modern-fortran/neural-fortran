@@ -34,7 +34,6 @@ module nf_conv2d_layer
     procedure :: backward
     procedure :: get_gradients_ptr
     procedure :: get_num_params
-    procedure :: get_params
     procedure :: get_params_ptr
     procedure :: init
     procedure :: set_params
@@ -89,15 +88,6 @@ module nf_conv2d_layer
       integer :: num_params
         !! Number of parameters
     end function get_num_params
-
-    module function get_params(self) result(params)
-      !! Return the parameters (weights and biases) of this layer.
-      !! The parameters are ordered as weights first, biases second.
-      class(conv2d_layer), intent(in), target :: self
-        !! A `conv2d_layer` instance
-      real, allocatable :: params(:)
-        !! Parameters to get
-    end function get_params
 
     module subroutine get_params_ptr(self, w_ptr, b_ptr)
       !! Return pointers to the parameters (weights and biases) of this layer.

@@ -122,12 +122,6 @@ contains
     num_params = product(shape(self % kernel)) + product(shape(self % biases))
   end function get_num_params
 
-  module function get_params(self) result(params)
-    class(locally_connected2d_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-    params = [self % kernel, self % biases]
-  end function get_params
-
   module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(locally_connected2d_layer), intent(in), target :: self
     real, pointer, intent(out) :: w_ptr(:)

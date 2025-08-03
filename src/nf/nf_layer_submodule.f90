@@ -640,6 +640,8 @@ contains
   module function get_params(self) result(params)
     class(layer), intent(in) :: self
     real, allocatable :: params(:)
+    real, pointer :: w_ptr(:)
+    real, pointer :: b_ptr(:)
 
     select type (this_layer => self % p)
       type is (input1d_layer)
@@ -649,15 +651,27 @@ contains
       type is (input3d_layer)
          ! No parameters to get.
       type is (dense_layer)
-        params = this_layer % get_params()
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        allocate(params(size(w_ptr) + size(b_ptr)))
+        params(1:size(w_ptr)) = w_ptr
+        params(size(w_ptr)+1:) = b_ptr
       type is (dropout_layer)
         ! No parameters to get.
       type is (conv1d_layer)
-        params = this_layer % get_params()
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        allocate(params(size(w_ptr) + size(b_ptr)))
+        params(1:size(w_ptr)) = w_ptr
+        params(size(w_ptr)+1:) = b_ptr
       type is (conv2d_layer)
-        params = this_layer % get_params()
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        allocate(params(size(w_ptr) + size(b_ptr)))
+        params(1:size(w_ptr)) = w_ptr
+        params(size(w_ptr)+1:) = b_ptr
       type is (locally_connected2d_layer)
-        params = this_layer % get_params()
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        allocate(params(size(w_ptr) + size(b_ptr)))
+        params(1:size(w_ptr)) = w_ptr
+        params(size(w_ptr)+1:) = b_ptr
       type is (maxpool1d_layer)
         ! No parameters to get.
       type is (maxpool2d_layer)
@@ -669,7 +683,10 @@ contains
       type is (reshape3d_layer)
         ! No parameters to get.
       type is (linear2d_layer)
-        params = this_layer % get_params()
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        allocate(params(size(w_ptr) + size(b_ptr)))
+        params(1:size(w_ptr)) = w_ptr
+        params(size(w_ptr)+1:) = b_ptr
       type is (self_attention_layer)
         params = this_layer % get_params()
       type is (embedding_layer)

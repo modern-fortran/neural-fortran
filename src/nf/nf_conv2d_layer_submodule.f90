@@ -188,22 +188,6 @@ contains
     num_params = product(shape(self % kernel)) + size(self % biases)
   end function get_num_params
 
-
-  module function get_params(self) result(params)
-    class(conv2d_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-
-    real, pointer :: w_(:) => null()
-
-    w_(1:size(self % kernel)) => self % kernel
-
-    params = [ &
-      w_, &
-      self % biases &
-    ]
-
-  end function get_params
-
   
   module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(conv2d_layer), intent(in), target :: self

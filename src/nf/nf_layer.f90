@@ -160,6 +160,17 @@ module nf_layer
         !! Parameters of this layer
     end function get_params
 
+    module subroutine get_params_ptr(self, w_ptr, b_ptr)
+      !! Returns the parameters of this layer as pointers.
+      !! This is used for layers that have weights and biases.
+      class(layer), intent(in) :: self
+        !! Layer instance
+      real, pointer :: w_ptr(:)
+        !! Pointer to weights of this layer
+      real, pointer :: b_ptr(:)
+        !! Pointer to biases of this layer
+    end subroutine get_params_ptr 
+
     module subroutine set_params(self, params)
       !! Returns the parameters of this layer.
       class(layer), intent(in out) :: self
