@@ -37,7 +37,6 @@ module nf_dense_layer
     procedure :: get_num_params
     procedure :: get_params_ptr
     procedure :: init
-    procedure :: set_params
 
   end type dense_layer
 

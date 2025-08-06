@@ -79,15 +79,6 @@ contains
   end function get_num_params
 
 
-  module function get_params(self) result(params)
-    class(linear2d_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-    real, pointer :: w_(:) => null()
-    w_(1: size(self % weights)) => self % weights
-    params = [w_, self % biases]
-  end function get_params
-
-
   module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(linear2d_layer), intent(in), target :: self
     real, pointer, intent(out) :: w_ptr(:), b_ptr(:)
@@ -112,27 +103,5 @@ contains
     db_ptr => self % db
   end subroutine get_gradients_ptr
 
-
-  module subroutine set_params(self, params)
-    class(linear2d_layer), intent(in out) :: self
-    real, intent(in), target :: params(:)
-
-    real, pointer :: p_(:,:) => null()
-
-    ! check if the number of parameters is correct
-    if (size(params) /= self % get_num_params()) then
-      error stop 'Error: number of parameters does not match'
-    end if
-
-    associate(n => self % in_features * self % out_features)
-      ! reshape the weights
-      p_(1:self % in_features, 1:self % out_features) => params(1 : n)
-      self % weights = p_
-
-      ! reshape the biases
-      self % biases = params(n + 1 : n + self % out_features)
-    end associate
-
-  end subroutine set_params
 
 end submodule nf_linear2d_layer_submodule

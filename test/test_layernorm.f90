@@ -112,7 +112,7 @@ contains
     type(layernorm_layer) :: layernorm_instance
     type(sgd) :: optim
 
-    real :: parameters(8)
+    real, allocatable :: parameters(:)
     real :: expected_parameters(8)
     real :: updated_output(12)
     real :: expected_updated_output(12) = [&
@@ -121,6 +121,9 @@ contains
         -0.562230229, 1.01311040, 0.984123051,&
         -0.564699769, -1.13543355, -1.11444426&
     ]
+
+    real, pointer :: w_ptr(:)
+    real, pointer :: b_ptr(:)
 
     layernorm_instance = layernorm_layer()
     call layernorm_instance % init([3, 4])
@@ -135,7 +138,12 @@ contains
 
     expected_parameters(1: 4) = 1.
     expected_parameters(5: 8) = 0.
-    parameters = layernorm_instance % get_params()
+
+    call layernorm_instance % get_params_ptr(w_ptr, b_ptr)
+    allocate(parameters(size(w_ptr) + size(b_ptr)))
+    parameters(1:size(w_ptr)) = w_ptr
+    parameters(size(w_ptr)+1:) = b_ptr
+
     if (.not. all(parameters.eq.expected_parameters)) then
       ok = .false.
       write(stderr, '(a)') 'incorrect parameters.. failed'
@@ -143,7 +151,11 @@ contains
 
     optim = SGD(learning_rate=0.01)
     call optim % minimize(parameters, layernorm_instance % get_gradients())
-    call layernorm_instance % set_params(parameters)
+    
+    call layernorm_instance % get_params_ptr(w_ptr, b_ptr)
+
+    w_ptr = parameters(1:size(w_ptr)) 
+    b_ptr = parameters(size(w_ptr)+1:)
 
     call layernorm_instance % forward(input)
 

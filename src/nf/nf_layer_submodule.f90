@@ -691,8 +691,12 @@ contains
         params = this_layer % get_params()
       type is (embedding_layer)
         params = this_layer % get_params()
+
       type is (layernorm_layer)
-        params = this_layer % get_params()
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        allocate(params(size(w_ptr) + size(b_ptr)))
+        params(1:size(w_ptr)) = w_ptr
+        params(size(w_ptr)+1:) = b_ptr
       class default
         error stop 'Unknown layer type.'
     end select
@@ -703,6 +707,8 @@ contains
   module subroutine set_params(self, params)
     class(layer), intent(in out) :: self
     real, intent(in) :: params(:)
+    real, pointer :: w_ptr(:)
+    real, pointer :: b_ptr(:)
 
     ! Check that the number of parameters is correct.
     ! This check will still pass if the size(params) == 0 and the layer is a
@@ -736,7 +742,10 @@ contains
           // 'on a zero-parameter layer; nothing to do.'
 
       type is (dense_layer)
-        call this_layer % set_params(params)
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        
+        w_ptr = params(1:size(w_ptr)) 
+        b_ptr = params(size(w_ptr)+1:) 
 
       type is (dropout_layer)
         ! No parameters to set.
@@ -744,13 +753,22 @@ contains
           // 'on a zero-parameter layer; nothing to do.'
         
       type is (conv1d_layer)
-          call this_layer % set_params(params)
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        
+        w_ptr = params(1:size(w_ptr)) 
+        b_ptr = params(size(w_ptr)+1:) 
 
       type is (conv2d_layer)
-        call this_layer % set_params(params)
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        
+        w_ptr = params(1:size(w_ptr)) 
+        b_ptr = params(size(w_ptr)+1:) 
       
       type is (locally_connected2d_layer)
-        call this_layer % set_params(params)
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        
+        w_ptr = params(1:size(w_ptr)) 
+        b_ptr = params(size(w_ptr)+1:) 
       
       type is (maxpool1d_layer)
         ! No parameters to set.
@@ -758,7 +776,10 @@ contains
           // 'on a zero-parameter layer; nothing to do.'
 
       type is (linear2d_layer)
-        call this_layer % set_params(params)
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        
+        w_ptr = params(1:size(w_ptr)) 
+        b_ptr = params(size(w_ptr)+1:) 
 
       type is (self_attention_layer)
         call this_layer % set_params(params)
@@ -766,7 +787,10 @@ contains
         call this_layer % set_params(params)
 
       type is (layernorm_layer)
-        call this_layer % set_params(params)
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        
+        w_ptr = params(1:size(w_ptr)) 
+        b_ptr = params(size(w_ptr)+1:) 
 
       type is (maxpool2d_layer)
         ! No parameters to set.

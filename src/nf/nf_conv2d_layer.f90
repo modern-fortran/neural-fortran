@@ -36,7 +36,6 @@ module nf_conv2d_layer
     procedure :: get_num_params
     procedure :: get_params_ptr
     procedure :: init
-    procedure :: set_params
 
   end type conv2d_layer
 
@@ -108,14 +107,6 @@ module nf_conv2d_layer
       real, pointer, intent(out) :: db_ptr(:)
         !! Pointer to the bias gradients
     end subroutine get_gradients_ptr
-
-    module subroutine set_params(self, params)
-      !! Set the parameters of the layer.
-      class(conv2d_layer), intent(in out) :: self
-        !! A `conv2d_layer` instance
-      real, intent(in) :: params(:)
-        !! Parameters to set
-    end subroutine set_params
 
   end interface
 

@@ -36,7 +36,6 @@ module nf_locally_connected2d_layer
       procedure :: get_num_params
       procedure :: get_params_ptr
       procedure :: init
-      procedure :: set_params
   
     end type locally_connected2d_layer
   
@@ -109,14 +108,6 @@ module nf_locally_connected2d_layer
         real, pointer, intent(out) :: dw_ptr(:)
         real, pointer, intent(out) :: db_ptr(:)
       end subroutine get_gradients_ptr
-  
-      module subroutine set_params(self, params)
-        !! Set the parameters of the layer.
-        class(locally_connected2d_layer), intent(in out) :: self
-          !! A `locally_connected2d_layer` instance
-        real, intent(in) :: params(:)
-          !! Parameters to set
-      end subroutine set_params
   
     end interface
 
