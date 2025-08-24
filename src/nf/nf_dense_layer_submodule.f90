@@ -61,22 +61,6 @@ contains
   end function get_num_params
 
 
-  module function get_params(self) result(params)
-    class(dense_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-
-    real, pointer :: w_(:) => null()
-
-    w_(1:size(self % weights)) => self % weights
-
-    params = [ &
-      w_, &
-      self % biases &
-    ]
-
-  end function get_params
-
-
   module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(dense_layer), intent(in), target :: self
     real, pointer, intent(out) :: w_ptr(:)
@@ -93,30 +77,6 @@ contains
     dw_ptr(1:size(self % dw)) => self % dw
     db_ptr => self % db
   end subroutine get_gradients_ptr
-
-
-  module subroutine set_params(self, params)
-    class(dense_layer), intent(in out) :: self
-    real, intent(in), target :: params(:)
-
-    real, pointer :: p_(:,:) => null()
-
-    ! check if the number of parameters is correct
-    if (size(params) /= self % get_num_params()) then
-      error stop 'Error: number of parameters does not match'
-    end if
-
-    associate(n => self % input_size * self % output_size)
-      ! reshape the weights
-      p_(1:self % input_size, 1:self % output_size) => params(1 : n)
-      self % weights = p_
-
-      ! reshape the biases
-      self % biases = params(n + 1 : n + self % output_size)
-    end associate
-
-  end subroutine set_params
-
 
   module subroutine init(self, input_shape)
     class(dense_layer), intent(in out) :: self

@@ -34,10 +34,8 @@ module nf_locally_connected2d_layer
       procedure :: get_gradients
       procedure :: get_gradients_ptr
       procedure :: get_num_params
-      procedure :: get_params
       procedure :: get_params_ptr
       procedure :: init
-      procedure :: set_params
   
     end type locally_connected2d_layer
   
@@ -90,15 +88,6 @@ module nf_locally_connected2d_layer
           !! Number of parameters
       end function get_num_params
   
-      module function get_params(self) result(params)
-        !! Return the parameters (weights and biases) of this layer.
-        !! The parameters are ordered as weights first, biases second.
-        class(locally_connected2d_layer), intent(in), target :: self
-          !! A `locally_connected2d_layer` instance
-        real, allocatable :: params(:)
-          !! Parameters to get
-      end function get_params
-  
       module subroutine get_params_ptr(self, w_ptr, b_ptr)
         class(locally_connected2d_layer), intent(in), target :: self
         real, pointer, intent(out) :: w_ptr(:)
@@ -119,14 +108,6 @@ module nf_locally_connected2d_layer
         real, pointer, intent(out) :: dw_ptr(:)
         real, pointer, intent(out) :: db_ptr(:)
       end subroutine get_gradients_ptr
-  
-      module subroutine set_params(self, params)
-        !! Set the parameters of the layer.
-        class(locally_connected2d_layer), intent(in out) :: self
-          !! A `locally_connected2d_layer` instance
-        real, intent(in) :: params(:)
-          !! Parameters to set
-      end subroutine set_params
   
     end interface
 

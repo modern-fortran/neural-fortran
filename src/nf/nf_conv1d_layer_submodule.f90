@@ -144,14 +144,6 @@ contains
     num_params = product(shape(self % kernel)) + size(self % biases)
   end function get_num_params
 
-  module function get_params(self) result(params)
-    class(conv1d_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-    real, pointer :: w_(:) => null()
-    w_(1:size(self % kernel)) => self % kernel
-    params = [ w_, self % biases]
-  end function get_params
-
   module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(conv1d_layer), intent(in), target :: self
     real, pointer, intent(out) :: w_ptr(:)
@@ -167,20 +159,5 @@ contains
     dw_ptr(1:size(self % dw)) => self % dw
     db_ptr => self % db
   end subroutine get_gradients_ptr
-
-  module subroutine set_params(self, params)
-    class(conv1d_layer), intent(in out) :: self
-    real, intent(in) :: params(:)
-
-    if (size(params) /= self % get_num_params()) then
-      error stop 'conv1d_layer % set_params: Number of parameters does not match'
-    end if
-
-    self % kernel = reshape(params(:product(shape(self % kernel))), shape(self % kernel))
-    associate(n => product(shape(self % kernel)))
-      self % biases = params(n + 1 : n + self % filters)
-    end associate
-
-  end subroutine set_params
 
 end submodule nf_conv1d_layer_submodule

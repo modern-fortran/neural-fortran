@@ -122,12 +122,6 @@ contains
     num_params = product(shape(self % kernel)) + product(shape(self % biases))
   end function get_num_params
 
-  module function get_params(self) result(params)
-    class(locally_connected2d_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-    params = [self % kernel, self % biases]
-  end function get_params
-
   module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(locally_connected2d_layer), intent(in), target :: self
     real, pointer, intent(out) :: w_ptr(:)
@@ -150,19 +144,5 @@ contains
     db_ptr(1:size(self % db)) => self % db
   end subroutine get_gradients_ptr
 
-  module subroutine set_params(self, params)
-    class(locally_connected2d_layer), intent(in out) :: self
-    real, intent(in) :: params(:)
-
-    if (size(params) /= self % get_num_params()) then
-      error stop 'locally_connected2d_layer % set_params: Number of parameters does not match'
-    end if
-
-    self % kernel = reshape(params(:product(shape(self % kernel))), shape(self % kernel))
-    associate(n => product(shape(self % kernel)))
-      self % biases = reshape(params(n + 1 :), shape(self % biases))
-    end associate
-
-  end subroutine set_params
 
 end submodule nf_locally_connected2d_layer_submodule

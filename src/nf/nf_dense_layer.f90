@@ -35,10 +35,8 @@ module nf_dense_layer
     procedure :: forward
     procedure :: get_gradients_ptr
     procedure :: get_num_params
-    procedure :: get_params
     procedure :: get_params_ptr
     procedure :: init
-    procedure :: set_params
 
   end type dense_layer
 
@@ -87,15 +85,6 @@ module nf_dense_layer
        integer :: num_params
          !! Number of parameters in this layer
     end function get_num_params
-
-    module function get_params(self) result(params)
-      !! Return the parameters (weights and biases) of this layer.
-      !! The parameters are ordered as weights first, biases second.
-      class(dense_layer), intent(in), target :: self
-        !! Dense layer instance
-      real, allocatable :: params(:)
-        !! Parameters of this layer
-    end function get_params
 
     module subroutine get_params_ptr(self, w_ptr, b_ptr)
       class(dense_layer), intent(in), target :: self
