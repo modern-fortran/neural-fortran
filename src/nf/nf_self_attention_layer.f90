@@ -20,22 +20,18 @@ module nf_self_attention_layer
   end type self_attention_layer
 
   interface self_attention_layer
-    module function self_attention_layer_cons(n_heads) result(res)
-      !! This function returns the `self_attention_layer` instance.
-      integer, intent(in) :: n_heads
-      type(self_attention_layer) :: res
-    end function self_attention_layer_cons
+    module procedure self_attention_layer_cons
   end interface self_attention_layer
 
 contains
-  module function self_attention_layer_cons(n_heads) result(res)
+  function self_attention_layer_cons(n_heads) result(res)
     !! This function returns the `self_attention_layer` instance.
     integer, intent(in) :: n_heads
     type(self_attention_layer) :: res
     res % n_heads = n_heads
   end function self_attention_layer_cons
 
-  pure module subroutine backward(self, input, gradient, attention_mask)
+  pure subroutine backward(self, input, gradient, attention_mask)
     !! Self Attention back propagation
     !! Returns sum of Query, Key and Value gradients
     class(self_attention_layer), intent(in out) :: self
@@ -50,7 +46,7 @@ contains
         + self % value_layer % gradient
   end subroutine backward
 
-  pure module subroutine forward(self, input)
+  pure subroutine forward(self, input)
     !! Cross Attention forward propagation
     !! Passes input three times into MultiHead Attention
     !! Input Shape: (sequence_length, model_dimension)
@@ -60,7 +56,7 @@ contains
     call self % common_forward(input, input, input)
   end subroutine forward
 
-  module subroutine init(self, input_shape)
+  subroutine init(self, input_shape)
     class(self_attention_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
