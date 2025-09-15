@@ -34,7 +34,7 @@ program merge_networks
   ! Network 3
   net3 = network([ &
     input(net1_output_size + net2_output_size), &
-    dense(7) & 
+    dense(7) &
   ])
 
   do n = 1, num_iterations
@@ -59,53 +59,15 @@ program merge_networks
 
     call net3 % forward([y1, y2])
 
-    ! Compute the gradients on the 3rd network
+    ! First compute the gradients on net3, then pass the gradients from the first
+    ! hidden layer on net3 to net1 and net2, and compute their gradients.
     call net3 % backward(y)
 
-    ! net3 % update() will clear the gradients immediately after updating
-    ! the weights, so we need to pass the gradients to net1 and net2 first
-
-    ! For net1 and net2, we can't use the existing net % backward() because
-    ! it currently assumes that the output layer gradients are computed based
-    ! on the loss function and not the gradient from the next layer.
-    ! For now, we need to manually pass the gradient from the first hidden layer
-    ! of net3 to the output layers of net1 and net2.
     select type (next_layer => net3 % layers(2) % p)
-      ! Assume net3's first hidden layer is dense;
-      ! would need to be generalized to others.
       type is (dense_layer)
-
-        nn = size(net1 % layers)
-        call net1 % layers(nn) % backward( &
-          net1 % layers(nn - 1), next_layer % gradient(1:net1_output_size) &
-        )
-
-        nn = size(net2 % layers)
-        call net2 % layers(nn) % backward( &
-          net2 % layers(nn - 1), next_layer % gradient(net1_output_size+1:size(next_layer % gradient)) &
-        )
-
+        call net1 % backward(y, gradient=next_layer % gradient(1:net1_output_size))
+        call net2 % backward(y, gradient=next_layer % gradient(net1_output_size+1:size(next_layer % gradient)))
     end select
-
-    ! Compute the gradients on hidden layers of net1, if any
-    do nn = size(net1 % layers)-1, 2, -1
-      select type (next_layer => net1 % layers(nn + 1) % p)
-        type is (dense_layer)
-          call net1 % layers(nn) % backward( &
-            net1 % layers(nn - 1), next_layer % gradient &
-          )
-      end select
-    end do
-
-   ! Compute the gradients on hidden layers of net2, if any
-    do nn = size(net2 % layers)-1, 2, -1
-      select type (next_layer => net2 % layers(nn + 1) % p)
-        type is (dense_layer)
-          call net2 % layers(nn) % backward( &
-            net2 % layers(nn - 1), next_layer % gradient &
-          )
-      end select
-    end do
 
     ! Gradients are now computed on all networks and we can update the weights
     call net1 % update(optimizer=sgd(learning_rate=1.))

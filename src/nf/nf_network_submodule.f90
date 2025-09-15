@@ -115,10 +115,11 @@ contains
   end function network_from_layers
 
 
-  module subroutine backward(self, output, loss)
+  module subroutine backward(self, output, loss, gradient)
     class(network), intent(in out) :: self
     real, intent(in) :: output(:)
     class(loss_type), intent(in), optional :: loss
+    real, intent(in), optional :: gradient(:)
     integer :: n, num_layers
 
     ! Passing the loss instance is optional. If not provided, and if the
@@ -140,58 +141,71 @@ contains
 
     ! Iterate backward over layers, from the output layer
     ! to the first non-input layer
-    do n = num_layers, 2, -1
 
-      if (n == num_layers) then
-        ! Output layer; apply the loss function
-        select type(this_layer => self % layers(n) % p)
-          type is(dense_layer)
-            call self % layers(n) % backward( &
-              self % layers(n - 1), &
-              self % loss % derivative(output, this_layer % output) &
-            )
-          type is(flatten_layer)
-            call self % layers(n) % backward( &
-              self % layers(n - 1), &
-              self % loss % derivative(output, this_layer % output) &
-            )
-        end select
-      else
-        ! Hidden layer; take the gradient from the next layer
-        select type(next_layer => self % layers(n + 1) % p)
-          type is(dense_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(dropout_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(conv2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(flatten_layer)
-            if (size(self % layers(n) % layer_shape) == 2) then
-              call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
-            else
-              call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
-            end if
-          type is(maxpool2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(reshape3d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(linear2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(self_attention_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(maxpool1d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(reshape2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(conv1d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(locally_connected2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(layernorm_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-        end select
-      end if
+    ! Output layer first
+    n = num_layers
+    if (present(gradient)) then
 
+      ! If the gradient is passed, use it directly for the output layer
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          call self % layers(n) % backward(self % layers(n - 1), gradient)
+        type is(flatten_layer)
+          call self % layers(n) % backward(self % layers(n - 1), gradient)
+      end select
+
+    else
+
+      ! Apply the loss function
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          call self % layers(n) % backward( &
+            self % layers(n - 1), &
+            self % loss % derivative(output, this_layer % output) &
+          )
+        type is(flatten_layer)
+          call self % layers(n) % backward( &
+            self % layers(n - 1), &
+            self % loss % derivative(output, this_layer % output) &
+          )
+      end select
+
+    end if
+
+    ! Hidden layers; take the gradient from the next layer
+    do n = num_layers - 1, 2, -1
+      select type(next_layer => self % layers(n + 1) % p)
+        type is(dense_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(dropout_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(conv2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(flatten_layer)
+          if (size(self % layers(n) % layer_shape) == 2) then
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
+          else
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
+          end if
+        type is(maxpool2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(reshape3d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(linear2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(self_attention_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(maxpool1d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(reshape2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(conv1d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(locally_connected2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(layernorm_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+      end select
     end do
 
   end subroutine backward

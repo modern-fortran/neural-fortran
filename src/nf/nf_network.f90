@@ -195,7 +195,7 @@ module nf_network
 
   interface
 
-    module subroutine backward(self, output, loss)
+    module subroutine backward(self, output, loss, gradient)
       !! Apply one backward pass through the network.
       !! This changes the state of layers on the network.
       !! Typically used only internally from the `train` method,
@@ -206,6 +206,12 @@ module nf_network
         !! Output data
       class(loss_type), intent(in), optional :: loss
         !! Loss instance to use. If not provided, the default is quadratic().
+      real, intent(in), optional :: gradient(:)
+        !! Gradient to use for the output layer.
+        !! If not provided, the gradient in the last layer is computed using
+        !! the loss function.
+        !! Passing the gradient is useful for merging/concatenating multiple
+        !! networks.
     end subroutine backward
 
     module integer function get_num_params(self)
