@@ -1,6 +1,5 @@
 submodule(nf_layer_constructors) nf_layer_constructors_submodule
 
-  use nf_layer, only: layer
   use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
@@ -18,7 +17,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
   use nf_layernorm_layer, only: layernorm_layer
-  use nf_activation, only: activation_function, relu, sigmoid
+  use nf_activation, only: relu, sigmoid
 
   implicit none
 
