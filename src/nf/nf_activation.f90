@@ -733,7 +733,7 @@ contains
   end function eval_3d_celu_prime
 
   ! Utility Functions
-  function get_activation_by_name(activation_name) result(res)
+  pure function get_activation_by_name(activation_name) result(res)
     character(len=*), intent(in) :: activation_name
     class(activation_function), allocatable :: res
 
