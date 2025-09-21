@@ -18,6 +18,7 @@ module nf_optimizers
   type, abstract :: optimizer_base_type
     real :: learning_rate = 0.01
   contains
+    procedure :: get_name
     procedure(init), deferred :: init
     procedure(minimize), deferred :: minimize
   end type optimizer_base_type
@@ -311,5 +312,53 @@ contains
     end if
 
   end subroutine minimize_adagrad
+
+
+  ! Utility Functions
+  !! Returns the default optimizer corresponding to the provided name
+  pure function get_optimizer_by_name(optimizer_name) result(res)
+    character(len=*), intent(in) :: optimizer_name
+    class(optimizer_base_type), allocatable :: res
+
+    select case(trim(optimizer_name))
+    case('adagrad')
+      allocate ( res, source = adagrad() )
+
+    case('adam')
+      allocate ( res, source = adam() )
+
+    case('rmsprop')
+      allocate ( res, source = rmsprop() )
+
+    case('sgd')
+     allocate ( res, source = sgd() )
+
+    case default
+        error stop 'optimizer_name must be one of: ' // &
+          '"adagrad", "adam", "rmsprop", "sgd".'
+    end select
+
+  end function get_optimizer_by_name
+
+
+  !! Returns the name of the optimizer
+  pure function get_name(self) result(name)
+    class(optimizer_base_type), intent(in) :: self
+    character(:), allocatable :: name
+
+    select type (self)
+    class is (adagrad)
+      name = 'adagrad'
+    class is (adam)
+      name = 'adam'
+    class is (rmsprop)
+      name = 'rmsprop'
+    class is (sgd)
+      name = 'sgd'
+    class default
+      error stop 'Unknown optimizer type.'
+    end select
+
+  end function get_name
 
 end module nf_optimizers
