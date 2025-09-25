@@ -511,6 +511,28 @@ contains
   end subroutine print_info
 
 
+  module subroutine get_output_1d(self, output)
+    class(network), intent(in), target :: self
+    real, pointer, intent(out) :: output(:)
+    integer :: last
+
+    last = size(self % layers)
+
+    select type(output_layer => self % layers(last) % p)
+      type is(dense_layer)
+        output => output_layer % output
+      type is(dropout_layer)
+        output => output_layer % output
+      type is(flatten_layer)
+        output => output_layer % output
+      class default
+        error stop 'network % get_output not implemented for ' // &
+          trim(self % layers(last) % name) // ' layer'
+    end select
+
+  end subroutine get_output_1d
+
+
   module function get_num_params(self)
     class(network), intent(in) :: self
     integer :: get_num_params

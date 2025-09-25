@@ -5,7 +5,7 @@ program merge_networks
 
   type(network) :: net1, net2, net3
   real, allocatable :: x1(:), x2(:)
-  real, allocatable :: y1(:), y2(:)
+  real, pointer :: y1(:), y2(:)
   real, allocatable :: y(:)
   integer, parameter :: num_iterations = 500
   integer :: n, nn
@@ -44,19 +44,8 @@ program merge_networks
     call net2 % forward(x2)
 
     ! Get outputs of net1 and net2, concatenate, and pass to net3
-    ! A helper function could be made to take any number of networks
-    ! and return the concatenated output. Such function would turn the following
-    ! block into a one-liner.
-    select type (net1_output_layer => net1 % layers(size(net1 % layers)) % p)
-      type is (dense_layer)
-        y1 = net1_output_layer % output
-    end select
-
-    select type (net2_output_layer => net2 % layers(size(net2 % layers)) % p)
-      type is (dense_layer)
-        y2 = net2_output_layer % output
-    end select
-
+    call net1 % get_output(y1)
+    call net2 % get_output(y2)
     call net3 % forward([y1, y2])
 
     ! First compute the gradients on net3, then pass the gradients from the first

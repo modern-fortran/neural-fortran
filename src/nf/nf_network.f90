@@ -33,6 +33,7 @@ module nf_network
     procedure, private :: forward_1d_int
     procedure, private :: forward_2d
     procedure, private :: forward_3d
+    procedure, private :: get_output_1d
     procedure, private :: predict_1d
     procedure, private :: predict_1d_int
     procedure, private :: predict_2d
@@ -42,6 +43,7 @@ module nf_network
 
     generic :: evaluate => evaluate_batch_1d
     generic :: forward => forward_1d, forward_1d_int, forward_2d, forward_3d
+    generic :: get_output => get_output_1d
     generic :: predict => predict_1d, predict_1d_int, predict_2d, predict_3d
     generic :: predict_batch => predict_batch_1d, predict_batch_3d
 
@@ -131,7 +133,7 @@ module nf_network
 
   end interface forward
 
-  interface output
+  interface predict
 
     module function predict_1d(self, input) result(res)
       !! Return the output of the network given the input 1-d array.
@@ -169,9 +171,10 @@ module nf_network
       real, allocatable :: res(:)
         !! Output of the network
     end function predict_3d
-  end interface output
 
-  interface output_batch
+  end interface predict
+
+  interface predict_batch
     module function predict_batch_1d(self, input) result(res)
       !! Return the output of the network given an input batch of 3-d data.
       class(network), intent(in out) :: self
@@ -191,7 +194,14 @@ module nf_network
       real, allocatable :: res(:,:)
         !! Output of the network; the last dimension is the batch
     end function predict_batch_3d
-  end interface output_batch
+  end interface predict_batch
+
+  interface get_output
+    module subroutine get_output_1d(self, output)
+      class(network), intent(in), target :: self
+      real, pointer, intent(out) :: output(:)
+    end subroutine get_output_1d
+  end interface get_output
 
   interface
 
