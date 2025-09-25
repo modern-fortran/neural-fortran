@@ -3,7 +3,6 @@
 #define ABSOLUTE 2
 
 submodule(nf_embedding_layer) nf_embedding_layer_submodule
-  use nf_base_layer, only: base_layer
   implicit none
 contains
   module function embedding_layer_cons(vocab_size, model_dimension, positional) result(res)

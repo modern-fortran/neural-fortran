@@ -1,6 +1,5 @@
 submodule(nf_multihead_attention_layer) nf_multihead_attention_layer_submodule
   use nf_activation, only: softmax
-  use nf_base_layer, only: base_layer
   use nf_linear2d_layer, only: linear2d_layer
 
   implicit none
@@ -288,7 +287,7 @@ contains
     self % model_dimension = input_shape(2)
 
     if (mod(self % model_dimension, self % n_heads) /= 0) then
-      write(stderr, '(a)'), 'Number of heads must be divisible by model dimension'
+      write(stderr, '(a)') 'Number of heads must be divisible by model dimension'
       error stop
     end if
     self % head_size = self % model_dimension / self % n_heads
