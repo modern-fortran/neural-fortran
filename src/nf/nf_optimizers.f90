@@ -316,7 +316,7 @@ contains
 
   ! Utility Functions
   !! Returns the default optimizer corresponding to the provided name
-  pure function get_optimizer_by_name(optimizer_name) result(res)
+  function get_optimizer_by_name(optimizer_name) result(res)
     character(len=*), intent(in) :: optimizer_name
     class(optimizer_base_type), allocatable :: res
 
