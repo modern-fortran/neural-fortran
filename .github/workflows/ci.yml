@@ -51,9 +51,9 @@ jobs:
         fpm-version: "v0.10.1"
     - uses: actions/checkout@v4
     - name: Compile
-      run: fpm build --profile debug
+      run: fpm build --profile debug --flag -ffree-line-length-none
     - name: Test
-      run: fpm test --profile debug
+      run: fpm test --profile debug --flag -ffree-line-length-none
 
   gnu-fpm-release:
     name: gnu-fpm-release
@@ -64,6 +64,6 @@ jobs:
         fpm-version: "v0.10.1"
     - uses: actions/checkout@v4
     - name: Compile
-      run: fpm build --profile release
+      run: fpm build --profile release --flag -ffree-line-length-none
     - name: Test
-      run: fpm test --profile release
+      run: fpm test --profile release --flag -ffree-line-length-none
