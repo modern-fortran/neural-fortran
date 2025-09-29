@@ -1,6 +1,3 @@
-! Copyright (c) 2024-2025, The Regents of the University of California and Sourcery Institute
-! Terms of use are as specified in LICENSE.txt
-
 module linear_2d_layer_test_m
   use julienne_m, only : &
      test_t, test_description_t, test_diagnosis_t, test_result_t &
