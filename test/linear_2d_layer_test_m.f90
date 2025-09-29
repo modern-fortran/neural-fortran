@@ -1,8 +1,15 @@
+#include "language-support.F90"
+  ! This include and the macros below are only required for gfortran versions older than 14.3
+  ! because those versions lacked a Fortran 2008 feature that facilitates more concise code.
+
 module linear_2d_layer_test_m
+  use nf_linear2d_layer, only: linear2d_layer
   use julienne_m, only : &
      test_t, test_description_t, test_diagnosis_t, test_result_t &
     ,operator(.equalsExpected.), operator(//), operator(.approximates.), operator(.within.), operator(.also.), operator(.all.)
-  use nf_linear2d_layer, only: linear2d_layer
+#if ! HAVE_PROCEDURE_ACTUAL_FOR_POINTER_DUMMY
+  use julienne_m, only : diagnosis_function_i
+#endif
   implicit none
 
   type, extends(test_t) :: linear_2d_layer_test_t
@@ -18,6 +25,8 @@ contains
     test_subject = 'A linear_2d_layer'
   end function
 
+#if HAVE_PROCEDURE_ACTUAL_FOR_POINTER_DUMMY
+
   function results() result(test_results)
     type(linear_2d_layer_test_t) linear_2d_layer_test
     type(test_result_t), allocatable :: test_results(:)
@@ -25,6 +34,23 @@ contains
       [test_description_t('updating gradients', check_gradient_updates) &
     ])
   end function
+
+#else
+   ! Work around a missing Fortran 2008 feature that was added to gfortran in version 14.3
+
+  function results() result(test_results)
+    type(linear_2d_layer_test_t) linear_2d_layer_test
+    type(test_result_t), allocatable :: test_results(:)
+    procedure(diagnosis_function_i), pointer :: &
+      check_gradient_updates_ptr => check_gradient_updates
+
+    test_results = linear_2d_layer_test%run( &
+      [test_description_t('updating gradients', check_gradient_updates_ptr) &
+    ])
+  end function
+
+#endif
+
 
   function check_gradient_updates() result(test_diagnosis)
     type(test_diagnosis_t) test_diagnosis
