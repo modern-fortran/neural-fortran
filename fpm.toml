@@ -5,5 +5,8 @@ author = "Milan Curcic"
 maintainer = "mcurcic@miami.edu"
 copyright = "Copyright 2018-2025, neural-fortran contributors"
 
+[dev-dependencies]
+julienne = {git = "https://github.com/berkeleylab/julienne", tag = "3.2.1"}
+
 [preprocess]
 [preprocess.cpp]
