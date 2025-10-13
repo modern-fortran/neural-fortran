@@ -519,12 +519,26 @@ contains
     last = size(self % layers)
 
     select type(output_layer => self % layers(last) % p)
-      type is(dense_layer)
+      type is (conv1d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is(conv2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (dense_layer)
         output => output_layer % output
-      type is(dropout_layer)
+      type is (dropout_layer)
         output => output_layer % output
-      type is(flatten_layer)
+      type is (flatten_layer)
         output => output_layer % output
+      type is (layernorm_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (linear2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (locally_connected2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (maxpool1d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (maxpool2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
       class default
         error stop 'network % get_output not implemented for ' // &
           trim(self % layers(last) % name) // ' layer'
