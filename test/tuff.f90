@@ -13,9 +13,7 @@ module tuff
   end type test_result
 
   interface test
-    module procedure test_logical
-    module procedure test_func
-    module procedure test_array
+    module procedure test_logical, test_func, test_array
   end interface test
 
   abstract interface
@@ -64,8 +62,9 @@ contains
     type(test_result), intent(in) :: tests(:)
     suite % ok = all(tests % ok)
     suite % elapsed = sum(tests % elapsed)
-    if (.not. suite % ok) then
-      ! Report to stderr only on failure.
+    if (suite % ok) then
+      write(stdout, '(a)') trim(name) // ": All tests passed."
+    else
       write(stderr, '(i0,a,i0,a)') count(.not. tests % ok), '/', size(tests), &
         " tests failed in suite: " // trim(name)
     end if

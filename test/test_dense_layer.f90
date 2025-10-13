@@ -1,5 +1,4 @@
 program test_dense_layer
-  use iso_fortran_env, only: stderr => error_unit
   use nf, only: dense, layer, relu
   use tuff, only: test, test_result
   implicit none
@@ -11,7 +10,7 @@ program test_dense_layer
   layer3 = dense(20)
   call layer3 % init(layer1)
 
-  tests = test("Dense layer", [ &
+  tests = test("test_dense_layer", [ &
     test("layer name is set", layer1 % name == 'dense'), & 
     test("layer shape is correct", all(layer1 % layer_shape == [10])), &
     test("layer is initialized", layer3 % initialized), &
