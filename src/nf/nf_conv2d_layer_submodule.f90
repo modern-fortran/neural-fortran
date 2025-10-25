@@ -30,8 +30,8 @@ contains
     integer, intent(in) :: input_shape(:)
 
     self % channels = input_shape(1)
-    self % width = input_shape(2) - self % kernel_size + 1
-    self % height = input_shape(3) - self % kernel_size + 1
+    self % width = (input_shape(2) - self % kernel_size + 1) / self % stride(1)
+    self % height = (input_shape(3) - self % kernel_size + 1) / self % stride(2)
 
     ! Output of shape filters x width x height
     allocate(self % output(self % filters, self % width, self % height))
