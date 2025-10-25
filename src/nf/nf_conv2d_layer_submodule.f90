@@ -7,16 +7,18 @@ submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
 contains
 
-  module function conv2d_layer_cons(filters, kernel_size, activation) result(res)
+  module function conv2d_layer_cons(filters, kernel_size, activation, stride) result(res)
     implicit none
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in) :: activation
+    integer, intent(in) :: stride(:)
     type(conv2d_layer) :: res
 
     res % kernel_size = kernel_size
     res % filters = filters
     res % activation_name = activation % get_name()
+    res % stride = stride
     allocate( res % activation, source = activation )
 
   end function conv2d_layer_cons
