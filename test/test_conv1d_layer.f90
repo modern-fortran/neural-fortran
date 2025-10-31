@@ -94,7 +94,7 @@ program test_conv1d_layer
       print '(a)', 'test_conv1d_layer: All tests passed.'
     else
       write(stderr, '(a)') 'test_conv1d_layer: One or more tests failed.'
-      stop 2
+      stop 1
     end if
 
 end program test_conv1d_layer
