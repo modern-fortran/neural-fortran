@@ -27,7 +27,9 @@ contains
     integer, intent(in) :: input_shape(:)
 
     self % channels = input_shape(1)
-    self % width = (input_shape(2) - self % kernel_size + 1) / self % stride
+    self % width = (input_shape(2) - self % kernel_size) / self % stride +1
+
+    if (mod(input_shape(2) - self % kernel_size , self % stride) /= 0) self % width = self % width + 1
 
     ! Output of shape: filters x width
     allocate(self % output(self % filters, self % width))
@@ -55,7 +57,7 @@ contains
 
   end subroutine init
 
-  pure module subroutine forward(self, input)
+  module subroutine forward(self, input)
     implicit none
     class(conv1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
@@ -71,7 +73,7 @@ contains
       ! Compute the input window corresponding to output index j.
       ! In forward: center index = j + half_window, so window = indices j to j+kernel_size-1.
       iws = self % stride * (j-1) + 1
-      iwe = max(iws + self % kernel_size - 1, input_width)
+      iwe = min(iws + self % kernel_size - 1, input_width)
 
       ! For each filter, compute the convolution (inner product over channels and kernel width).
       do concurrent (n = 1:self % filters)

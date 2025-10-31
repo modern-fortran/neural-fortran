@@ -33,9 +33,6 @@ contains
     integer :: stride_tmp
     class(activation_function), allocatable :: activation_tmp
 
-    if (stride < 1) &
-      error stop 'stride must be >= 1 in a conv1d layer'
-
     res % name = 'conv1d'
 
     if (present(activation)) then
@@ -51,6 +48,9 @@ contains
     else
       stride_tmp = 1
     endif
+
+    if (stride_tmp < 1) &
+      error stop 'stride must be >= 1 in a conv1d layer'
 
     allocate( &
       res % p, &

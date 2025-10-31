@@ -63,7 +63,7 @@ module nf_conv1d_layer
           !! Input layer dimensions
       end subroutine init
   
-      pure module subroutine forward(self, input)
+      module subroutine forward(self, input)
         !! Apply a forward pass on the `conv1d` layer.
         class(conv1d_layer), intent(in out) :: self
           !! A `conv1d_layer` instance
