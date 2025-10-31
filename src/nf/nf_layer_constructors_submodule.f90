@@ -67,7 +67,7 @@ contains
     integer, intent(in), optional :: stride(:)
     type(layer) :: res
 
-    integer :: stride_tmp(2)
+    integer, allocatable :: stride_tmp(:)
     class(activation_function), allocatable :: activation_tmp
 
     ! Enforce kernel_width == kernel_height for now;
@@ -75,12 +75,6 @@ contains
     ! and refactor conv2d_layer to work with non-square kernels.
     if (kernel_width /= kernel_height) &
       error stop 'kernel_width must equal kernel_height in a conv2d layer'
-
-    if (size(stride) /= 2 ) &
-      error stop 'size of stride must be equal to 2 in a conv2d layer'
-
-    if (stride(1) < 1 .or. stride(2) < 1) &
-      error stop 'stride must be >= 1 in a conv2d layer'
 
     res % name = 'conv2d'
 
@@ -98,9 +92,15 @@ contains
       stride_tmp = [1, 1]
     endif
 
+    if (size(stride_tmp) /= 2 ) &
+      error stop 'size of stride must be equal to 2 in a conv2d layer'
+
+    if (stride_tmp(1) < 1 .or. stride_tmp(2) < 1) &
+      error stop 'stride must be >= 1 in a conv2d layer'
+
     allocate( &
       res % p, &
-      source=conv2d_layer(filters, kernel_width, activation_tmp, stride) &
+      source=conv2d_layer(filters, kernel_width, activation_tmp, stride_tmp) &
     )
 
   end function conv2d

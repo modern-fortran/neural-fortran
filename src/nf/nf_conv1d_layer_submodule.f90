@@ -57,7 +57,7 @@ contains
 
   end subroutine init
 
-  module subroutine forward(self, input)
+  pure module subroutine forward(self, input)
     implicit none
     class(conv1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
@@ -125,13 +125,13 @@ contains
     do n = 1, self % filters
       do j = 1, self % width
         iws = self % stride * (j-1) + 1
-        iwe = max(iws + self % kernel_size - 1, input_width)
+        iwe = min(iws + self % kernel_size - 1, input_width)
 
         do k = 1, self % channels
           ! Weight gradient: accumulate contribution from the input window.
-          dw_local(n,k,1:iws-iwe+1) = dw_local(n,k,1:iws-iwe+1) + input(k,iws:iwe) * gdz(n,j)
+          dw_local(n,k,1:iwe-iws+1) = dw_local(n,k,1:iwe-iws+1) + input(k,iws:iwe) * gdz(n,j)
           ! Input gradient: propagate gradient back to the input window.
-          self % gradient(k,iws:iwe) = self % gradient(k,iws:iwe) + self % kernel(n,k,1:iws-iwe+1) * gdz(n,j)
+          self % gradient(k,iws:iwe) = self % gradient(k,iws:iwe) + self % kernel(n,k,1:iwe-iws+1) * gdz(n,j)
         end do
       end do
     end do
