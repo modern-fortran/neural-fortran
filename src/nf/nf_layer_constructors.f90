@@ -179,6 +179,8 @@ module nf_layer_constructors
         !! Width of the convolution window, commonly 3 or 5
       class(activation_function), intent(in), optional :: activation
         !! Activation function (default sigmoid)
+      integer, intent(in), optional :: stride
+        !! Size of the stride (default 1)
       type(layer) :: res
         !! Resulting layer instance
     end function locally_connected2d
