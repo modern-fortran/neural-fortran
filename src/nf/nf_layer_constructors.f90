@@ -156,7 +156,7 @@ module nf_layer_constructors
 
   interface locally_connected
 
-    module function locally_connected2d(filters, kernel_size, activation) result(res)
+    module function locally_connected2d(filters, kernel_size, activation, stride) result(res)
       !! 1-d locally connected network constructor
       !!
       !! This layer is for building 1-d locally connected network.
