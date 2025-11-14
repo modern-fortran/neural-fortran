@@ -20,7 +20,6 @@ contains
   end function conv1d_layer_cons
 
   module subroutine init(self, input_shape)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
@@ -54,15 +53,10 @@ contains
   end subroutine init
 
   pure module subroutine forward(self, input)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
-    integer :: input_channels, input_width
     integer :: j, n
     integer :: iws, iwe
-
-    input_channels = size(input, dim=1)
-    input_width = size(input, dim=2)
 
     ! Loop over output positions.
     do j = 1, self % width
@@ -85,14 +79,12 @@ contains
   end subroutine forward
 
   pure module subroutine backward(self, input, gradient)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     ! 'input' has shape: (channels, input_width)
     ! 'gradient' (dL/dy) has shape: (filters, output_width)
     real, intent(in) :: input(:,:)
     real, intent(in) :: gradient(:,:)
 
-    integer :: input_channels, input_width, output_width
     integer :: j, n, k
     integer :: iws, iwe
 
@@ -100,11 +92,6 @@ contains
     real :: gdz(self % filters, self % width)  ! local gradient (dL/dz)
     real :: db_local(self % filters)
     real :: dw_local(self % filters, self % channels, self % kernel_size)
-
-    ! Determine dimensions.
-    input_channels = size(input, dim=1)
-    input_width = size(input, dim=2)
-    output_width = self % width    ! Note: output_width = input_width - kernel_size + 1
 
     !--- Compute the local gradient gdz = (dL/dy) * sigma'(z) for each output.
     gdz = gradient * self % activation % eval_prime(self % z)
@@ -120,7 +107,7 @@ contains
     ! In the forward pass the window for output index j was:
     !   iws = j,  iwe = j + kernel_size - 1.
     do n = 1, self % filters
-      do j = 1, output_width
+      do j = 1, self % width
         iws = j
         iwe = j + self % kernel_size - 1
         do k = 1, self % channels

@@ -62,7 +62,6 @@ contains
 
 
   pure module subroutine forward(self, input)
-    implicit none
     class(conv2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     integer :: input_width, input_height, input_channels
@@ -113,7 +112,6 @@ contains
 
 
   pure module subroutine backward(self, input, gradient)
-    implicit none
     class(conv2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:,:)
     real, intent(in) :: gradient(:,:,:)
