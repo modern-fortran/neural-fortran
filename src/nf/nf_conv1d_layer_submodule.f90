@@ -22,7 +22,6 @@ contains
   end function conv1d_layer_cons
 
   module subroutine init(self, input_shape)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
@@ -58,14 +57,12 @@ contains
   end subroutine init
 
   pure module subroutine forward(self, input)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
-    integer :: input_channels, input_width
+    integer :: input_width
     integer :: j, n
     integer :: iws, iwe
 
-    input_channels = size(input, dim=1)
     input_width = size(input, dim=2)
 
     ! Loop over output positions.
@@ -89,7 +86,6 @@ contains
   end subroutine forward
 
   pure module subroutine backward(self, input, gradient)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     ! 'input' has shape: (channels, input_width)
     ! 'gradient' (dL/dy) has shape: (filters, output_width)
@@ -105,8 +101,6 @@ contains
     real :: db_local(self % filters)
     real :: dw_local(self % filters, self % channels, self % kernel_size)
 
-    ! Determine dimensions.
-    input_channels = size(input, dim=1)
     input_width = size(input, dim=2)
 
     !--- Compute the local gradient gdz = (dL/dy) * sigma'(z) for each output.
@@ -126,7 +120,6 @@ contains
       do j = 1, self % width
         iws = self % stride * (j-1) + 1
         iwe = min(iws + self % kernel_size - 1, input_width)
-
         do k = 1, self % channels
           ! Weight gradient: accumulate contribution from the input window.
           dw_local(n,k,1:iwe-iws+1) = dw_local(n,k,1:iwe-iws+1) + input(k,iws:iwe) * gdz(n,j)
