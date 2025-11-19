@@ -93,6 +93,20 @@ in parallel, respectively:
 fpm build --compiler caf --profile release --flag "-cpp -DPARALLEL"
 ```
 
+An experimental capability exists for parallel runs when building with LLVM `flang-new`
+version 22 or later and [Caffeine](https://go.lbl.gov/caffeine).  Steps for installing
+LLVM 22.0.0git (the llvm-project main branch as of this writing) and Caffeine are
+outlined in [parallel-testing-with-flang.md].  Once installed, an `fpm` command of the
+following form should launch the neural-fortran test suite with two executing images:
+
+```
+GASNET_PSHM_NODES=2 \
+  fpm test \
+  --compiler flang-new \
+  --flag "-O3 -fcoarray -DPARALLEL" \
+  --link-flag "-lcaffeine -lgasnet-smp-seq -L<caffeine-install-prefix>/lib -L<gasnet-install-prefix>/lib"
+```
+
 #### Testing with fpm
 
 ```
@@ -305,3 +319,5 @@ group.
 Neural-fortran has been used successfully in over a dozen published studies.
 See all papers that cite it
 [here](https://scholar.google.com/scholar?cites=7315840714744905948).
+
+https://github.com/BerkeleyLab/julienne/blob/e9f7ea8069206bfc4abf6a9e6dbbd7d07bda075a/doc/parallel-testing-with-flang.md
