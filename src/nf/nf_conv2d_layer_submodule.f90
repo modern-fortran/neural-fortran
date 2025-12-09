@@ -89,19 +89,16 @@ contains
     ! of the input that correspond to the center of each window.
     istart = half_window + 1 ! TODO kernel_width
     jstart = half_window + 1 ! TODO kernel_height
-    iend = input_width - istart + 1
-    jend = input_height - jstart + 1
 
-!    convolution: do concurrent(i = istart:iend, j = jstart:jend)
-    convolution: do concurrent(i = 1:self % width, j = 1:self%height)
+    convolution: do concurrent(i = 1:self % width, j = 1:self % height)
 
       ! Start and end indices of the input data on the filter window
       ! iws and jws are also coincidentally the indices of the output matrix
-      iws = istart + self %stride(1) * (i-1) - half_window ! TODO kernel_width
-      iwe = min(iws + 2*half_window, input_width)          ! TODO kernel_width
+      iws = istart + self % stride(1) * (i-1) - half_window ! TODO kernel_width
+      iwe = min(iws + 2*half_window, input_width)           ! TODO kernel_width
 
-      jws = jstart + self %stride(2) * (j-1) - half_window ! TODO kernel_height
-      jwe = min(jws + 2*half_window, input_height)         ! TODO kernel_height
+      jws = jstart + self % stride(2) * (j-1) - half_window ! TODO kernel_height
+      jwe = min(jws + 2*half_window, input_height)          ! TODO kernel_height
 
       ! Compute the inner tensor product, sum(w_ij * x_ij), for each filter.
       do concurrent(n = 1:self % filters)
@@ -166,27 +163,20 @@ contains
       k = 1:self % channels, &
       i = 1:self % width, &
       j = 1:self % height &
-      !i = istart:iend, &
-      !j = jstart:jend &
     )
       ! Start and end indices of the input data on the filter window
-      !iws = i - half_window ! TODO kernel_width
-      !iwe = i + half_window ! TODO kernel_width
-      !jws = j - half_window ! TODO kernel_height
-      !jwe = j + half_window ! TODO kernel_height
-      iws = istart + self %stride(1) * (i-1) - half_window ! TODO kernel_width
-      iwe = min(iws + 2*half_window, input_width)          ! TODO kernel_width
+      iws = istart + self % stride(1) * (i-1) - half_window ! TODO kernel_width
+      iwe = min(iws + 2*half_window, input_width)           ! TODO kernel_width
 
-      jws = jstart + self %stride(2) * (j-1) - half_window ! TODO kernel_height
-      jwe = min(jws + 2*half_window, input_height)         ! TODO kernel_height
+      jws = jstart + self % stride(2) * (j-1) - half_window ! TODO kernel_height
+      jwe = min(jws + 2*half_window, input_height)          ! TODO kernel_height
 
       ! dL/dw = sum(gdz * x)
-      dw(n,k,1:iwe-iws+1,1:jwe-jws+1) = dw(n,k,1:iwe-iws+1,1:jwe-jws+1) &
-        + input(k,iws:iwe,jws:jwe) * gdz(n,i,j)
+      dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * gdz(n,i,j)
 
       ! dL/dx = sum(gdz * w)
       self % gradient(k,iws:iwe,jws:jwe) = self % gradient(k,iws:iwe,jws:jwe) &
-        + gdz(n,i,j) * self % kernel(n,k,1:iwe-iws+1,1:jwe-jws+1)
+        + gdz(n,i,j) * self % kernel(n,k,:,:)
 
     end do
 
