@@ -7,15 +7,17 @@ submodule(nf_conv1d_layer) nf_conv1d_layer_submodule
 
 contains
 
-  module function conv1d_layer_cons(filters, kernel_size, activation) result(res)
+  module function conv1d_layer_cons(filters, kernel_size, activation, stride) result(res)
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in) :: activation
+    integer, intent(in) :: stride
     type(conv1d_layer) :: res
 
     res % kernel_size = kernel_size
     res % filters = filters
     res % activation_name = activation % get_name()
+    res % stride = stride
     allocate( res % activation, source = activation )
   end function conv1d_layer_cons
 
@@ -24,7 +26,9 @@ contains
     integer, intent(in) :: input_shape(:)
 
     self % channels = input_shape(1)
-    self % width = input_shape(2) - self % kernel_size + 1
+    self % width = (input_shape(2) - self % kernel_size) / self % stride +1
+
+    if (mod(input_shape(2) - self % kernel_size , self % stride) /= 0) self % width = self % width + 1
 
     ! Output of shape: filters x width
     allocate(self % output(self % filters, self % width))
@@ -55,19 +59,22 @@ contains
   pure module subroutine forward(self, input)
     class(conv1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
+    integer :: input_width
     integer :: j, n
     integer :: iws, iwe
+
+    input_width = size(input, dim=2)
 
     ! Loop over output positions.
     do j = 1, self % width
       ! Compute the input window corresponding to output index j.
       ! In forward: center index = j + half_window, so window = indices j to j+kernel_size-1.
-      iws = j
-      iwe = j + self % kernel_size - 1
+      iws = self % stride * (j-1) + 1
+      iwe = min(iws + self % kernel_size - 1, input_width)
 
       ! For each filter, compute the convolution (inner product over channels and kernel width).
       do concurrent (n = 1:self % filters)
-        self % z(n, j) = sum(self % kernel(n,:,:) * input(:,iws:iwe))
+        self % z(n, j) = sum(self % kernel(n,:,1:iwe-iws+1) * input(:,iws:iwe))
       end do
 
       ! Add the bias for each filter.
@@ -85,6 +92,7 @@ contains
     real, intent(in) :: input(:,:)
     real, intent(in) :: gradient(:,:)
 
+    integer :: input_channels, input_width
     integer :: j, n, k
     integer :: iws, iwe
 
@@ -92,6 +100,8 @@ contains
     real :: gdz(self % filters, self % width)  ! local gradient (dL/dz)
     real :: db_local(self % filters)
     real :: dw_local(self % filters, self % channels, self % kernel_size)
+
+    input_width = size(input, dim=2)
 
     !--- Compute the local gradient gdz = (dL/dy) * sigma'(z) for each output.
     gdz = gradient * self % activation % eval_prime(self % z)
@@ -108,13 +118,13 @@ contains
     !   iws = j,  iwe = j + kernel_size - 1.
     do n = 1, self % filters
       do j = 1, self % width
-        iws = j
-        iwe = j + self % kernel_size - 1
+        iws = self % stride * (j-1) + 1
+        iwe = min(iws + self % kernel_size - 1, input_width)
         do k = 1, self % channels
           ! Weight gradient: accumulate contribution from the input window.
-          dw_local(n,k,:) = dw_local(n,k,:) + input(k,iws:iwe) * gdz(n,j)
+          dw_local(n,k,1:iwe-iws+1) = dw_local(n,k,1:iwe-iws+1) + input(k,iws:iwe) * gdz(n,j)
           ! Input gradient: propagate gradient back to the input window.
-          self % gradient(k,iws:iwe) = self % gradient(k,iws:iwe) + self % kernel(n,k,:) * gdz(n,j)
+          self % gradient(k,iws:iwe) = self % gradient(k,iws:iwe) + self % kernel(n,k,1:iwe-iws+1) * gdz(n,j)
         end do
       end do
     end do

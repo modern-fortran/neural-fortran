@@ -94,7 +94,7 @@ module nf_layer_constructors
 
   interface conv
 
-    module function conv1d(filters, kernel_width, activation) result(res)
+    module function conv1d(filters, kernel_width, activation, stride) result(res)
       !! 1-d convolutional layer constructor.
       !!
       !! This layer is for building 1-d convolutional network.
@@ -117,11 +117,13 @@ module nf_layer_constructors
         !! Width of the convolution window, commonly 3 or 5
       class(activation_function), intent(in), optional :: activation
         !! Activation function (default sigmoid)
+      integer, intent(in), optional :: stride
+        !! Stride length of the convolution
       type(layer) :: res
         !! Resulting layer instance
     end function conv1d
 
-    module function conv2d(filters, kernel_width, kernel_height, activation) result(res)
+    module function conv2d(filters, kernel_width, kernel_height, activation, stride) result(res)
       !! 2-d convolutional layer constructor.
       !!
       !! This layer is for building 2-d convolutional network.
@@ -147,6 +149,8 @@ module nf_layer_constructors
         !! Height of the convolution window, commonly 3 or 5
       class(activation_function), intent(in), optional :: activation
         !! Activation function (default sigmoid)
+      integer, intent(in), optional :: stride(:)
+        !! Stride length of the convolution
       type(layer) :: res
         !! Resulting layer instance
     end function conv2d

@@ -7,16 +7,18 @@ submodule(nf_conv2d_layer) nf_conv2d_layer_submodule
 
 contains
 
-  module function conv2d_layer_cons(filters, kernel_size, activation) result(res)
+  module function conv2d_layer_cons(filters, kernel_size, activation, stride) result(res)
     implicit none
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in) :: activation
+    integer, intent(in) :: stride(:)
     type(conv2d_layer) :: res
 
     res % kernel_size = kernel_size
     res % filters = filters
     res % activation_name = activation % get_name()
+    res % stride = stride
     allocate( res % activation, source = activation )
 
   end function conv2d_layer_cons
@@ -28,8 +30,12 @@ contains
     integer, intent(in) :: input_shape(:)
 
     self % channels = input_shape(1)
-    self % width = input_shape(2) - self % kernel_size + 1
-    self % height = input_shape(3) - self % kernel_size + 1
+
+    self % width = (input_shape(2) - self % kernel_size) / self % stride(1) + 1
+    if (mod(input_shape(2) - self % kernel_size , self % stride(1)) /= 0) self % width = self % width + 1
+
+    self % height = (input_shape(3) - self % kernel_size) / self % stride(2) + 1
+    if (mod(input_shape(3) - self % kernel_size , self % stride(2)) /= 0) self % height = self % height + 1
 
     ! Output of shape filters x width x height
     allocate(self % output(self % filters, self % width, self % height))
@@ -83,25 +89,24 @@ contains
     ! of the input that correspond to the center of each window.
     istart = half_window + 1 ! TODO kernel_width
     jstart = half_window + 1 ! TODO kernel_height
-    iend = input_width - istart + 1
-    jend = input_height - jstart + 1
 
-    convolution: do concurrent(i = istart:iend, j = jstart:jend)
+    convolution: do concurrent(i = 1:self % width, j = 1:self % height)
 
       ! Start and end indices of the input data on the filter window
       ! iws and jws are also coincidentally the indices of the output matrix
-      iws = i - half_window ! TODO kernel_width
-      iwe = i + half_window ! TODO kernel_width
-      jws = j - half_window ! TODO kernel_height
-      jwe = j + half_window ! TODO kernel_height
+      iws = istart + self % stride(1) * (i-1) - half_window ! TODO kernel_width
+      iwe = min(iws + 2*half_window, input_width)           ! TODO kernel_width
+
+      jws = jstart + self % stride(2) * (j-1) - half_window ! TODO kernel_height
+      jwe = min(jws + 2*half_window, input_height)          ! TODO kernel_height
 
       ! Compute the inner tensor product, sum(w_ij * x_ij), for each filter.
       do concurrent(n = 1:self % filters)
-        self % z(n,iws,jws) = sum(self % kernel(n,:,:,:) * input(:,iws:iwe,jws:jwe))
+        self % z(n,i,j) = sum(self % kernel(n,:,1:iwe-iws+1,1:jwe-jws+1) * input(:,iws:iwe,jws:jwe))
       end do
 
       ! Add bias to the inner product.
-      self % z(:,iws,jws) = self % z(:,iws,jws) + self % biases
+      self % z(:,i,j) = self % z(:,i,j) + self % biases
 
     end do convolution
 
@@ -156,21 +161,22 @@ contains
     do concurrent( &
       n = 1:self % filters, &
       k = 1:self % channels, &
-      i = istart:iend, &
-      j = jstart:jend &
+      i = 1:self % width, &
+      j = 1:self % height &
     )
       ! Start and end indices of the input data on the filter window
-      iws = i - half_window ! TODO kernel_width
-      iwe = i + half_window ! TODO kernel_width
-      jws = j - half_window ! TODO kernel_height
-      jwe = j + half_window ! TODO kernel_height
+      iws = istart + self % stride(1) * (i-1) - half_window ! TODO kernel_width
+      iwe = min(iws + 2*half_window, input_width)           ! TODO kernel_width
 
-      ! dL/dw = sum(dL/dy * sigma'(z) * x)
-      dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * gdz(n,iws:iwe,jws:jwe)
+      jws = jstart + self % stride(2) * (j-1) - half_window ! TODO kernel_height
+      jwe = min(jws + 2*half_window, input_height)          ! TODO kernel_height
 
-      ! dL/dx = dL/dy * sigma'(z) .inner. w
-      self % gradient(k,i,j) = self % gradient(k,i,j) &
-        + sum(gdz(n,iws:iwe,jws:jwe) * self % kernel(n,k,:,:))
+      ! dL/dw = sum(gdz * x)
+      dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * gdz(n,i,j)
+
+      ! dL/dx = sum(gdz * w)
+      self % gradient(k,iws:iwe,jws:jwe) = self % gradient(k,iws:iwe,jws:jwe) &
+        + gdz(n,i,j) * self % kernel(n,k,:,:)
 
     end do
 
