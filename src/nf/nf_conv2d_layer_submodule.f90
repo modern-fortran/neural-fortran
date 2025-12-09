@@ -180,12 +180,13 @@ contains
       jws = jstart + self %stride(2) * (j-1) - half_window ! TODO kernel_height
       jwe = min(jws + 2*half_window, input_height)         ! TODO kernel_height
 
-      ! dL/dw = sum(dL/dy * sigma'(z) * x)
-      dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * gdz(n,iws:iwe,jws:jwe)
+      ! dL/dw = sum(gdz * x)
+      dw(n,k,1:iwe-iws+1,1:jwe-jws+1) = dw(n,k,1:iwe-iws+1,1:jwe-jws+1) &
+        + input(k,iws:iwe,jws:jwe) * gdz(n,i,j)
 
-      ! dL/dx = dL/dy * sigma'(z) .inner. w
+      ! dL/dx = sum(gdz * w)
       self % gradient(k,iws:iwe,jws:jwe) = self % gradient(k,iws:iwe,jws:jwe) &
-        + gdz(n,iws:iwe,jws:jwe) * self % kernel(n,k,1:iwe-iws+1,1:jwe-jws+1)
+        + gdz(n,i,j) * self % kernel(n,k,1:iwe-iws+1,1:jwe-jws+1)
 
     end do
 
