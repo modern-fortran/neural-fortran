@@ -3,13 +3,15 @@ submodule(nf_avgpool2d_layer) nf_avgpool2d_layer_submodule
 
 contains
 
-  pure module function avgpool2d_layer_cons(pool_size, stride) result(res)
+  pure module function avgpool2d_layer_cons(pool_width, pool_height, stride) result(res)
     implicit none
-    integer, intent(in) :: pool_size
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: pool_height
     integer, intent(in) :: stride
     type(avgpool2d_layer) :: res
 
-    res % pool_size = pool_size
+    res % pool_width = pool_width
+    res % pool_height = pool_height
     res % stride    = stride
   end function avgpool2d_layer_cons
 
@@ -55,8 +57,8 @@ contains
       ii = (i - 1) / self % stride + 1
       jj = (j - 1) / self % stride + 1
       
-      iend = min(i + self % pool_size - 1, input_width)
-      jend = min(j + self % pool_size - 1, input_height)
+      iend = min(i + self % pool_width - 1, input_width)
+      jend = min(j + self % pool_height - 1, input_height)
       
       ! Compute the average over the pooling region.
       self % output(n, ii, jj) = sum(input(n, i:iend, j:jend)) / ((iend - i + 1) * (jend - j + 1))
@@ -80,9 +82,9 @@ contains
     ! The gradient for average pooling is distributed evenly over the pooling window.
     do concurrent (n = 1:channels, i = 1:pooled_width, j = 1:pooled_height)
       istart = (i - 1) * self % stride + 1
-      iend   = min(istart + self % pool_size - 1, size(input, dim=2))
+      iend   = min(istart + self % pool_width - 1, size(input, dim=2))
       jstart = (j - 1) * self % stride + 1
-      jend   = min(jstart + self % pool_size - 1, size(input, dim=3))
+      jend   = min(jstart + self % pool_height - 1, size(input, dim=3))
       scale_factor = 1.0 / ((iend - istart + 1) * (jend - jstart + 1))
 
       do concurrent (x = istart:iend, y = jstart:jend)

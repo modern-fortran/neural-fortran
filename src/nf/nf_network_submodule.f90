@@ -8,7 +8,7 @@ submodule(nf_network) nf_network_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
-  use nf_locally_connected1d_layer, only: locally_connected1d_layer
+  use nf_locally_connected2d_layer, only: locally_connected2d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
@@ -18,7 +18,7 @@ submodule(nf_network) nf_network_submodule
   use nf_embedding_layer, only: embedding_layer
   use nf_layernorm_layer, only: layernorm_layer
   use nf_layer, only: layer
-  use nf_layer_constructors, only: conv1d, conv2d, dense, flatten, input, maxpool1d, maxpool2d, reshape
+  use nf_layer_constructors, only: flatten
   use nf_loss, only: quadratic
   use nf_optimizers, only: optimizer_base_type, sgd
   use nf_parallel, only: tile_indices
@@ -79,7 +79,7 @@ contains
             type is(conv2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
-            type is(locally_connected1d_layer)
+            type is(locally_connected2d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(maxpool2d_layer)
@@ -115,10 +115,11 @@ contains
   end function network_from_layers
 
 
-  module subroutine backward(self, output, loss)
+  module subroutine backward(self, output, loss, gradient)
     class(network), intent(in out) :: self
     real, intent(in) :: output(:)
     class(loss_type), intent(in), optional :: loss
+    real, intent(in), optional :: gradient(:)
     integer :: n, num_layers
 
     ! Passing the loss instance is optional. If not provided, and if the
@@ -140,58 +141,71 @@ contains
 
     ! Iterate backward over layers, from the output layer
     ! to the first non-input layer
-    do n = num_layers, 2, -1
 
-      if (n == num_layers) then
-        ! Output layer; apply the loss function
-        select type(this_layer => self % layers(n) % p)
-          type is(dense_layer)
-            call self % layers(n) % backward( &
-              self % layers(n - 1), &
-              self % loss % derivative(output, this_layer % output) &
-            )
-          type is(flatten_layer)
-            call self % layers(n) % backward( &
-              self % layers(n - 1), &
-              self % loss % derivative(output, this_layer % output) &
-            )
-        end select
-      else
-        ! Hidden layer; take the gradient from the next layer
-        select type(next_layer => self % layers(n + 1) % p)
-          type is(dense_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(dropout_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(conv2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(flatten_layer)
-            if (size(self % layers(n) % layer_shape) == 2) then
-              call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
-            else
-              call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
-            end if
-          type is(maxpool2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(reshape3d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(linear2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(self_attention_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(maxpool1d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(reshape2d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(conv1d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(locally_connected1d_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-          type is(layernorm_layer)
-            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
-        end select
-      end if
+    ! Output layer first
+    n = num_layers
+    if (present(gradient)) then
 
+      ! If the gradient is passed, use it directly for the output layer
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          call self % layers(n) % backward(self % layers(n - 1), gradient)
+        type is(flatten_layer)
+          call self % layers(n) % backward(self % layers(n - 1), gradient)
+      end select
+
+    else
+
+      ! Apply the loss function
+      select type(this_layer => self % layers(n) % p)
+        type is(dense_layer)
+          call self % layers(n) % backward( &
+            self % layers(n - 1), &
+            self % loss % derivative(output, this_layer % output) &
+          )
+        type is(flatten_layer)
+          call self % layers(n) % backward( &
+            self % layers(n - 1), &
+            self % loss % derivative(output, this_layer % output) &
+          )
+      end select
+
+    end if
+
+    ! Hidden layers; take the gradient from the next layer
+    do n = num_layers - 1, 2, -1
+      select type(next_layer => self % layers(n + 1) % p)
+        type is(dense_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(dropout_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(conv2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(flatten_layer)
+          if (size(self % layers(n) % layer_shape) == 2) then
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
+          else
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
+          end if
+        type is(maxpool2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(reshape3d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(linear2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(self_attention_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(maxpool1d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(reshape2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(conv1d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(locally_connected2d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(layernorm_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+      end select
     end do
 
   end subroutine backward
@@ -497,6 +511,42 @@ contains
   end subroutine print_info
 
 
+  module subroutine get_output_1d(self, output)
+    class(network), intent(in), target :: self
+    real, pointer, intent(out) :: output(:)
+    integer :: last
+
+    last = size(self % layers)
+
+    select type(output_layer => self % layers(last) % p)
+      type is (conv1d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is(conv2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (dense_layer)
+        output => output_layer % output
+      type is (dropout_layer)
+        output => output_layer % output
+      type is (flatten_layer)
+        output => output_layer % output
+      type is (layernorm_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (linear2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (locally_connected2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (maxpool1d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is (maxpool2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      class default
+        error stop 'network % get_output not implemented for ' // &
+          trim(self % layers(last) % name) // ' layer'
+    end select
+
+  end subroutine get_output_1d
+
+
   module function get_num_params(self)
     class(network), intent(in) :: self
     integer :: get_num_params
@@ -523,25 +573,6 @@ contains
     end do
 
   end function get_params
-
-  module function get_gradients(self) result(gradients)
-    class(network), intent(in) :: self
-    real, allocatable :: gradients(:)
-    integer :: n, nstart, nend
-
-    allocate(gradients(self % get_num_params()))
-
-    nstart = 1
-    do n = 1, size(self % layers)
-
-      if (self % layers(n) % get_num_params() < 1) cycle
-
-      nend = nstart + self % layers(n) % get_num_params() - 1
-      gradients(nstart:nend) = self % layers(n) % get_gradients()
-      nstart = nend + 1
-    end do
-
-  end function get_gradients
 
 
   module subroutine set_params(self, params)
@@ -593,15 +624,8 @@ contains
     integer :: i, j, n
     integer :: istart, iend, indices(2)
 
-    ! Passing the optimizer instance is optional.
-    ! If not provided, we default to SGD with its default settings.
-    if (present(optimizer)) then
-      self % optimizer = optimizer
-    else
-      self % optimizer = sgd()
-    end if
-
-    call self % optimizer % init(self % get_num_params())
+    ! The optional optimizer instance is passed through to the update() method
+    ! where it is optional as well.
 
     ! Passing the loss instance is optional.
     ! If not provided, we default to quadratic().
@@ -635,7 +659,7 @@ contains
           call self % backward(output_data(:,j))
         end do
 
-        call self % update(batch_size=batch_size)
+        call self % update(optimizer=optimizer, batch_size=batch_size)
 
       end do batch_loop
     end do epoch_loop
@@ -649,22 +673,25 @@ contains
     integer, intent(in), optional :: batch_size
     integer :: batch_size_
     real, allocatable :: params(:)
+    real, pointer :: weights(:), biases(:), dw(:), db(:)
     integer :: n
 
-    ! Passing the optimizer instance is optional. If not provided, and if the
-    ! optimizer has not already been set, we default to the default SGD. The
-    ! instantiation and initialization below of the optimizer is normally done
-    ! at the beginning of the network % train() method. However, if the user
-    ! wants to call network % update() directly, for example if they use their
-    ! own custom mini-batching routine, we initialize the optimizer here as
-    ! well. If it's initialized already, this step is a cheap no-op.
-    if (.not. allocated(self % optimizer)) then
+    ! You can optionally pass an optimizer instance to the update() method.
+    ! This is necessary if you're not using the train() method, for example if
+    ! you're using your own custom mini-batching routine and calling the
+    ! forward(), backward(), and update() methods directly.
+    if (.not. allocated(self % layers(1) % optimizer)) then
       if (present(optimizer)) then
-        self % optimizer = optimizer
+        do n = 1, size(self % layers)
+          self % layers(n) % optimizer = optimizer
+          call self % layers(n) % optimizer % init(self % layers(n) % get_num_params())
+        end do
       else
-        self % optimizer = sgd()
+        do n = 1, size(self % layers)
+          self % layers(n) % optimizer = sgd()
+          call self % layers(n) % optimizer % init(self % layers(n) % get_num_params())
+        end do
       end if
-      call self % optimizer % init(self % get_num_params())
     end if
 
     if (present(batch_size)) then
@@ -686,32 +713,57 @@ contains
         type is(conv1d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
-        type is(locally_connected1d_layer)
+        type is(locally_connected2d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
       end select
     end do
 #endif
 
-    params = self % get_params()
-    call self % optimizer % minimize(params, self % get_gradients() / batch_size_)
-    call self % set_params(params)
-
-    ! Flush network gradients to zero.
     do n = 2, size(self % layers)
       select type(this_layer => self % layers(n) % p)
         type is(dense_layer)
-          this_layer % dw = 0
-          this_layer % db = 0
-        type is(conv2d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv1d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
-        type is(locally_connected1d_layer)
+        type is(conv2d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
           this_layer % dw = 0
           this_layer % db = 0
+        type is(locally_connected2d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(linear2d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(layernorm_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
+          this_layer % d_gamma = 0
+          this_layer % d_beta = 0
       end select
     end do
 

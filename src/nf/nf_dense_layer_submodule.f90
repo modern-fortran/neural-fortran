@@ -1,7 +1,6 @@
 submodule(nf_dense_layer) nf_dense_layer_submodule
 
   use nf_activation, only: activation_function
-  use nf_base_layer, only: base_layer
   use nf_random, only: random_normal
 
   implicit none
@@ -61,60 +60,22 @@ contains
   end function get_num_params
 
 
-  module function get_params(self) result(params)
+  module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(dense_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-
-    real, pointer :: w_(:) => null()
-
-    w_(1:size(self % weights)) => self % weights
-
-    params = [ &
-      w_, &
-      self % biases &
-    ]
-
-  end function get_params
+    real, pointer, intent(out) :: w_ptr(:)
+    real, pointer, intent(out) :: b_ptr(:)
+    w_ptr(1:size(self % weights)) => self % weights
+    b_ptr => self % biases
+  end subroutine get_params_ptr
 
 
-  module function get_gradients(self) result(gradients)
+  module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
     class(dense_layer), intent(in), target :: self
-    real, allocatable :: gradients(:)
-
-    real, pointer :: dw_(:) => null()
-
-    dw_(1:size(self % dw)) => self % dw
-
-    gradients = [ &
-      dw_, &
-      self % db &
-    ]
-
-  end function get_gradients
-
-
-  module subroutine set_params(self, params)
-    class(dense_layer), intent(in out) :: self
-    real, intent(in), target :: params(:)
-
-    real, pointer :: p_(:,:) => null()
-
-    ! check if the number of parameters is correct
-    if (size(params) /= self % get_num_params()) then
-      error stop 'Error: number of parameters does not match'
-    end if
-
-    associate(n => self % input_size * self % output_size)
-      ! reshape the weights
-      p_(1:self % input_size, 1:self % output_size) => params(1 : n)
-      self % weights = p_
-
-      ! reshape the biases
-      self % biases = params(n + 1 : n + self % output_size)
-    end associate
-
-  end subroutine set_params
-
+    real, pointer, intent(out) :: dw_ptr(:)
+    real, pointer, intent(out) :: db_ptr(:)
+    dw_ptr(1:size(self % dw)) => self % dw
+    db_ptr => self % db
+  end subroutine get_gradients_ptr
 
   module subroutine init(self, input_shape)
     class(dense_layer), intent(in out) :: self

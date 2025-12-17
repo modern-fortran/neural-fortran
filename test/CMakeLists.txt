@@ -1,3 +1,5 @@
+add_library(tuff tuff.f90)
+
 foreach(execid
   avgpool1d_layer
   avgpool2d_layer
@@ -10,7 +12,7 @@ foreach(execid
   dense_layer
   conv1d_layer
   conv2d_layer
-  locally_connected1d_layer
+  locally_connected2d_layer
   maxpool1d_layer
   maxpool2d_layer
   flatten_layer
@@ -29,7 +31,7 @@ foreach(execid
   metrics
   )
   add_executable(test_${execid} test_${execid}.f90)
-  target_link_libraries(test_${execid} PRIVATE neural-fortran ${LIBS})
+  target_link_libraries(test_${execid} PRIVATE tuff neural-fortran ${LIBS})
 
   add_test(NAME test_${execid} COMMAND test_${execid})
 endforeach()

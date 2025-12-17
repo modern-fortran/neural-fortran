@@ -22,13 +22,13 @@ module nf_layer
     integer, allocatable :: layer_shape(:)
     integer, allocatable :: input_layer_shape(:)
     logical :: initialized = .false.
+    class(optimizer_base_type), allocatable :: optimizer
 
   contains
 
     procedure :: forward
     procedure :: get_num_params
     procedure :: get_params
-    procedure :: get_gradients
     procedure :: set_params
     procedure :: init
     procedure :: print_info
@@ -160,13 +160,16 @@ module nf_layer
         !! Parameters of this layer
     end function get_params
 
-    module function get_gradients(self) result(gradients)
-      !! Returns the gradients of this layer.
+    module subroutine get_params_ptr(self, w_ptr, b_ptr)
+      !! Returns the parameters of this layer as pointers.
+      !! This is used for layers that have weights and biases.
       class(layer), intent(in) :: self
         !! Layer instance
-      real, allocatable :: gradients(:)
-        !! Gradients of this layer
-    end function get_gradients
+      real, pointer :: w_ptr(:)
+        !! Pointer to weights of this layer
+      real, pointer :: b_ptr(:)
+        !! Pointer to biases of this layer
+    end subroutine get_params_ptr 
 
     module subroutine set_params(self, params)
       !! Returns the parameters of this layer.

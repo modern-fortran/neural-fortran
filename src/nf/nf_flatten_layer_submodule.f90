@@ -4,7 +4,6 @@ submodule(nf_flatten_layer) nf_flatten_layer_submodule
   !! It is used internally by the layer type.
   !! It is not intended to be used directly by the user.
 
-  use nf_base_layer, only: base_layer
 
   implicit none
 

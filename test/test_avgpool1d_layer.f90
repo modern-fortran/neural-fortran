@@ -1,7 +1,7 @@
 program test_avgpool1d_layer
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: avgpool1d, input, layer
+  use nf, only: avgpool, input, layer
   use nf_input2d_layer, only: input2d_layer
   use nf_avgpool1d_layer, only: avgpool1d_layer
 
@@ -16,7 +16,7 @@ program test_avgpool1d_layer
   integer :: i
   logical :: ok = .true., gradient_ok = .true.
 
-  avgpool_layer = avgpool1d(pool_size)
+  avgpool_layer = avgpool(pool_size, stride)
 
   if (.not. avgpool_layer % name == 'avgpool1d') then
     ok = .false.

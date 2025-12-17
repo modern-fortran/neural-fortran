@@ -10,7 +10,7 @@ module nf_avgpool1d_layer
     type, extends(base_layer) :: avgpool1d_layer
         integer :: channels
         integer :: width      ! Length of the input along the pooling dimension
-        integer :: pool_size
+        integer :: pool_width ! Width of the pooling window
         integer :: stride
   
         ! Gradient for the input (same shape as the input).
@@ -24,9 +24,9 @@ module nf_avgpool1d_layer
     end type avgpool1d_layer
   
     interface avgpool1d_layer
-        pure module function avgpool1d_layer_cons(pool_size, stride) result(res)
+        pure module function avgpool1d_layer_cons(pool_width, stride) result(res)
             !! `avgpool1d` constructor function.
-            integer, intent(in) :: pool_size
+            integer, intent(in) :: pool_width
                 !! Width of the pooling window.
             integer, intent(in) :: stride
                 !! Stride of the pooling window.

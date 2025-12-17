@@ -39,10 +39,25 @@ module nf_multihead_attention_layer
     real, allocatable :: k_input(:, :)
     real, allocatable :: v_input(:, :)
     real, allocatable :: o_input(:, :)
+
+    ! temporary storages for forward and backward passes
+    real, allocatable :: normalized_attention(:, :, :)
+    real, allocatable :: q_or_dq(:, :, :)
+    real, allocatable :: k_or_dk(:, :, :)
+    real, allocatable :: v_or_dv(:, :, :)
+    real, allocatable :: d_output(:, :, :)
+    real, allocatable :: v_heads(:, :, :)
+    real, allocatable :: k_heads(:, :, :)
+    real, allocatable :: q_heads(:, :, :)
+    real, allocatable :: d_sdpa(:, :)
+    real, allocatable :: jacobian(:, :)
+    real, allocatable :: d_normalize(:, :, :)
   contains
 
     procedure :: common_backward
     procedure :: common_forward
+    procedure :: sdpa_forward
+    procedure :: sdpa_backward
     procedure :: get_num_params
     procedure :: get_params
     procedure :: get_gradients
@@ -68,7 +83,7 @@ module nf_multihead_attention_layer
 
   interface
 
-    pure module subroutine common_backward(self, input, gradient)
+    pure module subroutine common_backward(self, input, gradient, attention_mask)
       !! General backprop for MultiHead Attention mechanism
       !! Might be used for both Self and Cross Attention
       !! Self Attention: sum output gradients
@@ -76,16 +91,29 @@ module nf_multihead_attention_layer
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: input(:, :)
       real, intent(in) :: gradient(:, :)
+      real, optional, intent(in) :: attention_mask(:, :)
     end subroutine common_backward
 
-    pure module subroutine common_forward(self, query, key, value)
+    pure module subroutine common_forward(self, query, key, value, attention_mask)
       !! General forward propagation for MultiHead Attention Mechanism
       !! Might be used for both Self and Cross Attention
       !! Self Attention: pass the same value thrice
       !! Cross Attention: pass three values for your query, key and value
       class(multihead_attention_layer), intent(in out) :: self
       real, intent(in) :: query(:, :), key(:, :), value(:, :)
+      real, optional, intent(in) :: attention_mask(:, :)
     end subroutine common_forward
+
+    pure module subroutine sdpa_forward(self, attention_mask)
+      class(multihead_attention_layer), intent(in out) :: self
+      real, intent(in), optional :: attention_mask(:, :)
+    end subroutine sdpa_forward
+
+    pure module subroutine sdpa_backward(self, gradient, attention_mask)
+      class(multihead_attention_layer), intent(in out) :: self
+      real, intent(in) :: gradient(:, :)
+      real, intent(in), optional :: attention_mask(:, :)
+    end subroutine sdpa_backward
 
     pure module subroutine init(self, input_shape)
       !! Initialize the layer data structures.
@@ -119,7 +147,7 @@ module nf_multihead_attention_layer
       !! Output dims: sequence_length, sequence_length, n_heads
       class(multihead_attention_layer), intent(in out) :: self
       !! (sequence_length, sequence_length, n_heads)
-      real, optional, intent(in) :: attention_mask(:, :, :)
+      real, optional, intent(in) :: attention_mask(:, :)
       !! (sequence_length, sequence_length, n_heads)
     end subroutine normalize_attention_matrix
 
@@ -143,18 +171,18 @@ module nf_multihead_attention_layer
     end function get_num_params
 
     module function get_params(self) result(params)
-      class(multihead_attention_layer), intent(in), target :: self
+      class(multihead_attention_layer), intent(in) :: self
       real, allocatable :: params(:)
     end function get_params
 
     module function get_gradients(self) result(gradients)
-      class(multihead_attention_layer), intent(in), target :: self
+      class(multihead_attention_layer), intent(in) :: self
       real, allocatable :: gradients(:)
     end function get_gradients
 
     module subroutine set_params(self, params)
       class(multihead_attention_layer), intent(in out) :: self
-      real, intent(in), target :: params(:)
+      real, intent(in) :: params(:)
     end subroutine set_params
 
     module subroutine init_base(self, input_shape)

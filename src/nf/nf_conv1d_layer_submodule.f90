@@ -7,25 +7,28 @@ submodule(nf_conv1d_layer) nf_conv1d_layer_submodule
 
 contains
 
-  module function conv1d_layer_cons(filters, kernel_size, activation) result(res)
+  module function conv1d_layer_cons(filters, kernel_size, activation, stride) result(res)
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in) :: activation
+    integer, intent(in) :: stride
     type(conv1d_layer) :: res
 
     res % kernel_size = kernel_size
     res % filters = filters
     res % activation_name = activation % get_name()
+    res % stride = stride
     allocate( res % activation, source = activation )
   end function conv1d_layer_cons
 
   module subroutine init(self, input_shape)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
     self % channels = input_shape(1)
-    self % width = input_shape(2) - self % kernel_size + 1
+    self % width = (input_shape(2) - self % kernel_size) / self % stride +1
+
+    if (mod(input_shape(2) - self % kernel_size , self % stride) /= 0) self % width = self % width + 1
 
     ! Output of shape: filters x width
     allocate(self % output(self % filters, self % width))
@@ -54,26 +57,24 @@ contains
   end subroutine init
 
   pure module subroutine forward(self, input)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
-    integer :: input_channels, input_width
+    integer :: input_width
     integer :: j, n
     integer :: iws, iwe
 
-    input_channels = size(input, dim=1)
     input_width = size(input, dim=2)
 
     ! Loop over output positions.
     do j = 1, self % width
       ! Compute the input window corresponding to output index j.
       ! In forward: center index = j + half_window, so window = indices j to j+kernel_size-1.
-      iws = j
-      iwe = j + self % kernel_size - 1
+      iws = self % stride * (j-1) + 1
+      iwe = min(iws + self % kernel_size - 1, input_width)
 
       ! For each filter, compute the convolution (inner product over channels and kernel width).
       do concurrent (n = 1:self % filters)
-        self % z(n, j) = sum(self % kernel(n,:,:) * input(:,iws:iwe))
+        self % z(n, j) = sum(self % kernel(n,:,1:iwe-iws+1) * input(:,iws:iwe))
       end do
 
       ! Add the bias for each filter.
@@ -85,14 +86,13 @@ contains
   end subroutine forward
 
   pure module subroutine backward(self, input, gradient)
-    implicit none
     class(conv1d_layer), intent(in out) :: self
     ! 'input' has shape: (channels, input_width)
     ! 'gradient' (dL/dy) has shape: (filters, output_width)
     real, intent(in) :: input(:,:)
     real, intent(in) :: gradient(:,:)
 
-    integer :: input_channels, input_width, output_width
+    integer :: input_channels, input_width
     integer :: j, n, k
     integer :: iws, iwe
 
@@ -101,10 +101,7 @@ contains
     real :: db_local(self % filters)
     real :: dw_local(self % filters, self % channels, self % kernel_size)
 
-    ! Determine dimensions.
-    input_channels = size(input, dim=1)
     input_width = size(input, dim=2)
-    output_width = self % width    ! Note: output_width = input_width - kernel_size + 1
 
     !--- Compute the local gradient gdz = (dL/dy) * sigma'(z) for each output.
     gdz = gradient * self % activation % eval_prime(self % z)
@@ -120,14 +117,14 @@ contains
     ! In the forward pass the window for output index j was:
     !   iws = j,  iwe = j + kernel_size - 1.
     do n = 1, self % filters
-      do j = 1, output_width
-        iws = j
-        iwe = j + self % kernel_size - 1
+      do j = 1, self % width
+        iws = self % stride * (j-1) + 1
+        iwe = min(iws + self % kernel_size - 1, input_width)
         do k = 1, self % channels
           ! Weight gradient: accumulate contribution from the input window.
-          dw_local(n,k,:) = dw_local(n,k,:) + input(k,iws:iwe) * gdz(n,j)
+          dw_local(n,k,1:iwe-iws+1) = dw_local(n,k,1:iwe-iws+1) + input(k,iws:iwe) * gdz(n,j)
           ! Input gradient: propagate gradient back to the input window.
-          self % gradient(k,iws:iwe) = self % gradient(k,iws:iwe) + self % kernel(n,k,:) * gdz(n,j)
+          self % gradient(k,iws:iwe) = self % gradient(k,iws:iwe) + self % kernel(n,k,1:iwe-iws+1) * gdz(n,j)
         end do
       end do
     end do
@@ -144,35 +141,20 @@ contains
     num_params = product(shape(self % kernel)) + size(self % biases)
   end function get_num_params
 
-  module function get_params(self) result(params)
+  module subroutine get_params_ptr(self, w_ptr, b_ptr)
     class(conv1d_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-    real, pointer :: w_(:) => null()
-    w_(1:size(self % kernel)) => self % kernel
-    params = [ w_, self % biases]
-  end function get_params
+    real, pointer, intent(out) :: w_ptr(:)
+    real, pointer, intent(out) :: b_ptr(:)
+    w_ptr(1:size(self % kernel)) => self % kernel
+    b_ptr => self % biases
+  end subroutine get_params_ptr
 
-  module function get_gradients(self) result(gradients)
+  module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
     class(conv1d_layer), intent(in), target :: self
-    real, allocatable :: gradients(:)
-    real, pointer :: dw_(:) => null()
-    dw_(1:size(self % dw)) => self % dw
-    gradients = [ dw_, self % db ]
-  end function get_gradients
-
-  module subroutine set_params(self, params)
-    class(conv1d_layer), intent(in out) :: self
-    real, intent(in) :: params(:)
-
-    if (size(params) /= self % get_num_params()) then
-      error stop 'conv1d_layer % set_params: Number of parameters does not match'
-    end if
-
-    self % kernel = reshape(params(:product(shape(self % kernel))), shape(self % kernel))
-    associate(n => product(shape(self % kernel)))
-      self % biases = params(n + 1 : n + self % filters)
-    end associate
-
-  end subroutine set_params
+    real, pointer, intent(out) :: dw_ptr(:)
+    real, pointer, intent(out) :: db_ptr(:)
+    dw_ptr(1:size(self % dw)) => self % dw
+    db_ptr => self % db
+  end subroutine get_gradients_ptr
 
 end submodule nf_conv1d_layer_submodule

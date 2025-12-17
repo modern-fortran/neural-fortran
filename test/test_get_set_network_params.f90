@@ -1,6 +1,6 @@
 program test_get_set_network_params
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: conv2d, dense, flatten, input, maxpool2d, network
+  use nf, only: conv, dense, flatten, input, network
   implicit none
   type(network) :: net
   logical :: ok = .true.
@@ -10,7 +10,7 @@ program test_get_set_network_params
   ! First test get_num_params()
   net = network([ &
     input(3, 5, 5), & ! 5 x 5 image with 3 channels
-    conv2d(filters=2, kernel_size=3), & ! kernel shape [2, 3, 3, 3], output shape [2, 3, 3], 56 parameters total
+    conv(filters=2, kernel_width=3, kernel_height=3), & ! kernel shape [2, 3, 3, 3], output shape [2, 3, 3], 56 parameters total
     flatten(), &
     dense(4) & ! weights shape [72], biases shape [4], 76 parameters total
   ])
@@ -46,7 +46,7 @@ program test_get_set_network_params
   ! Finally, test set_params() and get_params() for a conv2d layer
   net = network([ &
     input(1, 3, 3), &
-    conv2d(filters=1, kernel_size=3) &
+    conv(filters=1, kernel_width=3, kernel_height=3) &
   ])
 
   call net % set_params(test_params_conv2d)

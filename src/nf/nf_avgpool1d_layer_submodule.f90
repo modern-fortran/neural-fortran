@@ -3,13 +3,13 @@ submodule(nf_avgpool1d_layer) nf_avgpool1d_layer_submodule
 
 contains
 
-  pure module function avgpool1d_layer_cons(pool_size, stride) result(res)
+  pure module function avgpool1d_layer_cons(pool_width, stride) result(res)
     implicit none
-    integer, intent(in) :: pool_size
+    integer, intent(in) :: pool_width
     integer, intent(in) :: stride
     type(avgpool1d_layer) :: res
 
-    res % pool_size = pool_size
+    res % pool_width = pool_width
     res % stride    = stride
   end function avgpool1d_layer_cons
 
@@ -52,7 +52,7 @@ contains
       ! Compute the index in the pooled (output) array.
       ii = (i - 1) / self % stride + 1
       ! Determine the ending index of the current pooling region.
-      iend = min(i + self % pool_size - 1, input_width)
+      iend = min(i + self % pool_width - 1, input_width)
 
       ! Compute the average over the pooling region.
       self % output(n, ii) = sum(input(n, i:iend)) / (iend - i + 1)
@@ -75,7 +75,7 @@ contains
     ! The gradient for average pooling is distributed evenly over the pooling window.
     do concurrent (n = 1:channels, i = 1:pooled_width)
       istart = (i - 1) * self % stride + 1
-      iend = min(istart + self % pool_size - 1, size(input, dim=2))
+      iend = min(istart + self % pool_width - 1, size(input, dim=2))
       scale_factor = 1.0 / (iend - istart + 1)
 
       do j = istart, iend

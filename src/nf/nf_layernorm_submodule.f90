@@ -108,42 +108,26 @@ contains
 
   end function get_num_params
 
-
-  module function get_params(self) result(params)
+  module subroutine get_params_ptr(self, g_ptr, b_ptr)
     class(layernorm_layer), intent(in), target :: self
-    real, allocatable :: params(:)
-
-    params = [ &
-      self % gamma, &
-      self % beta &
-    ]
-
-  end function get_params
+    real, pointer, intent(out) :: g_ptr(:), b_ptr(:)
+    g_ptr => self % gamma
+    b_ptr => self % beta
+  end subroutine get_params_ptr
 
 
   module function get_gradients(self) result(gradients)
     class(layernorm_layer), intent(in), target :: self
     real, allocatable :: gradients(:)
-
-    gradients = [ &
-      self % d_gamma, &
-      self % d_beta &
-    ]
-
+    gradients = [self % d_gamma, self % d_beta]
   end function get_gradients
 
 
-  module subroutine set_params(self, params)
-    class(layernorm_layer), intent(in out) :: self
-    real, intent(in), target :: params(:)
-
-    ! check if the number of parameters is correct
-    if (size(params) /= self % get_num_params()) then
-      error stop 'Error: number of parameters does not match'
-    end if
-
-    self % gamma = params(1: self % model_dimension)
-    self % beta = params(self % model_dimension + 1: 2 * self % model_dimension)
-
-  end subroutine set_params
+  module subroutine get_gradients_ptr(self, dg_ptr, db_ptr)
+    class(layernorm_layer), intent(in), target :: self
+    real, pointer, intent(out) :: dg_ptr(:), db_ptr(:)
+    dg_ptr => self % d_gamma
+    db_ptr => self % d_beta
+  end subroutine get_gradients_ptr
+  
 end submodule nf_layernorm_layer_submodule

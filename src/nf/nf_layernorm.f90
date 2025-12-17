@@ -37,9 +37,9 @@ module nf_layernorm_layer
     procedure :: backward
     procedure :: init
     procedure :: get_num_params
-    procedure :: get_params
+    procedure :: get_params_ptr
     procedure :: get_gradients
-    procedure :: set_params
+    procedure :: get_gradients_ptr
   end type layernorm_layer
 
   interface layernorm_layer
@@ -72,10 +72,10 @@ module nf_layernorm_layer
     end function get_num_params
 
 
-    module function get_params(self) result(params)
+    module subroutine get_params_ptr(self, g_ptr, b_ptr)
       class(layernorm_layer), intent(in), target :: self
-      real, allocatable :: params(:)
-    end function get_params
+      real, pointer, intent(out) :: g_ptr(:), b_ptr(:)
+    end subroutine get_params_ptr
 
 
     module function get_gradients(self) result(gradients)
@@ -84,9 +84,11 @@ module nf_layernorm_layer
     end function get_gradients
 
 
-    module subroutine set_params(self, params)
-      class(layernorm_layer), intent(in out) :: self
-      real, intent(in), target :: params(:)
-    end subroutine set_params
+    module subroutine get_gradients_ptr(self, dg_ptr, db_ptr)
+      class(layernorm_layer), intent(in), target :: self
+      real, pointer, intent(out) :: dg_ptr(:), db_ptr(:)
+    end subroutine get_gradients_ptr
+
+
   end interface
 end module nf_layernorm_layer

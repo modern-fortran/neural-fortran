@@ -1,7 +1,7 @@
 program test_conv2d_network
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: conv2d, input, network, dense, sgd, maxpool2d
+  use nf, only: conv, input, network, dense, sgd, maxpool
 
   implicit none
 
@@ -12,8 +12,8 @@ program test_conv2d_network
   ! 3-layer convolutional network
   net = network([ &
     input(3, 32, 32), &
-    conv2d(filters=16, kernel_size=3), &
-    conv2d(filters=32, kernel_size=3) &
+    conv(filters=16, kernel_width=3, kernel_height=3), &
+    conv(filters=32, kernel_width=3, kernel_height=3) &
   ])
 
   if (.not. size(net % layers) == 3) then
@@ -49,8 +49,8 @@ program test_conv2d_network
 
     cnn = network([ &
       input(1, 5, 5), &
-      conv2d(filters=1, kernel_size=3), &
-      conv2d(filters=1, kernel_size=3), &
+      conv(filters=1, kernel_width=3, kernel_height=3), &
+      conv(filters=1, kernel_width=3, kernel_height=3), &
       dense(1) &
     ])
 
@@ -86,9 +86,9 @@ program test_conv2d_network
 
     cnn = network([ &
       input(1, 8, 8), &
-      conv2d(filters=1, kernel_size=3), &
-      maxpool2d(pool_size=2), &
-      conv2d(filters=1, kernel_size=3), &
+      conv(filters=1, kernel_width=3, kernel_height=3), &
+      maxpool(pool_width=2, pool_height=2, stride=2), &
+      conv(filters=1, kernel_width=3, kernel_height=3), &
       dense(1) &
     ])
 
@@ -121,9 +121,9 @@ program test_conv2d_network
 
     cnn = network([ &
       input(1, 12, 12), &
-      conv2d(filters=1, kernel_size=3), & ! 1x12x12 input, 1x10x10 output
-      maxpool2d(pool_size=2), &           ! 1x10x10 input, 1x5x5 output
-      conv2d(filters=1, kernel_size=3), & ! 1x5x5 input, 1x3x3 output
+      conv(filters=1, kernel_width=3, kernel_height=3), & ! 1x12x12 input, 1x10x10 output
+      maxpool(pool_width=2, pool_height=2, stride=2), &           ! 1x10x10 input, 1x5x5 output
+      conv(filters=1, kernel_width=3, kernel_height=3), & ! 1x5x5 input, 1x3x3 output
       dense(9) &                          ! 9 outputs
     ])
 

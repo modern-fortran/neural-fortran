@@ -11,7 +11,8 @@ module nf_avgpool2d_layer
         integer :: channels
         integer :: height      ! Height of the input
         integer :: width       ! Width of the input
-        integer :: pool_size  ! Pooling window size (height, width)
+        integer :: pool_width  ! Pooling window size (width)
+        integer :: pool_height ! Pooling window size (height)
         integer :: stride    ! Stride (height, width)
   
         ! Gradient for the input (same shape as the input: channels, height, width).
@@ -25,10 +26,12 @@ module nf_avgpool2d_layer
     end type avgpool2d_layer
   
     interface avgpool2d_layer
-        pure module function avgpool2d_layer_cons(pool_size, stride) result(res)
+        pure module function avgpool2d_layer_cons(pool_width, pool_height, stride) result(res)
             !! `avgpool2d` constructor function.
-            integer, intent(in) :: pool_size
-                !! Pooling window size (height, width).
+            integer, intent(in) :: pool_width
+                !! Pooling window size (width).
+            integer, intent(in) :: pool_height
+                !! Pooling window size (height).
             integer, intent(in) :: stride
                 !! Stride (height, width).
             type(avgpool2d_layer) :: res

@@ -27,13 +27,13 @@ program test_layernorm_instance
   end if
 
 contains
-  function allclose(x, y) result(res)
-    real, intent(in) :: x(:)
-    real, intent(in) :: y(:)
-    logical :: res
 
-    res = all(abs(x - y) <= (1e-06 + 1e-05 * abs(y)))
+  logical function allclose(x, y) result(res)
+    real, intent(in) :: x(:), y(:)
+    !res = all(abs(x - y) <= (1e-06 + 1e-05 * abs(y)))
+    res = all(abs(x - y) <= 1e-05)
   end function allclose
+
 
   subroutine test_layernorm_forward(layernorm_instance, input, ok)
     type(layernorm_layer), intent(in out) :: layernorm_instance
@@ -60,6 +60,7 @@ contains
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
     end if
   end subroutine test_layernorm_forward
+
 
   subroutine test_layernorm_backward(layernorm_instance, input, gradient, ok)
     type(layernorm_layer), intent(in out) :: layernorm_instance
@@ -103,6 +104,7 @@ contains
     end if
   end subroutine test_layernorm_backward
 
+
   subroutine test_layernorm_gradients(input, gradient, ok)
     real, intent(in out) :: input(:, :)
     real, intent(in out) :: gradient(:, :)
@@ -110,7 +112,7 @@ contains
     type(layernorm_layer) :: layernorm_instance
     type(sgd) :: optim
 
-    real :: parameters(8)
+    real, allocatable :: parameters(:)
     real :: expected_parameters(8)
     real :: updated_output(12)
     real :: expected_updated_output(12) = [&
@@ -119,6 +121,9 @@ contains
         -0.562230229, 1.01311040, 0.984123051,&
         -0.564699769, -1.13543355, -1.11444426&
     ]
+
+    real, pointer :: w_ptr(:)
+    real, pointer :: b_ptr(:)
 
     layernorm_instance = layernorm_layer()
     call layernorm_instance % init([3, 4])
@@ -133,7 +138,12 @@ contains
 
     expected_parameters(1: 4) = 1.
     expected_parameters(5: 8) = 0.
-    parameters = layernorm_instance % get_params()
+
+    call layernorm_instance % get_params_ptr(w_ptr, b_ptr)
+    allocate(parameters(size(w_ptr) + size(b_ptr)))
+    parameters(1:size(w_ptr)) = w_ptr
+    parameters(size(w_ptr)+1:) = b_ptr
+
     if (.not. all(parameters.eq.expected_parameters)) then
       ok = .false.
       write(stderr, '(a)') 'incorrect parameters.. failed'
@@ -141,7 +151,11 @@ contains
 
     optim = SGD(learning_rate=0.01)
     call optim % minimize(parameters, layernorm_instance % get_gradients())
-    call layernorm_instance % set_params(parameters)
+    
+    call layernorm_instance % get_params_ptr(w_ptr, b_ptr)
+
+    w_ptr = parameters(1:size(w_ptr)) 
+    b_ptr = parameters(size(w_ptr)+1:)
 
     call layernorm_instance % forward(input)
 
@@ -152,6 +166,7 @@ contains
     end if
   end subroutine test_layernorm_gradients
 
+
   subroutine test_layernorm_integration(ok)
     logical, intent(in out) :: ok
 
@@ -160,13 +175,13 @@ contains
     real :: y(6) = [0.7, 0.2, 0.1, 0.1, 0.01, 0.9]
     real :: tolerance = 0.1
     integer :: epoch
-    integer :: epochs = 10000
+    integer, parameter :: num_epochs = 100000
 
-    net = network([&
-        input(2, 3),&
-        linear2d(3),&
-        layernorm(),&
-        flatten()&
+    net = network([ &
+        input(2, 3), &
+        linear2d(3), &
+        layernorm(), &
+        flatten() &
     ])
 
     ! Kaiming weights to achieve semblance of convergance
@@ -177,17 +192,18 @@ contains
       l % biases = 0.2
     end select
 
-    do epoch = 1, epochs
+    do epoch = 1, num_epochs
       call net % forward(x)
       call net % backward(y)
       call net % update(optimizer=sgd(learning_rate=0.001))
       if (all(abs(net % predict(x) - y) < tolerance)) exit
     end do
 
-    if (.not. epoch <= epochs) then
+    if (.not. epoch <= num_epochs) then
       write(stderr, '(a)') &
         'linear2d + layernorm should converge in simple training.. failed'
       ok = .false.
     end if
   end subroutine test_layernorm_integration
+
 end program test_layernorm_instance

@@ -18,6 +18,7 @@ module nf_optimizers
   type, abstract :: optimizer_base_type
     real :: learning_rate = 0.01
   contains
+    procedure :: get_name
     procedure(init), deferred :: init
     procedure(minimize), deferred :: minimize
   end type optimizer_base_type
@@ -44,6 +45,7 @@ module nf_optimizers
     real :: momentum = 0
     logical :: nesterov = .false.
     real, allocatable, private :: velocity(:)
+    integer, private :: start_index = 1
   contains
     procedure :: init => init_sgd
     procedure :: minimize => minimize_sgd
@@ -59,6 +61,7 @@ module nf_optimizers
     real :: decay_rate = 0.9
     real :: epsilon = 1e-8
     real, allocatable, private :: rms_gradient(:)
+    integer, private :: start_index = 1
   contains
     procedure :: init => init_rmsprop
     procedure :: minimize => minimize_rmsprop
@@ -82,6 +85,7 @@ module nf_optimizers
     real :: weight_decay_decoupled = 0 ! decoupled weight decay regularization (AdamW)
     real, allocatable, private :: m(:), v(:)
     integer, private :: t = 0
+    integer, private :: start_index = 1
   contains
     procedure :: init => init_adam
     procedure :: minimize => minimize_adam
@@ -99,6 +103,7 @@ module nf_optimizers
     real :: learning_rate_decay = 0
     real, allocatable, private :: sum_squared_gradient(:)
     integer, private :: t = 0
+    integer, private :: start_index = 1
   contains
     procedure :: init => init_adagrad
     procedure :: minimize => minimize_adagrad
@@ -121,19 +126,38 @@ contains
     !! update rule.
     class(sgd), intent(inout) :: self
     real, intent(inout) :: param(:)
-    real, intent(in) :: gradient(:)
+    real, intent(in) :: gradient(:) ! Always the same size as param
+    integer :: end_index
 
     if (self % momentum > 0) then
+
+      ! end_index is part of the bookkeeping for updating velocity because each
+      ! batch update makes two calls to minimize, one for the weights and one for
+      ! the biases.
+      ! We use start_index and end_index to update the appropriate sections
+      ! of the velocity array.
+      end_index = self % start_index + size(param) - 1
+
       ! Apply momentum update
-      self % velocity = self % momentum * self % velocity &
+      self % velocity(self % start_index:end_index) = &
+        self % momentum * self % velocity(self % start_index:end_index) &
         - self % learning_rate * gradient
       if (self % nesterov) then
         ! Apply Nesterov update
-        param = param + self % momentum * self % velocity &
+        param = param + self % momentum * self % velocity(self % start_index:end_index) &
           - self % learning_rate * gradient
       else
-        param = param + self % velocity
+        param = param + self % velocity(self % start_index:end_index)
       end if
+
+      if (end_index < size(param)) then
+        ! We updated the weights part, now we shift forward for the biases part
+        self % start_index = end_index + 1
+      else
+        ! We updated the biases part, now we shift back to start for the next batch
+        self % start_index = 1
+      end if
+
     else
       ! Apply regular update
       param = param - self % learning_rate * gradient
@@ -157,14 +181,27 @@ contains
     class(rmsprop), intent(inout) :: self
     real, intent(inout) :: param(:)
     real, intent(in) :: gradient(:)
+    integer :: end_index
+
+    end_index = self % start_index + size(param) - 1
 
     ! Compute the RMS of the gradient using the RMSProp rule
-    self % rms_gradient = self % decay_rate * self % rms_gradient &
+    self % rms_gradient(self % start_index:end_index) = &
+      self % decay_rate * self % rms_gradient(self % start_index:end_index) &
       + (1 - self % decay_rate) * gradient**2
 
     ! Update the network parameters based on the new RMS of the gradient
     param = param - self % learning_rate &
-      / sqrt(self % rms_gradient + self % epsilon) * gradient
+      / sqrt(self % rms_gradient(self % start_index:end_index) + self % epsilon) &
+      * gradient
+
+    if (end_index < size(param)) then
+      ! We updated the weights part, now we shift forward for the biases part
+      self % start_index = end_index + 1
+    else
+      ! We updated the biases part, now we shift back to start for the next batch
+      self % start_index = 1
+    end if
 
   end subroutine minimize_rmsprop
 
@@ -185,20 +222,27 @@ contains
     class(adam), intent(inout) :: self
     real, intent(inout) :: param(:)
     real, intent(in) :: gradient(:)
+    integer :: end_index
+
+    end_index = self % start_index + size(param) - 1
 
     self % t = self % t + 1
 
     ! If weight_decay_l2 > 0, use L2 regularization;
     ! otherwise, default to regular Adam.
     associate(g => gradient + self % weight_decay_l2 * param)
-      self % m = self % beta1 * self % m + (1 - self % beta1) * g
-      self % v = self % beta2 * self % v + (1 - self % beta2) * g**2
+      self % m(self % start_index:end_index) = &
+        self % beta1 * self % m(self % start_index:end_index) &
+        + (1 - self % beta1) * g
+      self % v(self % start_index:end_index) = &
+        self % beta2 * self % v(self % start_index:end_index) &
+        + (1 - self % beta2) * g**2
     end associate
 
     ! Compute bias-corrected first and second moment estimates.
     associate( &
-      m_hat => self % m / (1 - self % beta1**self % t), &
-      v_hat => self % v / (1 - self % beta2**self % t) &
+      m_hat => self % m(self % start_index:end_index) / (1 - self % beta1**self % t), &
+      v_hat => self % v(self % start_index:end_index) / (1 - self % beta2**self % t) &
     )
 
     ! Update parameters.
@@ -207,6 +251,14 @@ contains
       + self % weight_decay_decoupled * param)
 
     end associate
+
+    if (end_index < size(param)) then
+      ! We updated the weights part, now we shift forward for the biases part
+      self % start_index = end_index + 1
+    else
+      ! We updated the biases part, now we shift back to start for the next batch
+      self % start_index = 1
+    end if
 
   end subroutine minimize_adam
 
@@ -226,6 +278,9 @@ contains
     class(adagrad), intent(inout) :: self
     real, intent(inout) :: param(:)
     real, intent(in) :: gradient(:)
+    integer :: end_index
+
+    end_index = self % start_index + size(param) - 1
 
     ! Update the current time step
     self % t = self % t + 1
@@ -239,13 +294,71 @@ contains
         / (1 + (self % t - 1) * self % learning_rate_decay) &
     )
 
-      self % sum_squared_gradient = self % sum_squared_gradient + g**2
+      self % sum_squared_gradient(self % start_index:end_index) = &
+        self % sum_squared_gradient(self % start_index:end_index) + g**2
 
-      param = param - learning_rate * g / (sqrt(self % sum_squared_gradient) &
+      param = param - learning_rate * g &
+        / (sqrt(self % sum_squared_gradient(self % start_index:end_index)) &
         + self % epsilon)
 
     end associate
 
+    if (end_index < size(param)) then
+      ! We updated the weights part, now we shift forward for the biases part
+      self % start_index = end_index + 1
+    else
+      ! We updated the biases part, now we shift back to start for the next batch
+      self % start_index = 1
+    end if
+
   end subroutine minimize_adagrad
+
+
+  ! Utility Functions
+  !! Returns the default optimizer corresponding to the provided name
+  function get_optimizer_by_name(optimizer_name) result(res)
+    character(len=*), intent(in) :: optimizer_name
+    class(optimizer_base_type), allocatable :: res
+
+    select case(trim(optimizer_name))
+    case('adagrad')
+      allocate ( res, source = adagrad() )
+
+    case('adam')
+      allocate ( res, source = adam() )
+
+    case('rmsprop')
+      allocate ( res, source = rmsprop() )
+
+    case('sgd')
+     allocate ( res, source = sgd() )
+
+    case default
+        error stop 'optimizer_name must be one of: ' // &
+          '"adagrad", "adam", "rmsprop", "sgd".'
+    end select
+
+  end function get_optimizer_by_name
+
+
+  !! Returns the name of the optimizer
+  pure function get_name(self) result(name)
+    class(optimizer_base_type), intent(in) :: self
+    character(:), allocatable :: name
+
+    select type (self)
+    class is (adagrad)
+      name = 'adagrad'
+    class is (adam)
+      name = 'adam'
+    class is (rmsprop)
+      name = 'rmsprop'
+    class is (sgd)
+      name = 'sgd'
+    class default
+      error stop 'Unknown optimizer type.'
+    end select
+
+  end function get_name
 
 end module nf_optimizers

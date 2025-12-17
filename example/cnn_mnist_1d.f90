@@ -1,7 +1,7 @@
 program cnn_mnist_1d
 
     use nf, only: network, sgd, &
-      input, conv1d, maxpool1d, flatten, dense, reshape, locally_connected1d, &
+      input, maxpool, flatten, dense, reshape, locally_connected, &
       load_mnist, label_digits, softmax, relu
   
     implicit none
@@ -12,7 +12,7 @@ program cnn_mnist_1d
     real, allocatable :: validation_images(:,:), validation_labels(:)
     real, allocatable :: testing_images(:,:), testing_labels(:)
     integer :: n
-    integer, parameter :: num_epochs = 250
+    integer, parameter :: num_epochs = 20
   
     call load_mnist(training_images, training_labels, &
                     validation_images, validation_labels, &
@@ -21,10 +21,10 @@ program cnn_mnist_1d
     net = network([ &
       input(784), &
       reshape(28, 28), &
-      locally_connected1d(filters=8, kernel_size=3, activation=relu()), &
-      maxpool1d(pool_size=2), &
-      locally_connected1d(filters=16, kernel_size=3, activation=relu()), &
-      maxpool1d(pool_size=2), &
+      locally_connected(filters=8, kernel_size=3, activation=relu()), &
+      maxpool(pool_width=2, stride=2), &
+      locally_connected(filters=16, kernel_size=3, activation=relu()), &
+      maxpool(pool_width=2, stride=2), &
       dense(10, activation=softmax()) &
     ])
   

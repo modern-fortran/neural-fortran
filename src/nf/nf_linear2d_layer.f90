@@ -24,9 +24,9 @@ module nf_linear2d_layer
     procedure :: forward
     procedure :: init
     procedure :: get_num_params
-    procedure :: get_params
+    procedure :: get_params_ptr
     procedure :: get_gradients
-    procedure :: set_params
+    procedure :: get_gradients_ptr
 
   end type linear2d_layer
 
@@ -59,19 +59,20 @@ module nf_linear2d_layer
        integer :: num_params
     end function get_num_params
 
-    module function get_params(self) result(params)
+    module subroutine get_params_ptr(self, w_ptr, b_ptr)
       class(linear2d_layer), intent(in), target :: self
-      real, allocatable :: params(:)
-    end function get_params
+      real, pointer, intent(out) :: w_ptr(:), b_ptr(:)
+    end subroutine get_params_ptr
 
     module function get_gradients(self) result(gradients)
       class(linear2d_layer), intent(in), target :: self
       real, allocatable :: gradients(:)
     end function get_gradients
 
-    module subroutine set_params(self, params)
-      class(linear2d_layer), intent(in out) :: self
-      real, intent(in), target :: params(:)
-    end subroutine set_params
+    module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
+      class(linear2d_layer), intent(in), target :: self
+      real, pointer, intent(out) :: dw_ptr(:), db_ptr(:)
+    end subroutine get_gradients_ptr
+
   end interface
 end module nf_linear2d_layer

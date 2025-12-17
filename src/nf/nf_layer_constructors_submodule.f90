@@ -11,7 +11,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
-  use nf_locally_connected1d_layer, only: locally_connected1d_layer
+  use nf_locally_connected2d_layer, only: locally_connected2d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
@@ -20,18 +20,20 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
   use nf_layernorm_layer, only: layernorm_layer
-  use nf_activation, only: activation_function, relu, sigmoid
+  use nf_activation, only: relu, sigmoid
 
   implicit none
 
 contains
 
-  module function conv1d(filters, kernel_size, activation) result(res)
+  module function conv1d(filters, kernel_width, activation, stride) result(res)
     integer, intent(in) :: filters
-    integer, intent(in) :: kernel_size
+    integer, intent(in) :: kernel_width
     class(activation_function), intent(in), optional :: activation
+    integer, intent(in), optional :: stride
     type(layer) :: res
 
+    integer :: stride_tmp
     class(activation_function), allocatable :: activation_tmp
 
     res % name = 'conv1d'
@@ -44,20 +46,38 @@ contains
 
     res % activation = activation_tmp % get_name()
 
+    if (present(stride)) then
+      stride_tmp = stride
+    else
+      stride_tmp = 1
+    endif
+
+    if (stride_tmp < 1) &
+      error stop 'stride must be >= 1 in a conv1d layer'
+
     allocate( &
       res % p, &
-      source=conv1d_layer(filters, kernel_size, activation_tmp) &
+      source=conv1d_layer(filters, kernel_width, activation_tmp, stride_tmp) &
     )
 
   end function conv1d
 
-  module function conv2d(filters, kernel_size, activation) result(res)
+  module function conv2d(filters, kernel_width, kernel_height, activation, stride) result(res)
     integer, intent(in) :: filters
-    integer, intent(in) :: kernel_size
+    integer, intent(in) :: kernel_width
+    integer, intent(in) :: kernel_height
     class(activation_function), intent(in), optional :: activation
+    integer, intent(in), optional :: stride(:)
     type(layer) :: res
 
+    integer, allocatable :: stride_tmp(:)
     class(activation_function), allocatable :: activation_tmp
+
+    ! Enforce kernel_width == kernel_height for now;
+    ! If non-square kernels show to be desired, we'll relax this constraint
+    ! and refactor conv2d_layer to work with non-square kernels.
+    if (kernel_width /= kernel_height) &
+      error stop 'kernel_width must equal kernel_height in a conv2d layer'
 
     res % name = 'conv2d'
 
@@ -69,22 +89,36 @@ contains
 
     res % activation = activation_tmp % get_name()
 
+    if (present(stride)) then
+      stride_tmp = stride
+    else
+      stride_tmp = [1, 1]
+    endif
+
+    if (size(stride_tmp) /= 2 ) &
+      error stop 'size of stride must be equal to 2 in a conv2d layer'
+
+    if (stride_tmp(1) < 1 .or. stride_tmp(2) < 1) &
+      error stop 'stride must be >= 1 in a conv2d layer'
+
     allocate( &
       res % p, &
-      source=conv2d_layer(filters, kernel_size, activation_tmp) &
+      source=conv2d_layer(filters, kernel_width, activation_tmp, stride_tmp) &
     )
 
   end function conv2d
 
-  module function locally_connected1d(filters, kernel_size, activation) result(res)
+  module function locally_connected2d(filters, kernel_size, activation, stride) result(res)
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in), optional :: activation
+    integer, intent(in), optional :: stride
     type(layer) :: res
 
+    integer :: stride_tmp
     class(activation_function), allocatable :: activation_tmp
 
-    res % name = 'locally_connected1d'
+    res % name = 'locally_connected2d'
 
     if (present(activation)) then
       allocate(activation_tmp, source=activation)
@@ -94,12 +128,21 @@ contains
 
     res % activation = activation_tmp % get_name()
 
+    if (present(stride)) then
+      stride_tmp = stride
+    else
+      stride_tmp = 1
+    endif
+
+    if (stride_tmp < 1) &
+      error stop 'stride must be >= 1 in a conv1d layer'
+
     allocate( &
       res % p, &
-      source=locally_connected1d_layer(filters, kernel_size, activation_tmp) &
+      source=locally_connected2d_layer(filters, kernel_size, activation_tmp, stride_tmp) &
     )
 
-  end function locally_connected1d
+  end function locally_connected2d
 
 
   module function dense(layer_size, activation) result(res)
@@ -142,58 +185,46 @@ contains
   end function flatten
 
 
-  module function avgpool1d(pool_size, stride) result(res)
-    integer, intent(in) :: pool_size
-    integer, intent(in), optional :: stride
-    integer :: stride_
+  module function avgpool1d(pool_width, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: stride
     type(layer) :: res
 
-    if (pool_size < 2) &
-      error stop 'pool_size must be >= 2 in a avgpool1d layer'
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a avgpool1d layer'
 
-    ! Stride defaults to pool_size if not provided
-    if (present(stride)) then
-      stride_ = stride
-    else
-      stride_ = pool_size
-    end if
-
-    if (stride_ < 1) &
+    if (stride < 1) &
       error stop 'stride must be >= 1 in a avgpool1d layer'
 
     res % name = 'avgpool1d'
 
     allocate( &
       res % p, &
-      source=avgpool1d_layer(pool_size, stride_) &
+      source=avgpool1d_layer(pool_width, stride) &
     )
 
   end function avgpool1d
 
-  module function avgpool2d(pool_size, stride) result(res)
-    integer, intent(in) :: pool_size
-    integer, intent(in), optional :: stride
-    integer :: stride_
+  module function avgpool2d(pool_width, pool_height, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: pool_height
+    integer, intent(in) :: stride
     type(layer) :: res
 
-    if (pool_size < 2) &
-      error stop 'pool_size must be >= 2 in a avgpool2d layer'
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a avgpool2d layer'
 
-    ! Stride defaults to pool_size if not provided
-    if (present(stride)) then
-      stride_ = stride
-    else
-      stride_ = pool_size
-    end if
+    if (pool_height < 2) &
+      error stop 'pool_height must be >= 2 in a avgpool2d layer'
 
-    if (stride_ < 1) &
+    if (stride < 1) &
       error stop 'stride must be >= 1 in a avgpool2d layer'
 
     res % name = 'avgpool2d'
 
     allocate( &
       res % p, &
-      source=avgpool2d_layer(pool_size, stride_) &
+      source=avgpool2d_layer(pool_width, pool_height, stride) &
     )
 
   end function avgpool2d
@@ -230,58 +261,49 @@ contains
     res % initialized = .true.
   end function input3d
 
-  module function maxpool1d(pool_size, stride) result(res)
-    integer, intent(in) :: pool_size
-    integer, intent(in), optional :: stride
-    integer :: stride_
+  module function maxpool1d(pool_width, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: stride
     type(layer) :: res
 
-    if (pool_size < 2) &
-      error stop 'pool_size must be >= 2 in a maxpool1d layer'
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a maxpool1d layer'
 
-    ! Stride defaults to pool_size if not provided
-    if (present(stride)) then
-      stride_ = stride
-    else
-      stride_ = pool_size
-    end if
-
-    if (stride_ < 1) &
+    if (stride < 1) &
       error stop 'stride must be >= 1 in a maxpool1d layer'
 
     res % name = 'maxpool1d'
 
     allocate( &
       res % p, &
-      source=maxpool1d_layer(pool_size, stride_) &
+      source=maxpool1d_layer(pool_width, stride) &
     )
 
   end function maxpool1d
 
-  module function maxpool2d(pool_size, stride) result(res)
-    integer, intent(in) :: pool_size
-    integer, intent(in), optional :: stride
-    integer :: stride_
+  module function maxpool2d(pool_width, pool_height, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: pool_height
+    integer, intent(in) :: stride
     type(layer) :: res
 
-    if (pool_size < 2) &
-      error stop 'pool_size must be >= 2 in a maxpool2d layer'
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a maxpool2d layer'
 
-    ! Stride defaults to pool_size if not provided
-    if (present(stride)) then
-      stride_ = stride
-    else
-      stride_ = pool_size
-    end if
+    ! Enforce pool_width == pool_height for now;
+    ! If non-square poolings show to be desired, we'll relax this constraint
+    ! and refactor maxpool2d_layer to work with non-square kernels.
+    if (pool_width /= pool_height) &
+      error stop 'pool_width must equal pool_height in a maxpool2d layer'
 
-    if (stride_ < 1) &
+    if (stride < 1) &
       error stop 'stride must be >= 1 in a maxpool2d layer'
 
     res % name = 'maxpool2d'
 
     allocate( &
       res % p, &
-      source=maxpool2d_layer(pool_size, stride_) &
+      source=maxpool2d_layer(pool_width, stride) &
     )
 
   end function maxpool2d
