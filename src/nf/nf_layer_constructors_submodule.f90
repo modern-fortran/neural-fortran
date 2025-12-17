@@ -105,12 +105,14 @@ contains
 
   end function conv2d
 
-  module function locally_connected2d(filters, kernel_size, activation) result(res)
+  module function locally_connected2d(filters, kernel_size, activation, stride) result(res)
     integer, intent(in) :: filters
     integer, intent(in) :: kernel_size
     class(activation_function), intent(in), optional :: activation
+    integer, intent(in), optional :: stride
     type(layer) :: res
 
+    integer :: stride_tmp
     class(activation_function), allocatable :: activation_tmp
 
     res % name = 'locally_connected2d'
@@ -123,9 +125,18 @@ contains
 
     res % activation = activation_tmp % get_name()
 
+    if (present(stride)) then
+      stride_tmp = stride
+    else
+      stride_tmp = 1
+    endif
+
+    if (stride_tmp < 1) &
+      error stop 'stride must be >= 1 in a conv1d layer'
+
     allocate( &
       res % p, &
-      source=locally_connected2d_layer(filters, kernel_size, activation_tmp) &
+      source=locally_connected2d_layer(filters, kernel_size, activation_tmp, stride_tmp) &
     )
 
   end function locally_connected2d

@@ -15,6 +15,7 @@ module nf_locally_connected2d_layer
       integer :: channels
       integer :: kernel_size
       integer :: filters
+      integer :: stride
   
       real, allocatable :: biases(:,:) ! size(filters)
       real, allocatable :: kernel(:,:,:,:) ! filters x channels x window x window
@@ -40,12 +41,13 @@ module nf_locally_connected2d_layer
     end type locally_connected2d_layer
   
     interface locally_connected2d_layer
-      module function locally_connected2d_layer_cons(filters, kernel_size, activation) &
+      module function locally_connected2d_layer_cons(filters, kernel_size, activation, stride) &
         result(res)
         !! `locally_connected2d_layer` constructor function
         integer, intent(in) :: filters
         integer, intent(in) :: kernel_size
         class(activation_function), intent(in) :: activation
+        integer, intent(in) :: stride
         type(locally_connected2d_layer) :: res
       end function locally_connected2d_layer_cons
     end interface locally_connected2d_layer
@@ -91,7 +93,9 @@ module nf_locally_connected2d_layer
       module subroutine get_params_ptr(self, w_ptr, b_ptr)
         class(locally_connected2d_layer), intent(in), target :: self
         real, pointer, intent(out) :: w_ptr(:)
+          !! Pointer to the kernel weights (flattened)
         real, pointer, intent(out) :: b_ptr(:)
+          !! Pointer to the biases
       end subroutine get_params_ptr
   
       module function get_gradients(self) result(gradients)
@@ -106,7 +110,9 @@ module nf_locally_connected2d_layer
       module subroutine get_gradients_ptr(self, dw_ptr, db_ptr)
         class(locally_connected2d_layer), intent(in), target :: self
         real, pointer, intent(out) :: dw_ptr(:)
+          !! Pointer to the kernel weight gradients (flattened)
         real, pointer, intent(out) :: db_ptr(:)
+          !! Pointer to the bias gradients
       end subroutine get_gradients_ptr
   
     end interface

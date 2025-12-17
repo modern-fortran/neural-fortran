@@ -58,6 +58,7 @@ program test_locally_connected2d_layer
     select type(this_layer => input_layer % p); type is(input2d_layer)
       call this_layer % set(sample_input)
     end select
+    deallocate(sample_input)
   
     call locally_connected_1d_layer % forward(input_layer)
     call locally_connected_1d_layer % get_output(output)
@@ -67,11 +68,33 @@ program test_locally_connected2d_layer
       write(stderr, '(a)') 'locally_connected2d layer with zero input and sigmoid function must forward to all 0.5.. failed'
     end if
   
+    ! Minimal locally_connected_1d layer: 1 channel, 3x3 pixel image, stride = 3;
+    allocate(sample_input(1, 17))
+    sample_input = 0
+  
+    input_layer = input(1, 17)
+    locally_connected_1d_layer = locally_connected(filters, kernel_size, stride = 3)
+    call locally_connected_1d_layer % init(input_layer)
+  
+    select type(this_layer => input_layer % p); type is(input2d_layer)
+      call this_layer % set(sample_input)
+    end select
+    deallocate(sample_input)
+  
+    call locally_connected_1d_layer % forward(input_layer)
+    call locally_connected_1d_layer % get_output(output)
+  
+    if (.not. all(abs(output) < tolerance)) then
+      ok = .false.
+      write(stderr, '(a)') 'locally_connected2d layer with zero input and sigmoid function must forward to all 0.5.. failed'
+    end if
+
+    !Final
     if (ok) then
       print '(a)', 'test_locally_connected2d_layer: All tests passed.'
     else
       write(stderr, '(a)') 'test_locally_connected2d_layer: One or more tests failed.'
       stop 1
     end if
-  
+
 end program test_locally_connected2d_layer
