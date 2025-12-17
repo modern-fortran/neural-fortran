@@ -1,58 +1,23 @@
 program test_dense_layer
-  use iso_fortran_env, only: stderr => error_unit
-  use nf, only: dense, layer
-  use nf_activation, only: relu
+  use nf, only: dense, layer, relu
+  use tuff, only: test, test_result
   implicit none
-  type(layer) :: layer1, layer2
-  logical :: ok = .true.
+  type(layer) :: layer1, layer2, layer3
+  type(test_result) :: tests
 
   layer1 = dense(10)
+  layer2 = dense(10, activation=relu())
+  layer3 = dense(20)
+  call layer3 % init(layer1)
 
-  if (.not. layer1 % name == 'dense') then
-    ok = .false.
-    write(stderr, '(a)') 'dense layer has its name set correctly.. failed'
-  end if
-
-  if (.not. all(layer1 % layer_shape == [10])) then
-    ok = .false.
-    write(stderr, '(a)') 'dense layer is created with requested size.. failed'
-  end if
-
-  if (layer1 % initialized) then
-    ok = .false.
-    write(stderr, '(a)') 'dense layer should not be marked as initialized yet.. failed'
-  end if
-
-  if (.not. layer1 % activation == 'sigmoid') then
-    ok = .false.
-    write(stderr, '(a)') 'dense layer is defaults to sigmoid activation.. failed'
-  end if
-
-  layer1 = dense(10, activation=relu())
-
-  if (.not. layer1 % activation == 'relu') then
-    ok = .false.
-    write(stderr, '(a)') 'dense layer is created with the specified activation.. failed'
-  end if
-
-  layer2 = dense(20)
-  call layer2 % init(layer1)
-
-  if (.not. layer2 % initialized) then
-    ok = .false.
-    write(stderr, '(a)') 'dense layer should now be marked as initialized.. failed'
-  end if
-
-  if (.not. all(layer2 % input_layer_shape == [10])) then
-    ok = .false.
-    write(stderr, '(a)') 'dense layer should have a correct input layer shape.. failed'
-  end if
-
-  if (ok) then
-    print '(a)', 'test_dense_layer: All tests passed.'
-  else
-    write(stderr, '(a)') 'test_dense_layer: One or more tests failed.'
-    stop 1
-  end if
+  tests = test("test_dense_layer", [ &
+    test("layer name is set", layer1 % name == 'dense'), & 
+    test("layer shape is correct", all(layer1 % layer_shape == [10])), &
+    test("layer is initialized", layer3 % initialized), &
+    test("layer's default activation is sigmoid", layer1 % activation == 'sigmoid'), &
+    test("user set activation works", layer2 % activation == 'relu'), &
+    test("layer initialized after init", layer3 % initialized), &
+    test("layer input shape is set after init", all(layer3 % input_layer_shape == [10])) &
+  ])  
 
 end program test_dense_layer

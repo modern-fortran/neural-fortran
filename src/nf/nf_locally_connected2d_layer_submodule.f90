@@ -22,7 +22,6 @@ contains
   end function locally_connected2d_layer_cons
 
   module subroutine init(self, input_shape)
-    implicit none
     class(locally_connected2d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
@@ -56,15 +55,13 @@ contains
   end subroutine init
 
   pure module subroutine forward(self, input)
-    implicit none
     class(locally_connected2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
-    integer :: input_channels, input_width
+    integer :: input_width
     integer :: j, n
     integer :: iws, iwe
-
-    input_channels = size(input, dim=1)
-    input_width    = size(input, dim=2)
+    
+    input_width = size(input, dim=2)
 
     do j = 1, self % width
       iws = self % stride * (j-1) + 1
@@ -77,19 +74,17 @@ contains
   end subroutine forward
 
   pure module subroutine backward(self, input, gradient)
-    implicit none
     class(locally_connected2d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
     real, intent(in) :: gradient(:,:)
-    integer :: input_channels, input_width
+    integer :: input_width
     integer :: j, n, k
     integer :: iws, iwe
     real :: gdz(self % filters, self % width)
     real :: db_local(self % filters, self % width)
     real :: dw_local(self % filters, self % width, self % channels, self % kernel_size)
 
-    input_channels = size(input, dim=1)
-    input_width    = size(input, dim=2)
+    input_width = size(input, dim=2)
 
     do j = 1, self % width
        gdz(:, j) = gradient(:, j) * self % activation % eval_prime(self % z(:, j))
