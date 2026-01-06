@@ -9,9 +9,11 @@ module nf_layer_constructors
 
   private
   public :: &
+    avgpool, &
     conv, &
     dense, &
     dropout, &
+    embedding, &
     flatten, &
     input, &
     linear2d, &
@@ -19,7 +21,6 @@ module nf_layer_constructors
     maxpool, &
     reshape, &
     self_attention, &
-    embedding, &
     layernorm
 
   interface input
@@ -190,6 +191,53 @@ module nf_layer_constructors
     end function locally_connected2d
 
   end interface locally_connected
+
+
+  interface avgpool
+
+    module function avgpool1d(pool_width, stride) result(res)
+      !! 1-d avgpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv1d`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: avgpool1d, layer
+      !! type(layer) :: avgpool1d_layer
+      !! avgpool1d_layer = avgpool(2, 2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`;
+      type(layer) :: res
+        !! Resulting layer instance
+    end function avgpool1d
+
+    module function avgpool2d(pool_width, pool_height, stride) result(res)
+      !! 2-d avgpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv2d`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: avgpool2d, layer
+      !! type(layer) :: avgpool2d_layer
+      !! avgpool2d_layer = avgpool(2, 2, 2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: pool_height
+        !! Width of the pooling window, commonly equal to `pool_width`
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`
+      type(layer) :: res
+        !! Resulting layer instance
+    end function avgpool2d
+
+  end interface avgpool
 
 
   interface maxpool

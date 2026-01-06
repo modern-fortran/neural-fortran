@@ -1,5 +1,8 @@
 submodule(nf_layer_constructors) nf_layer_constructors_submodule
 
+  use nf_layer, only: layer
+  use nf_avgpool1d_layer, only: avgpool1d_layer
+  use nf_avgpool2d_layer, only: avgpool2d_layer
   use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_dense_layer, only: dense_layer
@@ -182,6 +185,50 @@ contains
   end function flatten
 
 
+  module function avgpool1d(pool_width, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: stride
+    type(layer) :: res
+
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a avgpool1d layer'
+
+    if (stride < 1) &
+      error stop 'stride must be >= 1 in a avgpool1d layer'
+
+    res % name = 'avgpool1d'
+
+    allocate( &
+      res % p, &
+      source=avgpool1d_layer(pool_width, stride) &
+    )
+
+  end function avgpool1d
+
+  module function avgpool2d(pool_width, pool_height, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: pool_height
+    integer, intent(in) :: stride
+    type(layer) :: res
+
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a avgpool2d layer'
+
+    if (pool_height < 2) &
+      error stop 'pool_height must be >= 2 in a avgpool2d layer'
+
+    if (stride < 1) &
+      error stop 'stride must be >= 1 in a avgpool2d layer'
+
+    res % name = 'avgpool2d'
+
+    allocate( &
+      res % p, &
+      source=avgpool2d_layer(pool_width, pool_height, stride) &
+    )
+
+  end function avgpool2d
+
   module function input1d(layer_size) result(res)
     integer, intent(in) :: layer_size
     type(layer) :: res
@@ -260,7 +307,6 @@ contains
     )
 
   end function maxpool2d
-
 
   module function reshape2d(dim1, dim2) result(res)
     integer, intent(in) :: dim1, dim2

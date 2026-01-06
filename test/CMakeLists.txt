@@ -1,6 +1,8 @@
 add_library(tuff tuff.f90)
 
 foreach(execid
+  avgpool1d_layer
+  avgpool2d_layer
   input1d_layer
   input2d_layer
   input3d_layer
