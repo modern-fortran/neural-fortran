@@ -22,7 +22,7 @@ contains
 
     self % channels = input_shape(1)
     ! The new width is the integer division of the input width by the stride.
-    self % width    = input_shape(2) / self % stride
+    self % width = input_shape(2) / self % stride
 
     ! Allocate the gradient array corresponding to the input dimensions.
     allocate(self % gradient(input_shape(1), input_shape(2)))
@@ -69,7 +69,7 @@ contains
     integer :: i, n, j, istart, iend
     real :: scale_factor
 
-    channels    = size(gradient, dim=1)
+    channels = size(gradient, dim=1)
     pooled_width = size(gradient, dim=2)
 
     ! The gradient for average pooling is distributed evenly over the pooling window.

@@ -12,7 +12,7 @@ contains
 
     res % pool_width = pool_width
     res % pool_height = pool_height
-    res % stride    = stride
+    res % stride = stride
   end function avgpool2d_layer_cons
 
 
@@ -23,8 +23,8 @@ contains
     ! input_shape is expected to be (channels, width, height)
 
     self % channels = input_shape(1)
-    self % width    = input_shape(2) / self % stride
-    self % height   = input_shape(3) / self % stride
+    self % width = input_shape(2) / self % stride
+    self % height = input_shape(3) / self % stride
 
     ! Allocate the gradient array corresponding to the input dimensions.
     allocate(self % gradient(input_shape(1), input_shape(2), input_shape(3)))

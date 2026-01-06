@@ -15,9 +15,9 @@ module nf_avgpool2d_layer
         integer :: pool_height ! Pooling window size (height)
         integer :: stride    ! Stride (height, width)
   
-        ! Gradient for the input (same shape as the input: channels, height, width).
+        ! Gradient for the input (same shape as the input: channels, width, height).
         real, allocatable :: gradient(:,:,:)
-        ! Output after pooling (dimensions: (channels, new_height, new_width)).
+        ! Output after pooling (dimensions: (channels, new_width, new_height)).
         real, allocatable :: output(:,:,:)
     contains
         procedure :: init
@@ -44,7 +44,7 @@ module nf_avgpool2d_layer
             class(avgpool2d_layer), intent(in out) :: self
                 !! `avgpool2d_layer` instance.
             integer, intent(in) :: input_shape(:)
-                !! Array shape of the input layer, expected as (channels, height, width).
+                !! Array shape of the input layer, expected as (channels, width, height).
         end subroutine init
   
         pure module subroutine forward(self, input)
@@ -52,7 +52,7 @@ module nf_avgpool2d_layer
             class(avgpool2d_layer), intent(in out) :: self
                 !! `avgpool2d_layer` instance.
             real, intent(in) :: input(:,:,:)
-                !! Input data (output of the previous layer), with shape (channels, height, width).
+                !! Input data (output of the previous layer), with shape (channels, width, height).
         end subroutine forward
   
         pure module subroutine backward(self, input, gradient)
@@ -62,7 +62,7 @@ module nf_avgpool2d_layer
             real, intent(in) :: input(:,:,:)
                 !! Input data (output of the previous layer).
             real, intent(in) :: gradient(:,:,:)
-                !! Gradient from the downstream layer, with shape (channels, pooled_height, pooled_width).
+                !! Gradient from the downstream layer, with shape (channels, pooled_width, pooled_height).
         end subroutine backward
     end interface
   
