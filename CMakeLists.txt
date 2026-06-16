@@ -27,6 +27,10 @@ add_library(neural-fortran
   src/nf/nf_datasets_submodule.f90
   src/nf/nf_datasets_mnist.f90
   src/nf/nf_datasets_mnist_submodule.f90
+  src/nf/nf_datasets_cifar10.f90
+  src/nf/nf_datasets_cifar10_submodule.f90
+  src/nf/nf_datasets_cifar100.f90
+  src/nf/nf_datasets_cifar100_submodule.f90
   src/nf/nf_dense_layer.f90
   src/nf/nf_dense_layer_submodule.f90
   src/nf/nf_flatten_layer.f90

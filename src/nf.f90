@@ -1,6 +1,8 @@
 module nf
   !! User API: everything an application needs to reference directly
   use nf_datasets_mnist, only: label_digits, load_mnist
+  use nf_datasets_cifar10, only: load_cifar10
+  use nf_datasets_cifar100, only: load_cifar100, label_digits_cifar100
   use nf_layer, only: layer
   use nf_layer_constructors, only: &
     conv, &
