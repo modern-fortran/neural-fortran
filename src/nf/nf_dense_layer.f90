@@ -98,15 +98,6 @@ module nf_dense_layer
       real, pointer, intent(out) :: db_ptr(:)
     end subroutine get_gradients_ptr
 
-    module subroutine set_params(self, params)
-      !! Set the parameters of this layer.
-      !! The parameters are ordered as weights first, biases second.
-      class(dense_layer), intent(in out) :: self
-        !! Dense layer instance
-      real, intent(in), target :: params(:)
-        !! Parameters of this layer
-    end subroutine set_params
-
     module subroutine init(self, input_shape)
       !! Initialize the layer data structures.
       !!

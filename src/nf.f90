@@ -5,6 +5,7 @@ module nf
   use nf_datasets_cifar100, only: load_cifar100, label_digits_cifar100
   use nf_layer, only: layer
   use nf_layer_constructors, only: &
+    avgpool, &
     conv, &
     dense, &
     dropout, &

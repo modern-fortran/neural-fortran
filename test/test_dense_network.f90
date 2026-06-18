@@ -1,10 +1,10 @@
 program test_dense_network
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: dense, input, network
-  use nf_optimizers, only: sgd
+  use nf, only: dense, input, network, sgd
+  use tuff, only: test, test_result
   implicit none
   type(network) :: net
-  logical :: ok = .true.
+  type(test_result) :: tests
 
   ! Minimal 2-layer network
   net = network([ &
@@ -12,22 +12,29 @@ program test_dense_network
     dense(1) &
   ])
 
-  if (.not. size(net % layers) == 2) then
-    write(stderr, '(a)') 'dense network should have 2 layers.. failed'
-    ok = .false.
-  end if
+  tests = test("test_dense_network", [ &
+    test("network has 2 layers", size(net % layers) == 2), &
+    test("network predicts 0.5 for input 0", all(net % predict([0.]) == 0.5)), &
+    test(simple_training), &
+    test(larger_network_size) &
+  ])
 
-  if (.not. all(net % predict([0.]) == 0.5)) then
-    write(stderr, '(a)') &
-      'dense network should output exactly 0.5 for input 0.. failed'
-    ok = .false.
-  end if
+contains
 
-  training: block
+  type(test_result) function simple_training() result(res)
     real :: x(1), y(1)
     real :: tolerance = 1e-3
     integer :: n
-    integer, parameter :: num_iterations = 1000 
+    integer, parameter :: num_iterations = 1000
+    type(network) :: net 
+
+    res % name = 'simple training'
+
+    ! Minimal 2-layer network
+    net = network([ &
+      input(1), &
+      dense(1) &
+    ])
 
     x = [0.123]
     y = [0.765]
@@ -39,32 +46,25 @@ program test_dense_network
       if (all(abs(net % predict(x) - y) < tolerance)) exit
     end do
 
-    if (.not. n <= num_iterations) then
-      write(stderr, '(a)') &
-        'dense network should converge in simple training.. failed'
-      ok = .false.
-    end if
+    res % ok = n <= num_iterations
 
-  end block training
+  end function simple_training
 
-  ! A bit larger multi-layer network
-  net = network([ &
-    input(784), &
-    dense(30), &
-    dense(20), &
-    dense(10) &
-  ])
+  type(test_result) function larger_network_size() result(res)
+    type(network) :: net 
 
-  if (.not. size(net % layers) == 4) then
-    write(stderr, '(a)') 'dense network should have 4 layers.. failed'
-    ok = .false.
-  end if
+    res % name = 'larger network training'
 
-  if (ok) then
-    print '(a)', 'test_dense_network: All tests passed.'
-  else
-    write(stderr, '(a)') 'test_dense_network: One or more tests failed.'
-    stop 1
-  end if
+    ! A bit larger multi-layer network
+    net = network([ &
+      input(784), &
+      dense(30), &
+      dense(20), &
+      dense(10) &
+    ])
+
+    res % ok = size(net % layers) == 4
+
+  end function larger_network_size
 
 end program test_dense_network

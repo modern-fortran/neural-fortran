@@ -31,16 +31,17 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 |------------|------------------|------------------------|----------------------|--------------|---------------|
 | Input | `input` | n/a | 1, 2, 3 | n/a | n/a |
 | Embedding | `embedding` | n/a | 2 | ✅ | ✅ |
-| Dense (fully-connected) | `dense` | `input1d`, `dense`, `dropout`, `flatten` | 1 | ✅ | ✅ |
+| Dense (fully-connected) | `dense` | `input`, `dense`, `dropout`, `flatten` | 1 | ✅ | ✅ |
 | Dropout | `dropout` | `dense`, `flatten`, `input1d` | 1 | ✅ | ✅ |
-| Locally connected (2-d) | `locally_connected` | `input`, `locally_connected`, `conv`, `maxpool`, `reshape` | 2 | ✅ | ✅ |
-| Convolutional (1-d and 2-d) | `conv` | `input`, `conv`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
-| Max-pooling (1-d and 2-d) | `maxpool` | `input`, `conv`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
-| Linear (2-d) | `linear2d` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
-| Self-attention | `self_attention` | `input2d`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
+| Locally connected (2-d) | `locally_connected` | `input`, `locally_connected`, `conv`, `avgpool`, `maxpool`, `reshape` | 2 | ✅ | ✅ |
+| Convolutional (1-d and 2-d) | `conv` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
+| Average pooling (1-d and 2-d) | `avgpool` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
+| Max-pooling (1-d and 2-d) | `maxpool` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
+| Linear (2-d) | `linear2d` | `input`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
+| Self-attention | `self_attention` | `input`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Layer Normalization | `layernorm` | `linear2d`, `self_attention` | 2 | ✅ | ✅ |
-| Flatten | `flatten` | `input2d`, `input3d`, `conv1d`, `conv2d`, `maxpool1d`, `maxpool2d`, `reshape` | 1 | ✅ | ✅ |
-| Reshape (1-d to 2-d or 3-d) | `reshape` | `dense`, `dropout`, `flatten`, `input1d` | 2, 3 | ✅ | ✅ |
+| Flatten | `flatten` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 1 | ✅ | ✅ |
+| Reshape (1-d to 2-d or 3-d) | `reshape` | `dense`, `dropout`, `flatten`, `input` | 2, 3 | ✅ | ✅ |
 
 ## Getting started
 

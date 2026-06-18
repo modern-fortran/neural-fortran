@@ -1,9 +1,9 @@
 name = "neural-fortran"
-version = "0.22.0"
+version = "0.24.0"
 license = "MIT"
 author = "Milan Curcic"
 maintainer = "mcurcic@miami.edu"
-copyright = "Copyright 2018-2025, neural-fortran contributors"
+copyright = "Copyright 2018-2026, neural-fortran contributors"
 
 [preprocess]
 [preprocess.cpp]

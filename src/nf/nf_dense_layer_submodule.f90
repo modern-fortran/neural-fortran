@@ -1,7 +1,6 @@
 submodule(nf_dense_layer) nf_dense_layer_submodule
 
   use nf_activation, only: activation_function
-  use nf_base_layer, only: base_layer
   use nf_random, only: random_normal
 
   implicit none

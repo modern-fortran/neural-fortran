@@ -59,6 +59,8 @@ program test_conv2d_layer
     call this_layer % set(sample_input)
   end select
 
+  deallocate(sample_input)
+
   call conv_layer % forward(input_layer)
   call conv_layer % get_output(output)
 
@@ -67,6 +69,29 @@ program test_conv2d_layer
     write(stderr, '(a)') 'conv2d layer with zero input and sigmoid function must forward to all 0.5.. failed'
   end if
 
+  ! Minimal conv2d layer: 1 channel, 17x17 pixel image, stride=3;
+  allocate(sample_input(1, 17, 17))
+  sample_input = 0
+
+  input_layer = input(1, 17, 17)
+  conv_layer = conv(filters, kernel_size, kernel_size, stride=[3, 4])
+  call conv_layer % init(input_layer)
+
+  select type(this_layer => input_layer % p); type is(input3d_layer)
+    call this_layer % set(sample_input)
+  end select
+
+  deallocate(sample_input)
+
+  call conv_layer % forward(input_layer)
+  call conv_layer % get_output(output)
+
+  if (.not. all(abs(output) < tolerance)) then
+    ok = .false.
+    write(stderr, '(a)') 'conv2d layer with zero input and sigmoid function must forward to all 0.5.. failed'
+  end if
+
+  ! Summary
   if (ok) then
     print '(a)', 'test_conv2d_layer: All tests passed.'
   else

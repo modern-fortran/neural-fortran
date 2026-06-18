@@ -9,9 +9,11 @@ module nf_layer_constructors
 
   private
   public :: &
+    avgpool, &
     conv, &
     dense, &
     dropout, &
+    embedding, &
     flatten, &
     input, &
     linear2d, &
@@ -19,7 +21,6 @@ module nf_layer_constructors
     maxpool, &
     reshape, &
     self_attention, &
-    embedding, &
     layernorm
 
   interface input
@@ -94,7 +95,7 @@ module nf_layer_constructors
 
   interface conv
 
-    module function conv1d(filters, kernel_width, activation) result(res)
+    module function conv1d(filters, kernel_width, activation, stride) result(res)
       !! 1-d convolutional layer constructor.
       !!
       !! This layer is for building 1-d convolutional network.
@@ -117,11 +118,13 @@ module nf_layer_constructors
         !! Width of the convolution window, commonly 3 or 5
       class(activation_function), intent(in), optional :: activation
         !! Activation function (default sigmoid)
+      integer, intent(in), optional :: stride
+        !! Stride length of the convolution
       type(layer) :: res
         !! Resulting layer instance
     end function conv1d
 
-    module function conv2d(filters, kernel_width, kernel_height, activation) result(res)
+    module function conv2d(filters, kernel_width, kernel_height, activation, stride) result(res)
       !! 2-d convolutional layer constructor.
       !!
       !! This layer is for building 2-d convolutional network.
@@ -147,6 +150,8 @@ module nf_layer_constructors
         !! Height of the convolution window, commonly 3 or 5
       class(activation_function), intent(in), optional :: activation
         !! Activation function (default sigmoid)
+      integer, intent(in), optional :: stride(:)
+        !! Stride length of the convolution
       type(layer) :: res
         !! Resulting layer instance
     end function conv2d
@@ -156,7 +161,7 @@ module nf_layer_constructors
 
   interface locally_connected
 
-    module function locally_connected2d(filters, kernel_size, activation) result(res)
+    module function locally_connected2d(filters, kernel_size, activation, stride) result(res)
       !! 1-d locally connected network constructor
       !!
       !! This layer is for building 1-d locally connected network.
@@ -179,11 +184,60 @@ module nf_layer_constructors
         !! Width of the convolution window, commonly 3 or 5
       class(activation_function), intent(in), optional :: activation
         !! Activation function (default sigmoid)
+      integer, intent(in), optional :: stride
+        !! Size of the stride (default 1)
       type(layer) :: res
         !! Resulting layer instance
     end function locally_connected2d
 
   end interface locally_connected
+
+
+  interface avgpool
+
+    module function avgpool1d(pool_width, stride) result(res)
+      !! 1-d avgpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv1d`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: avgpool1d, layer
+      !! type(layer) :: avgpool1d_layer
+      !! avgpool1d_layer = avgpool(2, 2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`;
+      type(layer) :: res
+        !! Resulting layer instance
+    end function avgpool1d
+
+    module function avgpool2d(pool_width, pool_height, stride) result(res)
+      !! 2-d avgpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv2d`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: avgpool2d, layer
+      !! type(layer) :: avgpool2d_layer
+      !! avgpool2d_layer = avgpool(2, 2, 2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: pool_height
+        !! Width of the pooling window, commonly equal to `pool_width`
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`
+      type(layer) :: res
+        !! Resulting layer instance
+    end function avgpool2d
+
+  end interface avgpool
 
 
   interface maxpool

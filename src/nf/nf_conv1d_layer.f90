@@ -15,6 +15,7 @@ module nf_conv1d_layer
       integer :: channels
       integer :: kernel_size
       integer :: filters
+      integer :: stride
   
       real, allocatable :: biases(:) ! size(filters)
       real, allocatable :: kernel(:,:,:) ! filters x channels x window 
@@ -39,12 +40,13 @@ module nf_conv1d_layer
     end type conv1d_layer
   
     interface conv1d_layer
-      module function conv1d_layer_cons(filters, kernel_size, activation) &
+      module function conv1d_layer_cons(filters, kernel_size, activation, stride) &
         result(res)
         !! `conv1d_layer` constructor function
         integer, intent(in) :: filters
         integer, intent(in) :: kernel_size
         class(activation_function), intent(in) :: activation
+        integer, intent(in) :: stride
         type(conv1d_layer) :: res
       end function conv1d_layer_cons
     end interface conv1d_layer

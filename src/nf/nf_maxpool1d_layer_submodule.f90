@@ -5,7 +5,6 @@ submodule(nf_maxpool1d_layer) nf_maxpool1d_layer_submodule
 contains
 
   pure module function maxpool1d_layer_cons(pool_size, stride) result(res)
-    implicit none
     integer, intent(in) :: pool_size
     integer, intent(in) :: stride
     type(maxpool1d_layer) :: res
@@ -15,7 +14,6 @@ contains
 
 
   module subroutine init(self, input_shape)
-    implicit none
     class(maxpool1d_layer), intent(in out) :: self
     integer, intent(in) :: input_shape(:)
 
@@ -34,7 +32,6 @@ contains
   end subroutine init
 
   pure module subroutine forward(self, input)
-    implicit none
     class(maxpool1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
     integer :: input_width
@@ -70,7 +67,6 @@ contains
   end subroutine forward
 
   pure module subroutine backward(self, input, gradient)
-    implicit none
     class(maxpool1d_layer), intent(in out) :: self
     real, intent(in) :: input(:,:)
     real, intent(in) :: gradient(:,:)

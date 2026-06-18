@@ -4,16 +4,20 @@
 # neural-fortran_LIBRARIES - List of libraries when using neural-fortran.
 # neural-fortran_FOUND - True if neural-fortran found.
 #
-# To use neural-fortran_ROOT_DIR to specify the prefix directory of neural-fortran
+# To use neural_fortran_ROOT_DIR (env) or -Dneural-fortran_ROOT_DIR (cmake) to specify the prefix directory of neural-fortran
 
 
 find_path(neural-fortran_INCLUDE_DIRS
   NAMES nf.mod
-  HINTS ${neural-fortran_ROOT_DIR}/include ENV neural-fortran_INCLUDE_DIR)
+  HINTS ${neural-fortran_ROOT_DIR}/include
+        $ENV{neural_fortran_ROOT_DIR}/include
+        $ENV{neural_fortran_INCLUDE_DIR})
 
 find_library(neural-fortran_LIBRARIES
   NAMES neural-fortran
-  HINTS ${neural-fortran_ROOT_DIR}/lib ENV neural-fortran_LIB_DIR)
+  HINTS ${neural-fortran_ROOT_DIR}/lib
+        $ENV{neural_fortran_ROOT_DIR}/lib
+        $ENV{neural_fortran_LIB_DIR})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(neural-fortran DEFAULT_MSG neural-fortran_LIBRARIES neural-fortran_INCLUDE_DIRS)
