@@ -40,65 +40,61 @@ contains
     close(fileunit)
   end subroutine read_binary_file_2d
 
-module subroutine read_cifar(filename, nrec, images, labels, cifar_100)
+  module subroutine read_cifar(filename, nrec, images, labels, cifar_100)
+    character(*), intent(in) :: filename
+    integer, intent(in) :: nrec
+    logical, intent(in) :: cifar_100
 
-  implicit none
+    real, allocatable, intent(out) :: images(:,:)
+    real, allocatable, intent(out) :: labels(:)
 
-  character(*), intent(in) :: filename
-  integer, intent(in) :: nrec
-  logical, intent(in) :: cifar_100
+    integer(1), allocatable :: buffer(:,:)
+    integer :: unit, ios, i, j, val
+    character(len=256) :: msg
 
-  real, allocatable, intent(out) :: images(:,:)
-  real, allocatable, intent(out) :: labels(:)
+    integer :: record_size, label_offset
 
-  integer(1), allocatable :: buffer(:,:)
-  integer :: unit, ios, i, j, val
-  character(len=256) :: msg
+    ! CIFAR-10: 1 label
+    ! CIFAR-100: 2 labels (coarse + fine)
+    record_size = 3072 + merge(2, 1, cifar_100)
 
-  integer :: record_size, label_offset
+    allocate(buffer(record_size, nrec))
 
-  ! CIFAR-10: 1 label
-  ! CIFAR-100: 2 labels (coarse + fine)
-  record_size = 3072 + merge(2, 1, cifar_100)
+    open(newunit=unit, file=filename, access='stream', &
+         form='unformatted', status='old', action='read', &
+         iostat=ios, iomsg=msg)
 
-  allocate(buffer(record_size, nrec))
+    if (ios /= 0) error stop trim(msg)
 
-  open(newunit=unit, file=filename, access='stream', &
-       form='unformatted', status='old', action='read', &
-       iostat=ios, iomsg=msg)
+    read(unit) buffer
+    close(unit)
 
-  if (ios /= 0) error stop trim(msg)
+    allocate(images(3072, nrec))
+    allocate(labels(nrec))
 
-  read(unit) buffer
-  close(unit)
+    do i = 1, nrec
+      if (cifar_100) then
+        ! Choose which label you want:
+        label_offset = 2   ! fine label (more commonly used in ML)
+        ! label_offset = 1  ! coarse label (alternative)
+      else
+        label_offset = 1
+      end if
 
-  allocate(images(3072, nrec))
-  allocate(labels(nrec))
-
-  do i = 1, nrec
-
-    if (cifar_100) then
-      ! scegli QUI cosa vuoi:
-      label_offset = 2   ! fine label (più usata in ML)
-      ! label_offset = 1  ! coarse label (alternativa)
-    else
-      label_offset = 1
-    end if
-
-    val = buffer(label_offset, i)
-    if (val < 0) val = val + 256
-    labels(i) = real(val)
-
-    ! pixel data starts after both labels in CIFAR-100
-    do j = 1, 3072
-      val = buffer(j + merge(2, 1, cifar_100), i)
+      val = buffer(label_offset, i)
       if (val < 0) val = val + 256
+      labels(i) = real(val)
 
-      images(j, i) = real(val) / 255.0
+      ! pixel data starts after both labels in CIFAR-100
+      do j = 1, 3072
+        val = buffer(j + merge(2, 1, cifar_100), i)
+        if (val < 0) val = val + 256
+
+        images(j, i) = real(val) / 255.0
+      end do
+
     end do
 
-  end do
-
-end subroutine read_cifar
+  end subroutine read_cifar
 
 end submodule nf_io_binary_submodule
