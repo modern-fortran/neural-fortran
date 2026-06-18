@@ -1,171 +1,176 @@
 program test_flatten_layer
-
-  use iso_fortran_env, only: stderr => error_unit
-  use nf,                only: dense, flatten, input, layer, network
-  use nf_flatten_layer,  only: flatten_layer
-  use nf_input2d_layer,  only: input2d_layer
-  use nf_input3d_layer,  only: input3d_layer
-
+  use nf, only: dense, flatten, input, layer, network
+  use nf_flatten_layer, only: flatten_layer
+  use nf_input2d_layer, only: input2d_layer
+  use nf_input3d_layer, only: input3d_layer
+  use tuff, only: test, test_result
   implicit none
 
-  type(layer)   :: test_layer, input_layer
-  type(network) :: net
-  real, allocatable :: gradient_3d(:,:,:), gradient_2d(:,:)
-  real, allocatable :: output(:)
-  logical :: ok = .true.
+  type(layer) :: input_layer, layer1, layer2
+  type(test_result) :: tests
 
-  call banner('TEST FLATTEN')
-
-  ! ---------- 3D INPUT ----------
-  test_layer = flatten()
-
-  call assert_true(trim(test_layer%name) == 'flatten',          &
-       "flatten layer has its name set correctly.. failed", ok)
-
-  call assert_true(.not. test_layer%initialized,                &
-       "flatten layer is not initialized yet.. failed", ok)
-
+  layer1 = flatten()
   input_layer = input(1, 2, 2)
-  call test_layer%init(input_layer)
+  layer2 = flatten()
+  call layer2 % init(input_layer)
 
-  call assert_true(test_layer%initialized,                      &
-       "flatten layer is now initialized.. failed", ok)
-
-  call assert_true(all(test_layer%layer_shape == [4]),          &
-       "flatten layer has an incorrect output shape.. failed", ok)
-
-  ! Forward 3D -> 1D
-  call set_input3d(input_layer, reshape(real([1,2,3,4]), [1,2,2]))
-  call test_layer%forward(input_layer)
-  call test_layer%get_output(output)
-
-  call assert_true(size(output) == 4,                           &
-       "flatten forward output size (3D) mismatch.. failed", ok)
-  call assert_true(all(output == [1,2,3,4]),                    &
-       "flatten layer correctly propagates forward.. failed", ok)
-
-  ! Backward 1D -> 3D
-  call test_layer%backward(input_layer, real([1,2,3,4]))
-  call grab_flatten_gradients3d(test_layer, gradient_3d)
-
-  call assert_true(allocated(gradient_3d),                      &
-       "gradient_3d not allocated after backward.. failed", ok)
-  call assert_true(all(gradient_3d == reshape(real([1,2,3,4]), [1,2,2])), &
-       "flatten layer correctly propagates backward.. failed", ok)
-
-  ! ---------- 2D INPUT ----------
-  test_layer = flatten()
-  input_layer = input(2, 3)
-  call test_layer%init(input_layer)
-
-  call assert_true(all(test_layer%layer_shape == [6]),          &
-       "flatten layer has an incorrect output shape for 2D input.. failed", ok)
-
-  ! Forward 2D -> 1D
-  call set_input2d(input_layer, reshape(real([1,2,3,4,5,6]), [2,3]))
-  call test_layer%forward(input_layer)
-  call test_layer%get_output(output)
-
-  call assert_true(size(output) == 6,                           &
-       "flatten forward output size (2D) mismatch.. failed", ok)
-  call assert_true(all(output == [1,2,3,4,5,6]),                &
-       "flatten layer correctly propagates forward for 2D input.. failed", ok)
-
-  ! Backward 1D -> 2D
-  call test_layer%backward(input_layer, real([1,2,3,4,5,6]))
-  call grab_flatten_gradients2d(test_layer, gradient_2d)
-
-  call assert_true(allocated(gradient_2d),                      &
-       "gradient_2d not allocated after backward.. failed", ok)
-  call assert_true(all(gradient_2d == reshape(real([1,2,3,4,5,6]), [2,3])), &
-       "flatten layer correctly propagates backward for 2D input.. failed", ok)
-
-  ! ---------- CHAIN TO DENSE ----------
-  net = network([ input(1,28,28), flatten(), dense(10) ])
-
-  call assert_true(all(net%layers(3)%input_layer_shape == [784]), &
-       "flatten layer correctly chains input3d to dense.. failed", ok)
-
-  if (ok) then
-    print '(a)', 'test_flatten_layer: All tests passed.'
-  else
-    write(stderr,'(a)') 'test_flatten_layer: One or more tests failed.'
-    stop 1
-  end if
+  tests = test("test_flatten_layer", [ &
+    test("layer name is set", layer1 % name == "flatten"), &
+    test("layer is not initialized by default", .not. layer1 % initialized), &
+    test("layer initializes from 3D input", layer2 % initialized), &
+    test("layer shape is correct for 3D input", all(layer2 % layer_shape == [4])), &
+    test(initializes_from_2d_input), &
+    test(forward_3d_input), &
+    test(backward_3d_input), &
+    test(forward_2d_input), &
+    test(backward_2d_input), &
+    test(chains_input3d_to_dense) &
+  ])
 
 contains
 
-  subroutine banner(s)
-    character(*), intent(in) :: s
-    print '(a)', repeat('-', 8)//' '//trim(s)//' '//repeat('-', 8)
-  end subroutine banner
+  type(test_result) function initializes_from_2d_input() result(res)
+    type(layer) :: input_layer, test_layer
 
-  subroutine assert_true(cond, msg, ok)
-    logical, intent(in)  :: cond
-    character(*), intent(in) :: msg
-    logical, intent(inout) :: ok
-    if (.not. cond) then
-      ok = .false.
-      write(stderr,'(a)') trim(msg)
-    end if
-  end subroutine assert_true
+    res % name = "layer initializes from 2D input"
 
-  subroutine set_input3d(lay, x)
-    type(layer), intent(inout) :: lay
-    real, intent(in) :: x(:,:,:)
-    select type(p => lay%p)
-    type is (input3d_layer)
-      call p%set(x)
-    class default
-      call bail("expected input3d_layer in set_input3d")
+    input_layer = input(2, 3)
+    test_layer = flatten()
+    call test_layer % init(input_layer)
+
+    res % ok = test_layer % initialized
+    if (.not. res % ok) return
+
+    res % ok = all(test_layer % layer_shape == [6])
+  end function initializes_from_2d_input
+
+
+  type(test_result) function forward_3d_input() result(res)
+    type(layer) :: input_layer, test_layer
+    real, allocatable :: output(:)
+
+    res % name = "forward propagates 3D input"
+
+    input_layer = input(1, 2, 2)
+    test_layer = flatten()
+    call test_layer % init(input_layer)
+
+    select type(p => input_layer % p)
+      type is (input3d_layer)
+        call p % set(reshape(real([1, 2, 3, 4]), [1, 2, 2]))
+      class default
+        res % ok = .false.
+        return
     end select
-  end subroutine set_input3d
 
-  subroutine set_input2d(lay, x)
-    type(layer), intent(inout) :: lay
-    real, intent(in) :: x(:,:)
-    select type(p => lay%p)
-    type is (input2d_layer)
-      call p%set(x)
-    class default
-      call bail("expected input2d_layer in set_input2d")
+    call test_layer % forward(input_layer)
+    call test_layer % get_output(output)
+
+    res % ok = allocated(output)
+    if (.not. res % ok) return
+
+    res % ok = size(output) == 4
+    if (.not. res % ok) return
+
+    res % ok = all(output == real([1, 2, 3, 4]))
+  end function forward_3d_input
+
+
+  type(test_result) function backward_3d_input() result(res)
+    type(layer) :: input_layer, test_layer
+
+    res % name = "backward propagates 3D gradient"
+
+    input_layer = input(1, 2, 2)
+    test_layer = flatten()
+    call test_layer % init(input_layer)
+
+    call test_layer % backward(input_layer, real([1, 2, 3, 4]))
+
+    select type(p => test_layer % p)
+      type is (flatten_layer)
+        res % ok = allocated(p % gradient_3d)
+        if (.not. res % ok) return
+
+        res % ok = all(shape(p % gradient_3d) == [1, 2, 2])
+        if (.not. res % ok) return
+
+        res % ok = all(p % gradient_3d == reshape(real([1, 2, 3, 4]), [1, 2, 2]))
+      class default
+        res % ok = .false.
     end select
-  end subroutine set_input2d
+  end function backward_3d_input
 
-  subroutine grab_flatten_gradients3d(lay, g)
-    type(layer), intent(in) :: lay
-    real, allocatable, intent(out) :: g(:,:,:)
-    select type(p => lay%p)
-    type is (flatten_layer)
-      if (allocated(p%gradient_3d)) then
-        g = p%gradient_3d
-      else
-        call bail("flatten_layer%gradient_3d is not allocated")
-      end if
-    class default
-      call bail("expected flatten_layer in grab_flatten_gradients3d")
+
+  type(test_result) function forward_2d_input() result(res)
+    type(layer) :: input_layer, test_layer
+    real, allocatable :: output(:)
+
+    res % name = "forward propagates 2D input"
+
+    input_layer = input(2, 3)
+    test_layer = flatten()
+    call test_layer % init(input_layer)
+
+    select type(p => input_layer % p)
+      type is (input2d_layer)
+        call p % set(reshape(real([1, 2, 3, 4, 5, 6]), [2, 3]))
+      class default
+        res % ok = .false.
+        return
     end select
-  end subroutine grab_flatten_gradients3d
 
-  subroutine grab_flatten_gradients2d(lay, g)
-    type(layer), intent(in) :: lay
-    real, allocatable, intent(out) :: g(:,:)
-    select type(p => lay%p)
-    type is (flatten_layer)
-      if (allocated(p%gradient_2d)) then
-        g = p%gradient_2d
-      else
-        call bail("flatten_layer%gradient_2d is not allocated")
-      end if
-    class default
-      call bail("expected flatten_layer in grab_flatten_gradients2d")
+    call test_layer % forward(input_layer)
+    call test_layer % get_output(output)
+
+    res % ok = allocated(output)
+    if (.not. res % ok) return
+
+    res % ok = size(output) == 6
+    if (.not. res % ok) return
+
+    res % ok = all(output == real([1, 2, 3, 4, 5, 6]))
+  end function forward_2d_input
+
+
+  type(test_result) function backward_2d_input() result(res)
+    type(layer) :: input_layer, test_layer
+
+    res % name = "backward propagates 2D gradient"
+
+    input_layer = input(2, 3)
+    test_layer = flatten()
+    call test_layer % init(input_layer)
+
+    call test_layer % backward(input_layer, real([1, 2, 3, 4, 5, 6]))
+
+    select type(p => test_layer % p)
+      type is (flatten_layer)
+        res % ok = allocated(p % gradient_2d)
+        if (.not. res % ok) return
+
+        res % ok = all(shape(p % gradient_2d) == [2, 3])
+        if (.not. res % ok) return
+
+        res % ok = all(p % gradient_2d == reshape(real([1, 2, 3, 4, 5, 6]), [2, 3]))
+      class default
+        res % ok = .false.
     end select
-  end subroutine grab_flatten_gradients2d
+  end function backward_2d_input
 
-  subroutine bail(msg)
-    character(*), intent(in) :: msg
-    write(stderr,'(a)') trim(msg)
-    error stop 2
-  end subroutine bail
+
+  type(test_result) function chains_input3d_to_dense() result(res)
+    type(network) :: net
+
+    res % name = "chains input3d to dense"
+
+    net = network([ &
+      input(1, 28, 28), &
+      flatten(), &
+      dense(10) &
+    ])
+
+    res % ok = all(net % layers(3) % input_layer_shape == [784])
+  end function chains_input3d_to_dense
 
 end program test_flatten_layer
