@@ -13,7 +13,9 @@ module nf_datasets
     keras_cnn_mnist_url, &
     keras_dense_mnist_url, &
     keras_reshape_url, &
-    mnist_url
+    mnist_url, &
+    cifar100_url, &
+    cifar10_url
 
   character(*), parameter :: keras_snippets_baseurl = &
     'https://github.com/neural-fortran/keras-snippets/files'
@@ -27,6 +29,10 @@ module nf_datasets
     keras_snippets_baseurl // '/9667603/keras_reshape.tar.gz'
   character(*), parameter :: mnist_url = &
     neural_fortran_baseurl // '/8498876/mnist.tar.gz'
+  character(*), parameter :: cifar10_url = & 
+   'https://cave.cs.toronto.edu/kriz/cifar-10-binary.tar.gz'
+  character(*), parameter :: cifar100_url = &
+   'https://cave.cs.toronto.edu/kriz/cifar-100-binary.tar.gz'
 
   interface
 
