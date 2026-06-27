@@ -1,7 +1,7 @@
 submodule(nf_datasets_cifar10) nf_datasets_cifar10_submodule
 
   use nf_datasets, only: download_and_unpack, cifar10_url
-  use nf_io_binary, only: read_binary_file, read_cifar
+  use nf_io_binary, only: read_binary_file, read_cifar10
 
   implicit none
 
@@ -58,20 +58,20 @@ contains
     allocate(training_labels(sum(batch_counts(1:4))))
 
     do batch = 1, 4
-      call read_cifar(batch_files(batch), batch_counts(batch), &
-      training_images_dummy, training_labels_dummy, .false.)
+      call read_cifar10(batch_files(batch), batch_counts(batch), &
+      training_images_dummy, training_labels_dummy)
 
       training_images(:,(offset+1):(offset+batch_counts(batch))) = training_images_dummy
       training_labels(offset+1:offset+batch_counts(batch)) = training_labels_dummy
       offset = offset + batch_counts(batch)
     end do
 
-    call read_cifar(batch_files(5), batch_counts(5), &
-    validation_images, validation_labels, .false.)
+    call read_cifar10(batch_files(5), batch_counts(5), &
+    validation_images, validation_labels)
 
     if (present(testing_images)) then
-      call read_cifar(test_file, cifar_record_count(test_file, record_size), &
-      testing_images, testing_labels, .false.)
+      call read_cifar10(test_file, cifar_record_count(test_file, record_size), &
+      testing_images, testing_labels)
     end if
 
   end subroutine load_cifar10

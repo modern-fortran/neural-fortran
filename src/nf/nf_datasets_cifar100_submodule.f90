@@ -1,7 +1,7 @@
 submodule(nf_datasets_cifar100) nf_datasets_cifar100_submodule
 
   use nf_datasets, only: download_and_unpack, cifar100_url
-  use nf_io_binary, only: read_binary_file, read_cifar
+  use nf_io_binary, only: read_binary_file, read_cifar100
 
   implicit none
 
@@ -72,8 +72,8 @@ contains
     allocate(training_images(3072, num_training_images))
     allocate(training_labels(num_training_images))
 
-    call read_cifar(train_file, num_records, training_images_dummy, &
-      training_labels_dummy, .true.)
+    call read_cifar100(train_file, num_records, training_images_dummy, &
+      training_labels_dummy)
 
     training_images = training_images_dummy(:, 1:num_training_images)
     training_labels = training_labels_dummy(1:num_training_images)
@@ -83,8 +83,8 @@ contains
     validation_labels = training_labels_dummy(num_training_images + 1:num_records)
 
     if (present(testing_images)) then
-      call read_cifar(test_file, cifar_record_count(test_file, record_size), &
-        testing_images, testing_labels, .true.)
+      call read_cifar100(test_file, cifar_record_count(test_file, record_size), &
+        testing_images, testing_labels)
     end if
 
   end subroutine load_cifar100

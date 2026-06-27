@@ -40,7 +40,27 @@ contains
     close(fileunit)
   end subroutine read_binary_file_2d
 
-  module subroutine read_cifar(filename, nrec, images, labels, cifar_100)
+  module subroutine read_cifar10(filename, nrec, images, labels)
+    character(*), intent(in) :: filename
+    integer, intent(in) :: nrec
+
+    real, allocatable, intent(out) :: images(:,:)
+    real, allocatable, intent(out) :: labels(:)
+
+    call read_cifar_common(filename, nrec, images, labels, .false.)
+  end subroutine read_cifar10
+
+  module subroutine read_cifar100(filename, nrec, images, labels)
+    character(*), intent(in) :: filename
+    integer, intent(in) :: nrec
+
+    real, allocatable, intent(out) :: images(:,:)
+    real, allocatable, intent(out) :: labels(:)
+
+    call read_cifar_common(filename, nrec, images, labels, .true.)
+  end subroutine read_cifar100
+
+  subroutine read_cifar_common(filename, nrec, images, labels, cifar_100)
     character(*), intent(in) :: filename
     integer, intent(in) :: nrec
     logical, intent(in) :: cifar_100
@@ -95,6 +115,6 @@ contains
 
     end do
 
-  end subroutine read_cifar
+  end subroutine read_cifar_common
 
 end submodule nf_io_binary_submodule
