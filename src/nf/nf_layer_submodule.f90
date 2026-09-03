@@ -3,19 +3,24 @@ submodule(nf_layer) nf_layer_submodule
   use iso_fortran_env, only: stderr => error_unit
   use nf_avgpool1d_layer, only: avgpool1d_layer
   use nf_avgpool2d_layer, only: avgpool2d_layer
+  use nf_avgpool3d_layer, only: avgpool3d_layer
   use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
+  use nf_conv3d_layer, only: conv3d_layer
   use nf_dense_layer, only: dense_layer
   use nf_dropout_layer, only: dropout_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_input4d_layer, only: input4d_layer
   use nf_locally_connected2d_layer, only: locally_connected2d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_maxpool3d_layer, only: maxpool3d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape3d_layer, only: reshape3d_layer
+  use nf_reshape4d_layer, only: reshape4d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
@@ -54,7 +59,7 @@ contains
 
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input2d, input3d, conv1d, conv2d, locally_connected2d, maxpool1d, maxpool2d
+        ! Upstream layers permitted: input2d, input3d, input4d, conv1d, conv2d, conv3d, locally_connected2d, maxpool1d, maxpool2d
         select type(prev_layer => previous % p)
           type is(avgpool1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -68,11 +73,21 @@ contains
             call this_layer % backward(prev_layer % output, gradient)
           type is(input3d_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(input4d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
           type is(conv1d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(conv2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
+          type is(conv3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
           type is(maxpool2d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(maxpool3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(avgpool3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(reshape4d_layer)
             call this_layer % backward(prev_layer % output, gradient)
           type is(linear2d_layer)
             call this_layer % backward(prev_layer % output, gradient)
@@ -296,6 +311,79 @@ contains
   end subroutine backward_3d
 
 
+  pure module subroutine backward_4d(self, previous, gradient)
+    implicit none
+    class(layer), intent(in out) :: self
+    class(layer), intent(in) :: previous
+    real, intent(in) :: gradient(:,:,:,:)
+
+    ! Backward pass from a 4-d layer downstream currently implemented
+    ! for conv3d, maxpool3d, avgpool3d and reshape4d layers
+    select type(this_layer => self % p)
+
+      type is(conv3d_layer)
+
+        ! Upstream layers permitted: conv3d, input4d, maxpool3d, avgpool3d, reshape4d
+        select type(prev_layer => previous % p)
+          type is(input4d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(conv3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(maxpool3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(avgpool3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(reshape4d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(maxpool3d_layer)
+
+        select type(prev_layer => previous % p)
+          type is(conv3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(maxpool3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(avgpool3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(input4d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(reshape4d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(avgpool3d_layer)
+
+        select type(prev_layer => previous % p)
+          type is(conv3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(maxpool3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(avgpool3d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(input4d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(reshape4d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+      type is(reshape4d_layer)
+
+        ! Upstream layers permitted: input1d, dense, flatten
+        select type(prev_layer => previous % p)
+          type is(input1d_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(dense_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+          type is(flatten_layer)
+            call this_layer % backward(prev_layer % output, gradient)
+        end select
+
+    end select
+
+  end subroutine backward_4d
+
+
   module subroutine forward(self, input)
     implicit none
     class(layer), intent(in out) :: self
@@ -340,6 +428,22 @@ contains
           type is(maxpool2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(reshape3d_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(conv3d_layer)
+
+        ! Upstream layers permitted: input4d, conv3d, maxpool3d, avgpool3d, reshape4d
+        select type(prev_layer => input % p)
+          type is(input4d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(avgpool3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape4d_layer)
             call this_layer % forward(prev_layer % output)
         end select
       
@@ -435,17 +539,53 @@ contains
             call this_layer % forward(prev_layer % output)
         end select
 
+      type is(maxpool3d_layer)
+
+        ! Upstream layers permitted: input4d, conv3d, maxpool3d, avgpool3d, reshape4d
+        select type(prev_layer => input % p)
+          type is(input4d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(avgpool3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape4d_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(avgpool3d_layer)
+
+        ! Upstream layers permitted: input4d, conv3d, maxpool3d, avgpool3d, reshape4d
+        select type(prev_layer => input % p)
+          type is(input4d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(maxpool3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(avgpool3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape4d_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
       type is(flatten_layer)
 
-        ! Upstream layers permitted: input2d, input3d, conv2d, maxpool1d, maxpool2d, reshape2d, reshape3d, locally_connected2d
+        ! Upstream layers permitted: input2d, input3d, input4d, conv2d, conv3d, maxpool1d, maxpool2d, reshape2d, reshape3d, locally_connected2d
         select type(prev_layer => input % p)
           type is(input2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(input3d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(input4d_layer)
+            call this_layer % forward(prev_layer % output)
           type is(conv1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(conv2d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(conv3d_layer)
             call this_layer % forward(prev_layer % output)
           type is(locally_connected2d_layer)
             call this_layer % forward(prev_layer % output)
@@ -453,13 +593,19 @@ contains
             call this_layer % forward(prev_layer % output)
           type is(maxpool2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(maxpool3d_layer)
+            call this_layer % forward(prev_layer % output)
           type is(avgpool1d_layer)
             call this_layer % forward(prev_layer % output)
           type is(avgpool2d_layer)
             call this_layer % forward(prev_layer % output)
+          type is(avgpool3d_layer)
+            call this_layer % forward(prev_layer % output)
           type is(reshape2d_layer)
             call this_layer % forward(prev_layer % output)
           type is(reshape3d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(reshape4d_layer)
             call this_layer % forward(prev_layer % output)
           type is(linear2d_layer)
             call this_layer % forward(prev_layer % output)
@@ -468,6 +614,18 @@ contains
         end select
 
       type is(reshape3d_layer)
+
+        ! Upstream layers permitted: input1d, dense, flatten
+        select type(prev_layer => input % p)
+          type is(input1d_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(dense_layer)
+            call this_layer % forward(prev_layer % output)
+          type is(flatten_layer)
+            call this_layer % forward(prev_layer % output)
+        end select
+
+      type is(reshape4d_layer)
 
         ! Upstream layers permitted: input1d, dense, flatten
         select type(prev_layer => input % p)
@@ -615,6 +773,31 @@ contains
   end subroutine get_output_3d
 
 
+  pure module subroutine get_output_4d(self, output)
+    implicit none
+    class(layer), intent(in) :: self
+    real, allocatable, intent(out) :: output(:,:,:,:)
+
+    select type(this_layer => self % p)
+
+      type is(input4d_layer)
+        allocate(output, source=this_layer % output)
+      type is(conv3d_layer)
+        allocate(output, source=this_layer % output)
+      type is(maxpool3d_layer)
+        allocate(output, source=this_layer % output)
+      type is(avgpool3d_layer)
+        allocate(output, source=this_layer % output)
+      type is(reshape4d_layer)
+        allocate(output, source=this_layer % output)
+      class default
+        error stop '4-d output can only be read from a conv3d, input4d, maxpool3d, avgpool3d, or reshape4d layer.'
+
+    end select
+
+  end subroutine get_output_4d
+
+
   impure elemental module subroutine init(self, input)
     implicit none
     class(layer), intent(in out) :: self
@@ -633,6 +816,8 @@ contains
       type is(conv1d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(conv2d_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(conv3d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(dropout_layer)
         self % layer_shape = shape(this_layer % output)
@@ -653,6 +838,10 @@ contains
       type is(avgpool1d_layer)
         self % layer_shape = shape(this_layer % output)
       type is(avgpool2d_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(maxpool3d_layer)
+        self % layer_shape = shape(this_layer % output)
+      type is(avgpool3d_layer)
         self % layer_shape = shape(this_layer % output)
     end select
 
@@ -694,6 +883,8 @@ contains
         num_params = 0
       type is (input3d_layer)
         num_params = 0
+      type is (input4d_layer)
+        num_params = 0
       type is (dense_layer)
         num_params = this_layer % get_num_params()
       type is (dropout_layer)
@@ -702,21 +893,29 @@ contains
         num_params = this_layer % get_num_params()
       type is (conv2d_layer)
         num_params = this_layer % get_num_params()
+      type is (conv3d_layer)
+        num_params = this_layer % get_num_params()
       type is (locally_connected2d_layer)
         num_params = this_layer % get_num_params()
       type is (maxpool1d_layer)
         num_params = 0
       type is (maxpool2d_layer)
         num_params = 0
+      type is (maxpool3d_layer)
+        num_params = 0
       type is (avgpool1d_layer)
         num_params = 0
       type is (avgpool2d_layer)
+        num_params = 0
+      type is (avgpool3d_layer)
         num_params = 0
       type is (flatten_layer)
         num_params = 0
       type is (reshape2d_layer)
         num_params = 0
       type is (reshape3d_layer)
+        num_params = 0
+      type is (reshape4d_layer)
         num_params = 0
       type is (linear2d_layer)
         num_params = this_layer % get_num_params()
@@ -745,6 +944,8 @@ contains
          ! No parameters to get.
       type is (input3d_layer)
          ! No parameters to get.
+      type is (input4d_layer)
+         ! No parameters to get.
       type is (dense_layer)
         call this_layer % get_params_ptr(w_ptr, b_ptr)
         allocate(params(size(w_ptr) + size(b_ptr)))
@@ -762,6 +963,11 @@ contains
         allocate(params(size(w_ptr) + size(b_ptr)))
         params(1:size(w_ptr)) = w_ptr
         params(size(w_ptr)+1:) = b_ptr
+      type is (conv3d_layer)
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        allocate(params(size(w_ptr) + size(b_ptr)))
+        params(1:size(w_ptr)) = w_ptr
+        params(size(w_ptr)+1:) = b_ptr
       type is (locally_connected2d_layer)
         call this_layer % get_params_ptr(w_ptr, b_ptr)
         allocate(params(size(w_ptr) + size(b_ptr)))
@@ -771,15 +977,21 @@ contains
         ! No parameters to get.
       type is (maxpool2d_layer)
         ! No parameters to get.
+      type is (maxpool3d_layer)
+        ! No parameters to get.
       type is (avgpool1d_layer)
       ! No parameters to get.
       type is (avgpool2d_layer)
+      ! No parameters to get.
+      type is (avgpool3d_layer)
       ! No parameters to get.
       type is (flatten_layer)
         ! No parameters to get.
       type is (reshape2d_layer)
         ! No parameters to get.
       type is (reshape3d_layer)
+        ! No parameters to get.
+      type is (reshape4d_layer)
         ! No parameters to get.
       type is (linear2d_layer)
         call this_layer % get_params_ptr(w_ptr, b_ptr)
@@ -840,6 +1052,11 @@ contains
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
 
+      type is (input4d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
       type is (dense_layer)
         call this_layer % get_params_ptr(w_ptr, b_ptr)
         
@@ -858,6 +1075,12 @@ contains
         b_ptr = params(size(w_ptr)+1:) 
 
       type is (conv2d_layer)
+        call this_layer % get_params_ptr(w_ptr, b_ptr)
+        
+        w_ptr = params(1:size(w_ptr)) 
+        b_ptr = params(size(w_ptr)+1:) 
+
+      type is (conv3d_layer)
         call this_layer % get_params_ptr(w_ptr, b_ptr)
         
         w_ptr = params(1:size(w_ptr)) 
@@ -884,6 +1107,11 @@ contains
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
 
+      type is (avgpool3d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
       type is (linear2d_layer)
         call this_layer % get_params_ptr(w_ptr, b_ptr)
         
@@ -906,6 +1134,11 @@ contains
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'
 
+      type is (maxpool3d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
       type is (flatten_layer)
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
@@ -917,6 +1150,11 @@ contains
           // 'on a zero-parameter layer; nothing to do.'
 
       type is (reshape3d_layer)
+        ! No parameters to set.
+        write(stderr, '(a)') 'Warning: calling set_params() ' &
+          // 'on a zero-parameter layer; nothing to do.'
+
+      type is (reshape4d_layer)
         ! No parameters to set.
         write(stderr, '(a)') 'Warning: calling set_params() ' &
           // 'on a zero-parameter layer; nothing to do.'

@@ -33,19 +33,22 @@ module nf_network
     procedure, private :: forward_1d_int
     procedure, private :: forward_2d
     procedure, private :: forward_3d
+    procedure, private :: forward_4d
     procedure, private :: get_output_1d
     procedure, private :: predict_1d
     procedure, private :: predict_1d_int
     procedure, private :: predict_2d
     procedure, private :: predict_3d
+    procedure, private :: predict_4d
     procedure, private :: predict_batch_1d
     procedure, private :: predict_batch_3d
+    procedure, private :: predict_batch_4d
 
     generic :: evaluate => evaluate_batch_1d
-    generic :: forward => forward_1d, forward_1d_int, forward_2d, forward_3d
+    generic :: forward => forward_1d, forward_1d_int, forward_2d, forward_3d, forward_4d
     generic :: get_output => get_output_1d
-    generic :: predict => predict_1d, predict_1d_int, predict_2d, predict_3d
-    generic :: predict_batch => predict_batch_1d, predict_batch_3d
+    generic :: predict => predict_1d, predict_1d_int, predict_2d, predict_3d, predict_4d
+    generic :: predict_batch => predict_batch_1d, predict_batch_3d, predict_batch_4d
 
   end type network
 
@@ -131,6 +134,20 @@ module nf_network
         !! 3-d input data
     end subroutine forward_3d
 
+    module subroutine forward_4d(self, input)
+      !! Apply a forward pass through the network.
+      !!
+      !! This changes the state of layers on the network.
+      !! Typically used only internally from the `train` method,
+      !! but can be invoked by the user when creating custom optimizers.
+      !!
+      !! This specific subroutine is for 4-d input data.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:,:,:)
+        !! 4-d input data
+    end subroutine forward_4d
+
   end interface forward
 
   interface predict
@@ -172,6 +189,16 @@ module nf_network
         !! Output of the network
     end function predict_3d
 
+    module function predict_4d(self, input) result(res)
+      !! Return the output of the network given the input 4-d array.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:,:,:)
+        !! Input data
+      real, allocatable :: res(:)
+        !! Output of the network
+    end function predict_4d
+
   end interface predict
 
   interface predict_batch
@@ -194,6 +221,16 @@ module nf_network
       real, allocatable :: res(:,:)
         !! Output of the network; the last dimension is the batch
     end function predict_batch_3d
+
+    module function predict_batch_4d(self, input) result(res)
+      !! Return the output of the network given an input batch of 4-d data.
+      class(network), intent(in out) :: self
+        !! Network instance
+      real, intent(in) :: input(:,:,:,:,:)
+        !! Input data; the last dimension is the batch
+      real, allocatable :: res(:,:)
+        !! Output of the network; the last dimension is the batch
+    end function predict_batch_4d
   end interface predict_batch
 
   interface get_output

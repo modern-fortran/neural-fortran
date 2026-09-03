@@ -90,6 +90,29 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function input3d
 
+    module function input4d(dim1, dim2, dim3, dim4) result(res)
+      !! 4-d input layer constructor.
+      !!
+      !! This layer is for inputting 4-d data to the network.
+      !! Currently, this layer must be followed by a conv3d layer.
+      !! An input layer must be the first layer in the network.
+      !!
+      !! This is a specific function that is available
+      !! under a generic name `input`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: input, layer
+      !! type(layer) :: input_layer
+      !! input_layer = input(1, 16, 16, 16)
+      !! ```
+      integer, intent(in) :: dim1, dim2, dim3, dim4
+        !! First, second, third and fourth dimension sizes
+      type(layer) :: res
+        !! Resulting layer instance
+    end function input4d
+
   end interface input
 
 
@@ -155,6 +178,40 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function conv2d
+
+    module function conv3d(filters, kernel_width, kernel_height, kernel_depth, activation, stride) result(res)
+      !! 3-d convolutional layer constructor.
+      !!
+      !! This layer is for building 3-d convolutional network.
+      !! Although the established convention is to call these layers 3-d,
+      !! the shape of the data is actually 4-d: image width, image height,
+      !! image depth, and the number of channels.
+      !! A conv3d layer must not be the first layer in the network.
+      !!
+      !! This specific function is available under a generic name `conv`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: conv, layer
+      !! type(layer) :: conv3d_layer
+      !! conv3d_layer = conv(filters=32, kernel_width=3, kernel_height=3, kernel_depth=3)
+      !! ```
+      integer, intent(in) :: filters
+        !! Number of filters in the output of the layer
+      integer, intent(in) :: kernel_width
+        !! Width of the convolution window, commonly 3 or 5
+      integer, intent(in) :: kernel_height
+        !! Height of the convolution window, commonly 3 or 5
+      integer, intent(in) :: kernel_depth
+        !! Depth of the convolution window, commonly 3 or 5
+      class(activation_function), intent(in), optional :: activation
+        !! Activation function (default sigmoid)
+      integer, intent(in), optional :: stride(:)
+        !! Stride length of the convolution
+      type(layer) :: res
+        !! Resulting layer instance
+    end function conv3d
     
   end interface conv
 
@@ -237,6 +294,30 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function avgpool2d
 
+    module function avgpool3d(pool_width, pool_height, pool_depth, stride) result(res)
+      !! 3-d avgpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv3d`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: avgpool, layer
+      !! type(layer) :: avgpool3d_layer
+      !! avgpool3d_layer = avgpool(2, 2, 2, 2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: pool_height
+        !! Height of the pooling window, commonly equal to `pool_width`
+      integer, intent(in) :: pool_depth
+        !! Depth of the pooling window, commonly equal to `pool_width`
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`
+      type(layer) :: res
+        !! Resulting layer instance
+    end function avgpool3d
+
   end interface avgpool
 
 
@@ -288,6 +369,32 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function maxpool2d
 
+    module function maxpool3d(pool_width, pool_height, pool_depth, stride) result(res)
+      !! 3-d maxpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv3d`.
+      !!
+      !! This specific function is available under a generic name `maxpool`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: maxpool, layer
+      !! type(layer) :: maxpool3d_layer
+      !! maxpool3d_layer = maxpool(pool_width=2, pool_height=2, pool_depth=2, stride=2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: pool_height
+        !! Height of the pooling window; currently must be equal to pool_width
+      integer, intent(in) :: pool_depth
+        !! Depth of the pooling window; currently must be equal to pool_width
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`;
+      type(layer) :: res
+        !! Resulting layer instance
+    end function maxpool3d
+
   end interface maxpool
   
 
@@ -308,6 +415,14 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function reshape3d
+
+    module function reshape4d(dim1, dim2, dim3, dim4) result(res)
+      !! Rank-1 to rank-4 reshape layer constructor.
+      integer, intent(in) :: dim1, dim2, dim3, dim4
+        !! Shape of the output
+      type(layer) :: res
+        !! Resulting layer instance
+    end function reshape4d
 
   end interface reshape
 
@@ -356,12 +471,12 @@ module nf_layer_constructors
     end function dropout
 
     module function flatten() result(res)
-      !! Flatten (3-d -> 1-d) layer constructor.
+      !! Flatten (2-d, 3-d or 4-d -> 1-d) layer constructor.
       !!
-      !! Use this layer to chain layers with 3-d outputs to layers with 1-d
-      !! inputs. For example, to chain a `conv2d` or a `maxpool2d` layer
-      !! with a `dense` layer for a CNN for classification, place a `flatten`
-      !! layer between them.
+      !! Use this layer to chain layers with 2-d, 3-d or 4-d outputs to layers
+      !! with 1-d inputs. For example, to chain a `conv2d`, `conv3d` or a
+      !! `maxpool2d` layer with a `dense` layer for a CNN for classification,
+      !! place a `flatten` layer between them.
       !!
       !! A flatten layer must not be the first layer in the network.
       !!
