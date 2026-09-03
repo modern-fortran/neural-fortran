@@ -5,6 +5,7 @@ foreach(execid
   get_set_network_params
   network_parameters
   simple
+  simple_conv3d
   sine
   quadratic
   mha_simple

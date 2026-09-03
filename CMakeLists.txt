@@ -26,6 +26,8 @@ add_library(neural-fortran
   src/nf/nf_conv1d_layer_submodule.f90
   src/nf/nf_conv2d_layer.f90
   src/nf/nf_conv2d_layer_submodule.f90
+  src/nf/nf_conv3d_layer.f90
+  src/nf/nf_conv3d_layer_submodule.f90
   src/nf/nf_cross_attention_layer.f90
   src/nf/nf_datasets.f90
   src/nf/nf_datasets_submodule.f90
@@ -41,6 +43,8 @@ add_library(neural-fortran
   src/nf/nf_input2d_layer_submodule.f90
   src/nf/nf_input3d_layer.f90
   src/nf/nf_input3d_layer_submodule.f90
+  src/nf/nf_input4d_layer.f90
+  src/nf/nf_input4d_layer_submodule.f90
   src/nf/nf_layer_constructors.f90
   src/nf/nf_layer_constructors_submodule.f90
   src/nf/nf_layernorm.f90

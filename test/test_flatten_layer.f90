@@ -5,12 +5,13 @@ program test_flatten_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_input4d_layer, only: input4d_layer
 
   implicit none
 
   type(layer) :: test_layer, input_layer
   type(network) :: net
-  real, allocatable :: gradient_3d(:,:,:), gradient_2d(:,:)
+  real, allocatable :: gradient_4d(:,:,:,:), gradient_3d(:,:,:), gradient_2d(:,:)
   real, allocatable :: output(:)
   logical :: ok = .true.
 
@@ -114,6 +115,39 @@ program test_flatten_layer
   if (.not. all(net % layers(3) % input_layer_shape == [784])) then
     ok = .false.
     write(stderr, '(a)') 'flatten layer correctly chains input3d to dense.. failed'
+  end if
+
+  ! Test 4D input
+  test_layer = flatten()
+  input_layer = input(1, 2, 2, 2)
+  call test_layer % init(input_layer)
+
+  if (.not. all(test_layer % layer_shape == [8])) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer has an incorrect output shape for 4D input.. failed'
+  end if
+
+  select type(this_layer => input_layer % p); type is(input4d_layer)
+    call this_layer % set(reshape(real([1, 2, 3, 4, 5, 6, 7, 8]), [1, 2, 2, 2]))
+  end select
+
+  call test_layer % forward(input_layer)
+  call test_layer % get_output(output)
+
+  if (.not. all(output == [1, 2, 3, 4, 5, 6, 7, 8])) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer correctly propagates forward for 4D input.. failed'
+  end if
+
+  call test_layer % backward(input_layer, real([1, 2, 3, 4, 5, 6, 7, 8]))
+
+  select type(this_layer => test_layer % p); type is(flatten_layer)
+    gradient_4d = this_layer % gradient_4d
+  end select
+
+  if (.not. all(gradient_4d == reshape(real([1, 2, 3, 4, 5, 6, 7, 8]), [1, 2, 2, 2]))) then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer correctly propagates backward for 4D input.. failed'
   end if
 
   if (ok) then

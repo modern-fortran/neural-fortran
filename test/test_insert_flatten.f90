@@ -54,6 +54,17 @@ program test_insert_flatten
     write(stderr, '(a)') 'flatten layer inserted after reshape.. failed'
   end if
 
+  net = network([ &
+    input(1, 8, 8, 8), &
+    conv(filters=1, kernel_width=3, kernel_height=3, kernel_depth=3), &
+    dense(10) &
+  ])
+
+  if (.not. net % layers(3) % name == 'flatten') then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer inserted after conv3d.. failed'
+  end if
+
   if (ok) then
     print '(a)', 'test_insert_flatten: All tests passed.'
   else
