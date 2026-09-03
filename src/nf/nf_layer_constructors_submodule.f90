@@ -3,6 +3,7 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_layer, only: layer
   use nf_avgpool1d_layer, only: avgpool1d_layer
   use nf_avgpool2d_layer, only: avgpool2d_layer
+  use nf_avgpool3d_layer, only: avgpool3d_layer
   use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
   use nf_conv3d_layer, only: conv3d_layer
@@ -16,8 +17,10 @@ submodule(nf_layer_constructors) nf_layer_constructors_submodule
   use nf_locally_connected2d_layer, only: locally_connected2d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_maxpool3d_layer, only: maxpool3d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape3d_layer, only: reshape3d_layer
+  use nf_reshape4d_layer, only: reshape4d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
@@ -278,6 +281,34 @@ contains
 
   end function avgpool2d
 
+  module function avgpool3d(pool_width, pool_height, pool_depth, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: pool_height
+    integer, intent(in) :: pool_depth
+    integer, intent(in) :: stride
+    type(layer) :: res
+
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a avgpool3d layer'
+
+    if (pool_height < 2) &
+      error stop 'pool_height must be >= 2 in a avgpool3d layer'
+
+    if (pool_depth < 2) &
+      error stop 'pool_depth must be >= 2 in a avgpool3d layer'
+
+    if (stride < 1) &
+      error stop 'stride must be >= 1 in a avgpool3d layer'
+
+    res % name = 'avgpool3d'
+
+    allocate( &
+      res % p, &
+      source=avgpool3d_layer(pool_width, pool_height, pool_depth, stride) &
+    )
+
+  end function avgpool3d
+
   module function input1d(layer_size) result(res)
     integer, intent(in) :: layer_size
     type(layer) :: res
@@ -368,6 +399,34 @@ contains
 
   end function maxpool2d
 
+  module function maxpool3d(pool_width, pool_height, pool_depth, stride) result(res)
+    integer, intent(in) :: pool_width
+    integer, intent(in) :: pool_height
+    integer, intent(in) :: pool_depth
+    integer, intent(in) :: stride
+    type(layer) :: res
+
+    if (pool_width < 2) &
+      error stop 'pool_width must be >= 2 in a maxpool3d layer'
+
+    ! Enforce cubic pooling windows for now;
+    ! If non-cubic poolings show to be desired, we'll relax this constraint
+    ! and refactor maxpool3d_layer to work with non-cubic kernels.
+    if (pool_width /= pool_height .or. pool_width /= pool_depth) &
+      error stop 'pool_width, pool_height and pool_depth must be equal in a maxpool3d layer'
+
+    if (stride < 1) &
+      error stop 'stride must be >= 1 in a maxpool3d layer'
+
+    res % name = 'maxpool3d'
+
+    allocate( &
+      res % p, &
+      source=maxpool3d_layer(pool_width, stride) &
+    )
+
+  end function maxpool3d
+
   module function reshape2d(dim1, dim2) result(res)
     integer, intent(in) :: dim1, dim2
     type(layer) :: res
@@ -384,6 +443,15 @@ contains
     res % layer_shape = [dim1, dim2, dim3]
     allocate(res % p, source=reshape3d_layer(res % layer_shape))
   end function reshape3d
+
+
+  module function reshape4d(dim1, dim2, dim3, dim4) result(res)
+    integer, intent(in) :: dim1, dim2, dim3, dim4
+    type(layer) :: res
+    res % name = 'reshape4d'
+    res % layer_shape = [dim1, dim2, dim3, dim4]
+    allocate(res % p, source=reshape4d_layer(res % layer_shape))
+  end function reshape4d
 
 
   module function linear2d(out_features) result(res)

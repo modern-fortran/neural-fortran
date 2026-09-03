@@ -35,13 +35,13 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 | Dropout | `dropout` | `dense`, `flatten`, `input1d` | 1 | ✅ | ✅ |
 | Locally connected (2-d) | `locally_connected` | `input`, `locally_connected`, `conv`, `avgpool`, `maxpool`, `reshape` | 2 | ✅ | ✅ |
 | Convolutional (1-d, 2-d, and 3-d) | `conv` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3, 4 | ✅ | ✅ |
-| Average pooling (1-d and 2-d) | `avgpool` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
-| Max-pooling (1-d and 2-d) | `maxpool` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
+| Average pooling (1-d, 2-d, and 3-d) | `avgpool` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3, 4 | ✅ | ✅ |
+| Max-pooling (1-d, 2-d, and 3-d) | `maxpool` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3, 4 | ✅ | ✅ |
 | Linear (2-d) | `linear2d` | `input`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Self-attention | `self_attention` | `input`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Layer Normalization | `layernorm` | `linear2d`, `self_attention` | 2 | ✅ | ✅ |
 | Flatten | `flatten` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 1 | ✅ | ✅ |
-| Reshape (1-d to 2-d or 3-d) | `reshape` | `dense`, `dropout`, `flatten`, `input` | 2, 3 | ✅ | ✅ |
+| Reshape (1-d to 2-d, 3-d or 4-d) | `reshape` | `dense`, `dropout`, `flatten`, `input` | 2, 3, 4 | ✅ | ✅ |
 
 ## Getting started
 

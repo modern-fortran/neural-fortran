@@ -1,7 +1,7 @@
 program test_conv3d_network
 
   use iso_fortran_env, only: stderr => error_unit
-  use nf, only: conv, input, network, dense, sgd
+  use nf, only: conv, input, network, dense, sgd, maxpool, reshape
 
   implicit none
 
@@ -104,6 +104,74 @@ program test_conv3d_network
     end if
 
   end block training2
+
+  training3: block
+
+    type(network) :: cnn
+    real :: x(1, 8, 8, 8)
+    real :: y(1)
+    real :: tolerance = 1e-4
+    integer :: n
+    integer, parameter :: num_iterations = 1000
+
+    call random_number(x)
+    y = [0.1234567]
+
+    cnn = network([ &
+      input(1, 8, 8, 8), &
+      conv(filters=1, kernel_width=3, kernel_height=3, kernel_depth=3), &
+      maxpool(pool_width=2, pool_height=2, pool_depth=2, stride=2), &
+      dense(1) &
+    ])
+
+    do n = 1, num_iterations
+      call cnn % forward(x)
+      call cnn % backward(y)
+      call cnn % update(optimizer=sgd(learning_rate=1.))
+      if (all(abs(cnn % predict(x) - y) < tolerance)) exit
+    end do
+
+    if (.not. n <= num_iterations) then
+      write(stderr, '(a)') &
+        'convolutional network 3 should converge in simple training.. failed'
+      ok = .false.
+    end if
+
+  end block training3
+
+  training4: block
+
+    type(network) :: cnn
+    real :: x(125)
+    real :: y(1)
+    real :: tolerance = 1e-4
+    integer :: n
+    integer, parameter :: num_iterations = 1000
+
+    call random_number(x)
+    y = [0.1234567]
+
+    cnn = network([ &
+      input(125), &
+      reshape(1, 5, 5, 5), &
+      conv(filters=1, kernel_width=3, kernel_height=3, kernel_depth=3), &
+      dense(1) &
+    ])
+
+    do n = 1, num_iterations
+      call cnn % forward(x)
+      call cnn % backward(y)
+      call cnn % update(optimizer=sgd(learning_rate=1.))
+      if (all(abs(cnn % predict(x) - y) < tolerance)) exit
+    end do
+
+    if (.not. n <= num_iterations) then
+      write(stderr, '(a)') &
+        'convolutional network 4 should converge in simple training.. failed'
+      ok = .false.
+    end if
+
+  end block training4
 
   if (ok) then
     print '(a)', 'test_conv3d_network: All tests passed.'

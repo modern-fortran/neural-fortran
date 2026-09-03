@@ -294,6 +294,30 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function avgpool2d
 
+    module function avgpool3d(pool_width, pool_height, pool_depth, stride) result(res)
+      !! 3-d avgpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv3d`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: avgpool, layer
+      !! type(layer) :: avgpool3d_layer
+      !! avgpool3d_layer = avgpool(2, 2, 2, 2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: pool_height
+        !! Height of the pooling window, commonly equal to `pool_width`
+      integer, intent(in) :: pool_depth
+        !! Depth of the pooling window, commonly equal to `pool_width`
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`
+      type(layer) :: res
+        !! Resulting layer instance
+    end function avgpool3d
+
   end interface avgpool
 
 
@@ -345,6 +369,32 @@ module nf_layer_constructors
         !! Resulting layer instance
     end function maxpool2d
 
+    module function maxpool3d(pool_width, pool_height, pool_depth, stride) result(res)
+      !! 3-d maxpooling layer constructor.
+      !!
+      !! This layer is for downscaling other layers, typically `conv3d`.
+      !!
+      !! This specific function is available under a generic name `maxpool`.
+      !!
+      !! Example:
+      !!
+      !! ```
+      !! use nf, only :: maxpool, layer
+      !! type(layer) :: maxpool3d_layer
+      !! maxpool3d_layer = maxpool(pool_width=2, pool_height=2, pool_depth=2, stride=2)
+      !! ```
+      integer, intent(in) :: pool_width
+        !! Width of the pooling window, commonly 2
+      integer, intent(in) :: pool_height
+        !! Height of the pooling window; currently must be equal to pool_width
+      integer, intent(in) :: pool_depth
+        !! Depth of the pooling window; currently must be equal to pool_width
+      integer, intent(in) :: stride
+        !! Stride of the pooling window, commonly equal to `pool_width`;
+      type(layer) :: res
+        !! Resulting layer instance
+    end function maxpool3d
+
   end interface maxpool
   
 
@@ -365,6 +415,14 @@ module nf_layer_constructors
       type(layer) :: res
         !! Resulting layer instance
     end function reshape3d
+
+    module function reshape4d(dim1, dim2, dim3, dim4) result(res)
+      !! Rank-1 to rank-4 reshape layer constructor.
+      integer, intent(in) :: dim1, dim2, dim3, dim4
+        !! Shape of the output
+      type(layer) :: res
+        !! Resulting layer instance
+    end function reshape4d
 
   end interface reshape
 

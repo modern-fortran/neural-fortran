@@ -3,6 +3,7 @@ add_library(tuff tuff.f90)
 foreach(execid
   avgpool1d_layer
   avgpool2d_layer
+  avgpool3d_layer
   input1d_layer
   input2d_layer
   input3d_layer
@@ -17,10 +18,12 @@ foreach(execid
   locally_connected2d_layer
   maxpool1d_layer
   maxpool2d_layer
+  maxpool3d_layer
   flatten_layer
   insert_flatten
   reshape_layer
   reshape2d_layer
+  reshape4d_layer
   multihead_attention_layer
   embedding_layer
   layernorm

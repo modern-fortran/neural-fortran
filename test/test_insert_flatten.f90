@@ -65,6 +65,29 @@ program test_insert_flatten
     write(stderr, '(a)') 'flatten layer inserted after conv3d.. failed'
   end if
 
+  net = network([ &
+    input(1, 8, 8, 8), &
+    conv(filters=1, kernel_width=3, kernel_height=3, kernel_depth=3), &
+    maxpool(pool_width=2, pool_height=2, pool_depth=2, stride=2), &
+    dense(10) &
+  ])
+
+  if (.not. net % layers(4) % name == 'flatten') then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer inserted after maxpool3d.. failed'
+  end if
+
+  net = network([ &
+    input(64), &
+    reshape(1, 4, 4, 4), &
+    dense(4) &
+  ])
+
+  if (.not. net % layers(3) % name == 'flatten') then
+    ok = .false.
+    write(stderr, '(a)') 'flatten layer inserted after reshape4d.. failed'
+  end if
+
   if (ok) then
     print '(a)', 'test_insert_flatten: All tests passed.'
   else

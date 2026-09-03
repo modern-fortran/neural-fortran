@@ -11,10 +11,13 @@ submodule(nf_network) nf_network_submodule
   use nf_input3d_layer, only: input3d_layer
   use nf_input4d_layer, only: input4d_layer
   use nf_locally_connected2d_layer, only: locally_connected2d_layer
+  use nf_avgpool3d_layer, only: avgpool3d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_maxpool3d_layer, only: maxpool3d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape3d_layer, only: reshape3d_layer
+  use nf_reshape4d_layer, only: reshape4d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
@@ -61,12 +64,13 @@ contains
     !TODO   input1d -> dense
     !TODO   dense -> dense
     !TODO   input3d -> conv2d, maxpool2d, flatten
-    !TODO   input4d -> conv3d, flatten
+    !TODO   input4d -> conv3d, maxpool3d, avgpool3d, flatten
     !TODO   conv2d -> conv2d, maxpool2d, flatten
-    !TODO   conv3d -> conv3d, flatten
+    !TODO   conv3d -> conv3d, maxpool3d, avgpool3d, flatten
     !TODO   maxpool2d -> conv2d, maxpool2d, flatten
+    !TODO   maxpool3d -> conv3d, maxpool3d, flatten
     !TODO   flatten -> dense
-    !TODO   reshape -> conv2d, maxpool2d
+    !TODO   reshape -> conv2d, maxpool2d, conv3d
 
     res % layers = layers
 
@@ -87,6 +91,15 @@ contains
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(input4d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(maxpool3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(avgpool3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(reshape4d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(locally_connected2d_layer)
@@ -192,6 +205,12 @@ contains
         type is(conv2d_layer)
           call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         type is(conv3d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(maxpool3d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(avgpool3d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(reshape4d_layer)
           call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         type is(flatten_layer)
           if (size(self % layers(n) % layer_shape) == 2) then
@@ -629,6 +648,10 @@ contains
       type is(conv2d_layer)
         output(1:size(output_layer % output)) => output_layer % output
       type is(conv3d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is(maxpool3d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is(avgpool3d_layer)
         output(1:size(output_layer % output)) => output_layer % output
       type is (dense_layer)
         output => output_layer % output
