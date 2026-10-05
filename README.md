@@ -297,7 +297,7 @@ supports training and inference of convolutional networks.
 is an implementation based on old (v0.1.0) neural-fortran which optimizes for
 speed and running on GPUs the memory layout and forward and backward passes of
 dense layers.
-* [Inference Engine](https://github.com/BerkeleyLab/inference-engine) developed
+* [Fiats](https://github.com/BerkeleyLab/fiats) developed
 at the Berkeley Lab by the Computer Languages and Systems Software (CLaSS)
 group.
 
