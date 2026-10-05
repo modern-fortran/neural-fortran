@@ -2,17 +2,22 @@ submodule(nf_network) nf_network_submodule
 
   use nf_conv1d_layer, only: conv1d_layer
   use nf_conv2d_layer, only: conv2d_layer
+  use nf_conv3d_layer, only: conv3d_layer
   use nf_dense_layer, only: dense_layer
   use nf_dropout_layer, only: dropout_layer
   use nf_flatten_layer, only: flatten_layer
   use nf_input1d_layer, only: input1d_layer
   use nf_input2d_layer, only: input2d_layer
   use nf_input3d_layer, only: input3d_layer
+  use nf_input4d_layer, only: input4d_layer
   use nf_locally_connected2d_layer, only: locally_connected2d_layer
+  use nf_avgpool3d_layer, only: avgpool3d_layer
   use nf_maxpool1d_layer, only: maxpool1d_layer
   use nf_maxpool2d_layer, only: maxpool2d_layer
+  use nf_maxpool3d_layer, only: maxpool3d_layer
   use nf_reshape2d_layer, only: reshape2d_layer
   use nf_reshape3d_layer, only: reshape3d_layer
+  use nf_reshape4d_layer, only: reshape4d_layer
   use nf_linear2d_layer, only: linear2d_layer
   use nf_self_attention_layer, only: self_attention_layer
   use nf_embedding_layer, only: embedding_layer
@@ -59,10 +64,13 @@ contains
     !TODO   input1d -> dense
     !TODO   dense -> dense
     !TODO   input3d -> conv2d, maxpool2d, flatten
+    !TODO   input4d -> conv3d, maxpool3d, avgpool3d, flatten
     !TODO   conv2d -> conv2d, maxpool2d, flatten
+    !TODO   conv3d -> conv3d, maxpool3d, avgpool3d, flatten
     !TODO   maxpool2d -> conv2d, maxpool2d, flatten
+    !TODO   maxpool3d -> conv3d, maxpool3d, flatten
     !TODO   flatten -> dense
-    !TODO   reshape -> conv2d, maxpool2d
+    !TODO   reshape -> conv2d, maxpool2d, conv3d
 
     res % layers = layers
 
@@ -77,6 +85,21 @@ contains
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(conv2d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(conv3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(input4d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(maxpool3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(avgpool3d_layer)
+              res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
+              n = n + 1
+            type is(reshape4d_layer)
               res % layers = [res % layers(:n-1), flatten(), res % layers(n:)]
               n = n + 1
             type is(locally_connected2d_layer)
@@ -181,11 +204,21 @@ contains
           call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         type is(conv2d_layer)
           call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(conv3d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(maxpool3d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(avgpool3d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
+        type is(reshape4d_layer)
+          call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
         type is(flatten_layer)
           if (size(self % layers(n) % layer_shape) == 2) then
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_2d)
-          else
+          else if (size(self % layers(n) % layer_shape) == 3) then
             call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_3d)
+          else
+            call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient_4d)
           end if
         type is(maxpool2d_layer)
           call self % layers(n) % backward(self % layers(n - 1), next_layer % gradient)
@@ -308,6 +341,23 @@ contains
   end subroutine forward_3d
 
 
+  module subroutine forward_4d(self, input)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:,:,:)
+    integer :: n
+
+    ! Set the input array into the input layer
+    select type(input_layer => self % layers(1) % p); type is(input4d_layer)
+      call input_layer % set(input)
+    end select
+
+    do n = 2, size(self % layers)
+      call self % layers(n) % forward(self % layers(n - 1))
+    end do
+
+  end subroutine forward_4d
+
+
   module function predict_1d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:)
@@ -422,6 +472,37 @@ contains
   end function predict_3d
 
 
+  module function predict_4d(self, input) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:,:,:)
+    real, allocatable :: res(:)
+    integer :: n, num_layers
+
+    num_layers = size(self % layers)
+
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false, and
+    ! return to training mode after inference.
+    call self % set_training_mode(.false.)
+    call self % forward(input)
+    call self % set_training_mode(.true.)
+
+    select type(output_layer => self % layers(num_layers) % p)
+      type is(conv3d_layer)
+        !FIXME flatten the result for now; find a better solution
+        res = pack(output_layer % output, .true.)
+      type is(dense_layer)
+        res = output_layer % output
+      type is(flatten_layer)
+        res = output_layer % output
+      class default
+        error stop 'network % output not implemented for ' // &
+          trim(self % layers(num_layers) % name) // ' layer'
+    end select
+
+  end function predict_4d
+
+
   module function predict_batch_1d(self, input) result(res)
     class(network), intent(in out) :: self
     real, intent(in) :: input(:,:)
@@ -505,6 +586,49 @@ contains
   end function predict_batch_3d
 
 
+  module function predict_batch_4d(self, input) result(res)
+    class(network), intent(in out) :: self
+    real, intent(in) :: input(:,:,:,:,:)
+    real, allocatable :: res(:,:)
+    integer :: i, n, batch_size, num_layers, output_size
+
+    num_layers = size(self % layers)
+    batch_size = size(input, dim=rank(input))
+    output_size = product(self % layers(num_layers) % layer_shape)
+
+    ! predict is run in inference mode only;
+    ! set all dropout layers' training mode to false, and
+    ! return to training mode after inference.
+    call self % set_training_mode(.false.)
+
+    allocate(res(output_size, batch_size))
+
+    batch: do i = 1, batch_size
+
+      call self % forward(input(:,:,:,:,i))
+
+      select type(output_layer => self % layers(num_layers) % p)
+        type is(conv3d_layer)
+          !FIXME flatten the result for now; find a better solution
+          res(:,i) = pack(output_layer % output, .true.)
+        type is(dense_layer)
+          res(:,i) = output_layer % output
+        type is(flatten_layer)
+          res(:,i) = output_layer % output
+        class default
+          error stop 'network % output not implemented for ' // &
+            trim(self % layers(num_layers) % name) // ' layer'
+      end select
+
+    end do batch
+
+    ! We are now done with inference;
+    ! return to training mode for dropout layers.
+    call self % set_training_mode(.true.)
+
+  end function predict_batch_4d
+
+
   module subroutine print_info(self)
     class(network), intent(in) :: self
     call self % layers % print_info()
@@ -522,6 +646,12 @@ contains
       type is (conv1d_layer)
         output(1:size(output_layer % output)) => output_layer % output
       type is(conv2d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is(conv3d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is(maxpool3d_layer)
+        output(1:size(output_layer % output)) => output_layer % output
+      type is(avgpool3d_layer)
         output(1:size(output_layer % output)) => output_layer % output
       type is (dense_layer)
         output => output_layer % output
@@ -710,6 +840,9 @@ contains
         type is(conv2d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
+        type is(conv3d_layer)
+          call co_sum(this_layer % dw)
+          call co_sum(this_layer % db)
         type is(conv1d_layer)
           call co_sum(this_layer % dw)
           call co_sum(this_layer % db)
@@ -737,6 +870,13 @@ contains
           this_layer % dw = 0
           this_layer % db = 0
         type is(conv2d_layer)
+          call this_layer % get_params_ptr(weights, biases)
+          call this_layer % get_gradients_ptr(dw, db)
+          call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)
+          call self % layers(n) % optimizer % minimize(biases, db / batch_size_)
+          this_layer % dw = 0
+          this_layer % db = 0
+        type is(conv3d_layer)
           call this_layer % get_params_ptr(weights, biases)
           call this_layer % get_gradients_ptr(dw, db)
           call self % layers(n) % optimizer % minimize(weights, dw / batch_size_)

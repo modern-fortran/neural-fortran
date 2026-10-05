@@ -21,11 +21,15 @@ add_library(neural-fortran
   src/nf/nf_avgpool1d_layer_submodule.f90
   src/nf/nf_avgpool2d_layer.f90
   src/nf/nf_avgpool2d_layer_submodule.f90
+  src/nf/nf_avgpool3d_layer.f90
+  src/nf/nf_avgpool3d_layer_submodule.f90
   src/nf/nf_base_layer.f90
   src/nf/nf_conv1d_layer.f90
   src/nf/nf_conv1d_layer_submodule.f90
   src/nf/nf_conv2d_layer.f90
   src/nf/nf_conv2d_layer_submodule.f90
+  src/nf/nf_conv3d_layer.f90
+  src/nf/nf_conv3d_layer_submodule.f90
   src/nf/nf_cross_attention_layer.f90
   src/nf/nf_datasets.f90
   src/nf/nf_datasets_submodule.f90
@@ -41,6 +45,8 @@ add_library(neural-fortran
   src/nf/nf_input2d_layer_submodule.f90
   src/nf/nf_input3d_layer.f90
   src/nf/nf_input3d_layer_submodule.f90
+  src/nf/nf_input4d_layer.f90
+  src/nf/nf_input4d_layer_submodule.f90
   src/nf/nf_layer_constructors.f90
   src/nf/nf_layer_constructors_submodule.f90
   src/nf/nf_layernorm.f90
@@ -59,6 +65,8 @@ add_library(neural-fortran
   src/nf/nf_maxpool1d_layer_submodule.f90
   src/nf/nf_maxpool2d_layer.f90
   src/nf/nf_maxpool2d_layer_submodule.f90
+  src/nf/nf_maxpool3d_layer.f90
+  src/nf/nf_maxpool3d_layer_submodule.f90
   src/nf/nf_metrics.f90
   src/nf/nf_multihead_attention_layer.f90
   src/nf/nf_multihead_attention_layer_submodule.f90
@@ -72,6 +80,8 @@ add_library(neural-fortran
   src/nf/nf_reshape2d_layer_submodule.f90
   src/nf/nf_reshape3d_layer.f90
   src/nf/nf_reshape3d_layer_submodule.f90
+  src/nf/nf_reshape4d_layer.f90
+  src/nf/nf_reshape4d_layer_submodule.f90
   src/nf/nf_self_attention_layer.f90
   src/nf/io/nf_io_binary.f90
   src/nf/io/nf_io_binary_submodule.f90
