@@ -15,7 +15,7 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 ## Features
 
-* Training and inference of dense (fully connected), convolutional (1-d and 2-d),
+* Training and inference of dense (fully connected), convolutional (1-d, 2-d, and 3-d),
   and transformer neural networks
 * Stochastic gradient descent optimizers: Classic, momentum, Nesterov momentum,
   RMSProp, Adagrad, Adam, AdamW
@@ -29,12 +29,12 @@ Read the paper [here](https://arxiv.org/abs/1902.06714).
 
 | Layer type | Constructor name | Supported input layers | Rank of output array | Forward pass | Backward pass |
 |------------|------------------|------------------------|----------------------|--------------|---------------|
-| Input | `input` | n/a | 1, 2, 3 | n/a | n/a |
+| Input | `input` | n/a | 1, 2, 3, 4 | n/a | n/a |
 | Embedding | `embedding` | n/a | 2 | ✅ | ✅ |
 | Dense (fully-connected) | `dense` | `input`, `dense`, `dropout`, `flatten` | 1 | ✅ | ✅ |
 | Dropout | `dropout` | `dense`, `flatten`, `input1d` | 1 | ✅ | ✅ |
 | Locally connected (2-d) | `locally_connected` | `input`, `locally_connected`, `conv`, `avgpool`, `maxpool`, `reshape` | 2 | ✅ | ✅ |
-| Convolutional (1-d and 2-d) | `conv` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
+| Convolutional (1-d, 2-d, and 3-d) | `conv` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3, 4 | ✅ | ✅ |
 | Average pooling (1-d and 2-d) | `avgpool` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
 | Max-pooling (1-d and 2-d) | `maxpool` | `input`, `conv`, `avgpool`, `maxpool`, `reshape` | 2, 3 | ✅ | ✅ |
 | Linear (2-d) | `linear2d` | `input`, `layernorm`, `linear2d`, `self_attention` | 2 | ✅ | ✅ |

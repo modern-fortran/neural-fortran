@@ -13,13 +13,14 @@ module nf_flatten_layer
 
   type, extends(base_layer) :: flatten_layer
 
-    !! Concrete implementation of a flatten (3-d to 1-d) layer.
+    !! Concrete implementation of a flatten (2-d, 3-d or 4-d to 1-d) layer.
 
     integer, allocatable :: input_shape(:)
     integer :: output_size
 
     real, allocatable :: gradient_2d(:,:)
     real, allocatable :: gradient_3d(:,:,:)
+    real, allocatable :: gradient_4d(:,:,:,:)
     real, allocatable :: output(:)
 
   contains

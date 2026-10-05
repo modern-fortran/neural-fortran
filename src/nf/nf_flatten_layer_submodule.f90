@@ -23,6 +23,8 @@ contains
         self % gradient_2d = reshape(gradient, shape(input))
       rank(3)
         self % gradient_3d = reshape(gradient, shape(input))
+      rank(4)
+        self % gradient_4d = reshape(gradient, shape(input))
       rank default
         error stop "Unsupported rank of input"
     end select
@@ -36,6 +38,8 @@ contains
       rank(2)
         self % output = pack(input, .true.)
       rank(3)
+        self % output = pack(input, .true.)
+      rank(4)
         self % output = pack(input, .true.)
       rank default
         error stop "Unsupported rank of input"
@@ -56,6 +60,9 @@ contains
     else if (size(input_shape) == 3) then
       allocate(self % gradient_3d(input_shape(1), input_shape(2), input_shape(3)))
       self % gradient_3d = 0
+    else if (size(input_shape) == 4) then
+      allocate(self % gradient_4d(input_shape(1), input_shape(2), input_shape(3), input_shape(4)))
+      self % gradient_4d = 0
     end if
 
     allocate(self % output(self % output_size))

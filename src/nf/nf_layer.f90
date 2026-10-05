@@ -37,12 +37,14 @@ module nf_layer
     procedure, private :: backward_1d
     procedure, private :: backward_2d
     procedure, private :: backward_3d
+    procedure, private :: backward_4d
     procedure, private :: get_output_1d
     procedure, private :: get_output_2d
     procedure, private :: get_output_3d
+    procedure, private :: get_output_4d
 
-    generic :: backward => backward_1d, backward_2d, backward_3d
-    generic :: get_output => get_output_1d, get_output_2d, get_output_3d
+    generic :: backward => backward_1d, backward_2d, backward_3d, backward_4d
+    generic :: get_output => get_output_1d, get_output_2d, get_output_3d, get_output_4d
 
   end type layer
 
@@ -87,6 +89,19 @@ module nf_layer
         !! Array of gradient values from the next layer
     end subroutine backward_3d
 
+    pure module subroutine backward_4d(self, previous, gradient)
+      !! Apply a backward pass on the layer.
+      !! This changes the internal state of the layer.
+      !! This is normally called internally by the `network % backward`
+      !! method.
+      class(layer), intent(in out) :: self
+        !! Layer instance
+      class(layer), intent(in) :: previous
+        !! Previous layer instance
+      real, intent(in) :: gradient(:,:,:,:)
+        !! Array of gradient values from the next layer
+    end subroutine backward_4d
+
   end interface backward
 
   interface
@@ -126,6 +141,15 @@ module nf_layer
       real, allocatable, intent(out) :: output(:,:,:)
         !! Output values from this layer
     end subroutine get_output_3d
+
+    pure module subroutine get_output_4d(self, output)
+      !! Returns the output values (activations) from a layer with a 4-d output
+      !! (e.g. input4d, conv3d)
+      class(layer), intent(in) :: self
+        !! Layer instance
+      real, allocatable, intent(out) :: output(:,:,:,:)
+        !! Output values from this layer
+    end subroutine get_output_4d
 
     impure elemental module subroutine init(self, input)
       !! Initialize the layer, using information from the input layer,
