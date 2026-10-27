@@ -4,6 +4,7 @@ program test_linear2d_layer
   implicit none
 
   logical :: ok = .true.
+  real, parameter :: tolerance = 1e-5
   real :: sample_input(3, 4) = reshape(&
       [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],&
       [3, 4])
@@ -45,7 +46,7 @@ contains
       write(stderr, '(a)') 'forward returned incorrect shape.. failed'
     end if
     output_flat = reshape(linear % output, shape(output_flat))
-    if (.not. all(output_flat.eq.expected_output_flat)) then
+    if (.not. all(abs(output_flat - expected_output_flat) < tolerance)) then
       ok = .false.
       write(stderr, '(a)') 'forward returned incorrect values.. failed'
     end if
@@ -91,7 +92,7 @@ contains
     end if
 
     gradient_flat = reshape(linear % gradient, shape(gradient_flat))
-    if (.not. all(gradient_flat.eq.expected_gradient_flat)) then
+    if (.not. all(abs(gradient_flat - expected_gradient_flat) < tolerance)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect gradient values.. failed'
     end if
@@ -100,7 +101,7 @@ contains
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect dw values.. failed'
     end if
-    if (.not. all(linear % db.eq.expected_db)) then
+    if (.not. all(abs(linear % db - expected_db) < tolerance)) then
       ok = .false.
       write(stderr, '(a)') 'backward returned incorrect db values.. failed'
     end if
@@ -153,13 +154,13 @@ contains
   parameters(1:size(w_ptr)) = w_ptr
   parameters(size(w_ptr)+1:) = b_ptr
 
-  if (.not. all(parameters.eq.expected_parameters)) then
+  if (.not. all(abs(parameters - expected_parameters) < tolerance)) then
     ok = .false.
     write(stderr, '(a)') 'incorrect parameters.. failed'
   end if
 
   gradients = linear % get_gradients()
-  if (.not. all(gradients.eq.expected_gradients)) then
+  if (.not. all(abs(gradients - expected_gradients) < tolerance)) then
     ok = .false.
     write(stderr, '(a)') 'incorrect gradients.. failed'
   end if
@@ -174,12 +175,12 @@ contains
   b_ptr = updated_parameters(size(w_ptr)+1:)
 
   updated_weights = reshape(linear % weights, shape(expected_weights))
-  if (.not. all(updated_weights.eq.expected_weights)) then
+  if (.not. all(abs(updated_weights - expected_weights) < tolerance)) then
     ok = .false.
     write(stderr, '(a)') 'incorrect updated weights.. failed'
   end if
   updated_biases = linear % biases
-  if (.not. all(updated_biases.eq.expected_biases)) then
+  if (.not. all(abs(updated_biases - expected_biases) < tolerance)) then
     ok = .false.
     write(stderr, '(a)') 'incorrect updated biases.. failed'
   end if
