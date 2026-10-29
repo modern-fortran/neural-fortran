@@ -158,26 +158,27 @@ contains
 
     dw = 0
     self % gradient = 0
-    do concurrent( &
-      n = 1:self % filters, &
-      k = 1:self % channels, &
-      i = 1:self % width, &
-      j = 1:self % height &
-    )
-      ! Start and end indices of the input data on the filter window
-      iws = istart + self % stride(1) * (i-1) - half_window ! TODO kernel_width
-      iwe = min(iws + 2*half_window, input_width)           ! TODO kernel_width
+    ! Both gradients are reductions: windows overlap and filters share inputs.
+    do j = 1, self % height
+      do i = 1, self % width
+        ! Start and end indices of the input data on the filter window
+        iws = istart + self % stride(1) * (i-1) - half_window ! TODO kernel_width
+        iwe = min(iws + 2*half_window, input_width)           ! TODO kernel_width
 
-      jws = jstart + self % stride(2) * (j-1) - half_window ! TODO kernel_height
-      jwe = min(jws + 2*half_window, input_height)          ! TODO kernel_height
+        jws = jstart + self % stride(2) * (j-1) - half_window ! TODO kernel_height
+        jwe = min(jws + 2*half_window, input_height)          ! TODO kernel_height
 
-      ! dL/dw = sum(gdz * x)
-      dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * gdz(n,i,j)
+        do k = 1, self % channels
+          do n = 1, self % filters
+            ! dL/dw = sum(gdz * x)
+            dw(n,k,:,:) = dw(n,k,:,:) + input(k,iws:iwe,jws:jwe) * gdz(n,i,j)
 
-      ! dL/dx = sum(gdz * w)
-      self % gradient(k,iws:iwe,jws:jwe) = self % gradient(k,iws:iwe,jws:jwe) &
-        + gdz(n,i,j) * self % kernel(n,k,:,:)
-
+            ! dL/dx = sum(gdz * w)
+            self % gradient(k,iws:iwe,jws:jwe) = self % gradient(k,iws:iwe,jws:jwe) &
+              + gdz(n,i,j) * self % kernel(n,k,:,:)
+          end do
+        end do
+      end do
     end do
 
     self % dw = self % dw + dw
