@@ -122,11 +122,10 @@ contains
     real, intent(in) :: gradient(:,:,:)
     real :: db(self % filters)
     real :: dw(self % filters, self % channels, self % kernel_size, self % kernel_size)
-    real :: gdz(self % filters, size(input, 2), size(input, 3))
+    real :: gdz(self % filters, self % width, self % height)
     integer :: i, j, k, n
     integer :: input_channels, input_width, input_height
-    integer :: istart, iend
-    integer :: jstart, jend
+    integer :: istart, jstart
     integer :: iws, iwe, jws, jwe
     integer :: half_window
 
@@ -143,13 +142,10 @@ contains
     ! of the input that correspond to the center of each window.
     istart = half_window + 1 ! TODO kernel_width
     jstart = half_window + 1 ! TODO kernel_height
-    iend = input_width - istart + 1
-    jend = input_height - jstart + 1
 
     ! z = w .inner. x + b
     ! gdz = dL/dy * sigma'(z)
-    gdz = 0
-    gdz(:,istart:iend,jstart:jend) = gradient * self % activation % eval_prime(self % z)
+    gdz = gradient * self % activation % eval_prime(self % z)
 
     ! dL/db = sum(dL/dy * sigma'(z))
     do concurrent (n = 1:self % filters)

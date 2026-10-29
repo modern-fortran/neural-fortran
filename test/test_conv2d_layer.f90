@@ -94,6 +94,7 @@ program test_conv2d_layer
   end if
 
   call check_pointwise_gradients()
+  call check_window_gradients()
 
   ! Summary
   if (ok) then
@@ -151,5 +152,81 @@ contains
      write(stderr, '(a)') 'conv2d backward accumulates parameter gradients but resets input gradients.. failed'
    end if
  end subroutine check_pointwise_gradients
+
+ subroutine check_window_gradients()
+   type(conv2d_layer) :: convolution
+   real :: x(2,4,5), downstream(2,2,3)
+   real :: dx(2,4,5), dw(2,2,3,3), db(2)
+   real, parameter :: step = 1./128, gradient_tolerance = 2e-4
+   real :: saved, plus, minus, numerical, max_error
+   integer :: i, j, k, n
+
+   convolution = conv2d_layer(2, 3, relu(), [1,1])
+   call convolution % init(shape(x))
+   x = reshape([(real(i)/32, i=1,size(x))], shape(x))
+   downstream = reshape([(real(i)/16, i=1,size(downstream))], shape(downstream))
+   convolution % kernel = reshape([(real(i)/64, i=1,size(dw))], shape(dw))
+   convolution % biases = 1
+   call convolution % forward(x)
+   if (any(convolution % z <= 0)) error stop 'gradient test requires positive ReLU inputs'
+   call convolution % backward(x, downstream)
+   dx = convolution % gradient
+   dw = convolution % dw
+   db = convolution % db
+
+   ! Finite differences of sum(output * downstream), away from the ReLU kink.
+   max_error = 0
+   do j = 1, size(x,3)
+     do i = 1, size(x,2)
+       do k = 1, size(x,1)
+         saved = x(k,i,j)
+         x(k,i,j) = saved + step
+         plus = weighted_output(convolution, x, downstream)
+         x(k,i,j) = saved - step
+         minus = weighted_output(convolution, x, downstream)
+         x(k,i,j) = saved
+         numerical = (plus - minus) / (2*step)
+         max_error = max(max_error, abs(dx(k,i,j) - numerical) / (1 + abs(numerical)))
+       end do
+     end do
+   end do
+   do j = 1, 3
+     do i = 1, 3
+       do k = 1, 2
+         do n = 1, 2
+           saved = convolution % kernel(n,k,i,j)
+           convolution % kernel(n,k,i,j) = saved + step
+           plus = weighted_output(convolution, x, downstream)
+           convolution % kernel(n,k,i,j) = saved - step
+           minus = weighted_output(convolution, x, downstream)
+           convolution % kernel(n,k,i,j) = saved
+           numerical = (plus - minus) / (2*step)
+           max_error = max(max_error, abs(dw(n,k,i,j) - numerical) / (1 + abs(numerical)))
+         end do
+       end do
+     end do
+   end do
+   do n = 1, 2
+     saved = convolution % biases(n)
+     convolution % biases(n) = saved + step
+     plus = weighted_output(convolution, x, downstream)
+     convolution % biases(n) = saved - step
+     minus = weighted_output(convolution, x, downstream)
+     convolution % biases(n) = saved
+     numerical = (plus - minus) / (2*step)
+     max_error = max(max_error, abs(db(n) - numerical) / (1 + abs(numerical)))
+   end do
+   if (max_error > gradient_tolerance) then
+     ok = .false.
+     write(stderr, '(a,es12.4)') 'conv2d backward finite-difference gradient error: ', max_error
+   end if
+ end subroutine check_window_gradients
+
+ real function weighted_output(convolution, x, downstream) result(loss)
+   type(conv2d_layer), intent(in out) :: convolution
+   real, intent(in) :: x(:,:,:), downstream(:,:,:)
+   call convolution % forward(x)
+   loss = sum(convolution % output * downstream)
+ end function weighted_output
 
 end program test_conv2d_layer
