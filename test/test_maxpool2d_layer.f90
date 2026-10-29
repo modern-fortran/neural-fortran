@@ -8,6 +8,7 @@ program test_maxpool2d_layer
   implicit none
 
   type(layer) :: maxpool_layer, input_layer
+  type(maxpool2d_layer) :: overlapping_layer
   integer, parameter :: pool_size = 2, stride = 2
   integer, parameter :: channels = 3, width = 32
   integer, parameter :: input_shape(3) = [channels, width, width]
@@ -92,6 +93,47 @@ program test_maxpool2d_layer
     ok = .false.
     write(stderr, '(a)') 'maxpool2d layer backward pass produces the correct dL/dx.. failed'
   end if
+
+  ! A second input moves every maximum to the other corner of its window.
+  sample_input = -sample_input
+  select type(this_layer => input_layer % p); type is(input3d_layer)
+    call this_layer % set(sample_input)
+  end select
+  call maxpool_layer % forward(input_layer)
+  call maxpool_layer % backward(input_layer, gradient)
+  gradient_ok = .true.
+  select type(this_layer => maxpool_layer % p); type is(maxpool2d_layer)
+    do j = 1, width
+      do i = 1, width
+        if (mod(i,2) == 1 .and. mod(j,2) == 1) then
+          if (any(this_layer % gradient(:,i,j) /= gradient(:,(i+1)/2,(j+1)/2))) ok = .false.
+        else
+          if (any(this_layer % gradient(:,i,j) /= 0)) then
+            gradient_ok = .false.
+          end if
+        end if
+      end do
+    end do
+  end select
+  if (.not. gradient_ok) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool2d backward must clear gradients at previous maxima.. failed'
+  end if
+
+  ! Isolate backward with saved maxima shared by four overlapping windows.
+  overlapping_layer = maxpool2d_layer(pool_size=2, stride=1)
+  call overlapping_layer % init([2, 3, 3])
+  overlapping_layer % maxloc_x = 2
+  overlapping_layer % maxloc_y = 2
+  call overlapping_layer % backward(reshape([(real(i), i=1,18)], [2,3,3]), &
+    reshape([1., 2., 3., 4., 5., 6., 7., 8.], [2,2,2]))
+  if (any(overlapping_layer % gradient(:,2,2) /= [16., 20.]) .or. &
+      sum(overlapping_layer % gradient) /= 36.) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool2d backward must sum gradients at shared maxima.. failed'
+  end if
+  overlapping_layer % gradient(:,2,2) = 0
+  if (any(overlapping_layer % gradient /= 0)) ok = .false.
 
   if (ok) then
     print '(a)', 'test_maxpool2d_layer: All tests passed.'

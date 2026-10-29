@@ -95,13 +95,16 @@ contains
     width = gradient_shape(2)
     height = gradient_shape(3)
 
-    ! The gradient of a max-pooling layer is just a value of the downstream
-    ! gradient at the location of the maximum value, stored during the
-    ! forward pass.
-    do concurrent(n = 1:channels, i = 1:width, j = 1:height)
-      associate(ii => self % maxloc_x(n,i,j), jj => self % maxloc_y(n,i,j))
-        self % gradient(n,ii,jj) = gradient(n,i,j)
-      end associate
+    self % gradient = 0
+    ! Overlapping windows can share a maximum, so accumulate within each channel.
+    do concurrent(n = 1:channels)
+      do j = 1, height
+        do i = 1, width
+          associate(ii => self % maxloc_x(n,i,j), jj => self % maxloc_y(n,i,j))
+            self % gradient(n,ii,jj) = self % gradient(n,ii,jj) + gradient(n,i,j)
+          end associate
+        end do
+      end do
     end do
 
   end subroutine backward
