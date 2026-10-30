@@ -23,6 +23,7 @@ foreach(execid
   embedding_layer
   layernorm
   dense_network
+  datasets_cifar
   get_set_network_params
   conv1d_network
   conv2d_network

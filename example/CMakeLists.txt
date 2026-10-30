@@ -8,6 +8,8 @@ foreach(execid
   sine
   quadratic
   mha_simple
+  cifar10
+  cifar100
 )
   add_executable(${execid} ${execid}.f90)
   target_link_libraries(${execid} PRIVATE
