@@ -672,7 +672,7 @@ contains
     print '("Output shape: ", *(i0, 1x))', self % layer_shape
     if (.not. self % name == 'dropout') &
       print '("Parameters: ", i0)', self % get_num_params()
-    if (.not. (self % name == 'input' .or. self % name == 'dropout')) &
+    if (allocated(self % activation)) &
       print '("Activation: ", a)', self % activation
     select type (this_layer => self % p)
       type is (dropout_layer)
