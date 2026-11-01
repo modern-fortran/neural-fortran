@@ -18,7 +18,7 @@ contains
     integer, intent(in) :: input_shape(:)
 
     self % channels = input_shape(1)
-    self % width = input_shape(2) / self % stride
+    self % width = (input_shape(2) - self % pool_size) / self % stride + 1
 
     allocate(self % maxloc(self % channels, self % width))
     self % maxloc = 0
@@ -43,13 +43,13 @@ contains
 
     input_width = size(input, dim=2)
 
-    iextent = input_width - mod(input_width, self % stride)
+    iextent = input_width - self % pool_size + 1
 
     ! Stride along the width of the input
     stride_over_input: do concurrent(i = 1:iextent:self % stride)
       
       ! Index of the pooling layer
-      ii = i / self % stride + 1
+      ii = (i - 1) / self % stride + 1
       iend = i + self % pool_size - 1
       
       maxpool_for_each_channel: do concurrent(n = 1:self % channels)
@@ -78,9 +78,13 @@ contains
     channels = gradient_shape(1)
     width = gradient_shape(2)
 
-    ! The gradient of a max-pooling layer is assigned to the stored max locations
-    do concurrent(n = 1:channels, i = 1:width)
-      self % gradient(n, self % maxloc(n,i)) = gradient(n,i)
+    ! Overlapping windows can share a maximum, so accumulate within each channel.
+    self % gradient = 0
+    do concurrent(n = 1:channels)
+      do i = 1, width
+        self % gradient(n, self % maxloc(n,i)) = &
+          self % gradient(n, self % maxloc(n,i)) + gradient(n,i)
+      end do
     end do
   
   end subroutine backward

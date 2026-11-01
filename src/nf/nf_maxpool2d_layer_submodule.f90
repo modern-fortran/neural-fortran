@@ -18,8 +18,8 @@ contains
     integer, intent(in) :: input_shape(:)
 
     self % channels = input_shape(1)
-    self % width = input_shape(2) / self % stride
-    self % height = input_shape(3) / self % stride
+    self % width = (input_shape(2) - self % pool_size) / self % stride + 1
+    self % height = (input_shape(3) - self % pool_size) / self % stride + 1
 
     allocate(self % maxloc_x(self % channels, self % width, self % height))
     self % maxloc_x = 0
@@ -49,8 +49,8 @@ contains
     input_width = size(input, dim=2)
     input_height = size(input, dim=3)
 
-    iextent = input_width - mod(input_width, self % stride)
-    jextent = input_height - mod(input_height, self % stride)
+    iextent = input_width - self % pool_size + 1
+    jextent = input_height - self % pool_size + 1
 
     ! Stride along the width and height of the input image
     stride_over_input: do concurrent( &
@@ -59,8 +59,8 @@ contains
     )
 
       ! Indices of the pooling layer
-      ii = i / self % stride + 1
-      jj = j / self % stride + 1
+      ii = (i - 1) / self % stride + 1
+      jj = (j - 1) / self % stride + 1
 
       iend = i + self % pool_size - 1
       jend = j + self % pool_size - 1

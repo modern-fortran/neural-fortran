@@ -8,6 +8,7 @@ program test_maxpool1d_layer
   implicit none
 
   type(layer) :: maxpool_layer, input_layer
+  type(layer) :: overlapping_pool, small_input
   integer, parameter :: pool_size = 2, stride = 2
   integer, parameter :: channels = 3, length = 32
   integer, parameter :: input_shape(2) = [channels, length]
@@ -84,6 +85,36 @@ program test_maxpool1d_layer
     ok = .false.
     write(stderr, '(a)') 'maxpool1d layer backward pass produces the correct dL/dx.. failed'
   end if
+
+  ! Overlapping windows: a 2-wide window with stride 1 over three elements
+  ! gives two outputs, and the shared maximum collects both gradients.
+  overlapping_pool = maxpool(pool_width=2, stride=1)
+  small_input = input(1, 3)
+  call overlapping_pool % init(small_input)
+
+  if (.not. all(overlapping_pool % layer_shape == [1, 2])) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool1d layer shape for overlapping windows should be 1x2.. failed'
+  end if
+
+  select type(this_layer => small_input % p); type is(input2d_layer)
+    call this_layer % set(reshape([1., 5., 2.], [1, 3]))
+  end select
+  call overlapping_pool % forward(small_input)
+  call overlapping_pool % get_output(output)
+
+  if (.not. all(output == reshape([5., 5.], [1, 2]))) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool1d forward maxima for overlapping windows.. failed'
+  end if
+
+  call overlapping_pool % backward(small_input, reshape([1., 1.], [1, 2]))
+  select type(this_layer => overlapping_pool % p); type is(maxpool1d_layer)
+    if (.not. all(this_layer % gradient(1,:) == [0., 2., 0.])) then
+      ok = .false.
+      write(stderr, '(a)') 'maxpool1d backward must sum gradients at shared maxima.. failed'
+    end if
+  end select
 
   if (ok) then
     print '(a)', 'test_maxpool1d_layer: All tests passed.'

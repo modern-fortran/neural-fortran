@@ -8,6 +8,7 @@ program test_maxpool2d_layer
   implicit none
 
   type(layer) :: maxpool_layer, input_layer
+  type(layer) :: small_pool, small_input
   type(maxpool2d_layer) :: overlapping_layer
   integer, parameter :: pool_size = 2, stride = 2
   integer, parameter :: channels = 3, width = 32
@@ -134,6 +135,31 @@ program test_maxpool2d_layer
   end if
   overlapping_layer % gradient(:,2,2) = 0
   if (any(overlapping_layer % gradient /= 0)) ok = .false.
+
+  ! Overlapping windows: a 2x2 window with stride 1 over a 3x3 image
+  ! gives a 2x2 output, and the windows must stay inside the image.
+  small_pool = maxpool(pool_width=2, pool_height=2, stride=1)
+  small_input = input(1, 3, 3)
+  call small_pool % init(small_input)
+
+  if (.not. all(small_pool % layer_shape == [1, 2, 2])) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool2d layer shape for overlapping windows should be 2x2.. failed'
+  end if
+
+  select type(this_layer => small_input % p); type is(input3d_layer)
+    call this_layer % set(reshape([1., 2., 3., 4., 5., 6., 7., 8., 9.], [1, 3, 3]))
+  end select
+  call small_pool % forward(small_input)
+  call small_pool % get_output(output)
+
+  if (.not. all(shape(output) == [1, 2, 2])) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool2d forward output shape for overlapping windows.. failed'
+  else if (.not. all(output(1,:,:) == reshape([5., 6., 8., 9.], [2, 2]))) then
+    ok = .false.
+    write(stderr, '(a)') 'maxpool2d forward maxima for overlapping windows.. failed'
+  end if
 
   if (ok) then
     print '(a)', 'test_maxpool2d_layer: All tests passed.'
